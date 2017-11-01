@@ -7,13 +7,15 @@ devtools::document('~/cs/code/r/bhsdtr')
 devtools::install('~/cs/code/r/bhsdtr')
 library(bhsdtr)
 data(gabor)
+## Standard Stan optimizations
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
+library(plyr)
 
-## combined_response
+## Combined response has to be calculated for this dataset
 gabor$r = combined_response(gabor$stim, gabor$rating, gabor$acc)
 
-## Aggregation
+## Aggregation without information loss
 adata = aggregate_responses(gabor, 'stim', 'r', c('duration', 'id', 'order'))
 
 ## Model specification
@@ -21,7 +23,7 @@ fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
 random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 model = make_stan_model(random)
 
-## Stan data
+## Stan data structure
 sdata = make_stan_data(adata$stimulus, adata$counts, fixed, adata$data, random)
 
 ## Main model fit
@@ -31,11 +33,11 @@ fit = stan(model_code = model,
                     'delta_sd_1', 'gamma_sd_1',
                     'delta_random_1', 'gamma_random_1',
                     'Corr_delta_1', 'Corr_gamma_1',
+                    ## we want counts_new for plotting
                     'counts_new'),
            iter = 8000,
            chains = 4)
 ## save(fit, file = '~/temp/fit')
-
 load('~/temp/fit')
 
 print(fit, probs = c(.025, .957),
@@ -43,35 +45,23 @@ print(fit, probs = c(.025, .957),
                'delta_sd_1', 'gamma_sd_1',
                'Corr_delta_1', 'Corr_gamma_1'))
 
-## Wykres ROCów
+library(xtable)
+smr = as.data.frame(round(summary(fit)$summary[,c(1, 2, 3, 4, 8, 9, 10)], 2))
+smr$n_eff = as.integer(round(smr$n_eff))
+smr = smr[-grep('random', rownames(smr)),]
+smr = smr[-grep('counts_new', rownames(smr)),]
+print(xtable(smr[-nrow(smr),]), file = 'fit_table.tex')
 
-## Wykres rozkładów odpowiedzi
+## Wykresy dopasowania
+(p1 = plot_sdt_fit(fit, adata, c('order', 'duration')))
+ggsave(p1, file = 'roc_fit.pdf')
+(p2 = plot_sdt_fit(fit, adata, c('order', 'duration'), type = ''))
+ggsave(p2, file = 'response_fit.pdf')
 
-######################################################################
-## Agregujemy próbki counts według podanej formuły
-
-data = aggregate_responses(d, 'stim', 'r', c('duration', 'id', 'order'))
-alpha = .05
-s = as.data.frame(fit)
-cnt = s[,rmatch('counts_new', names(s))]
-vs = c('id', 'order', 'stim')
-## Rozszerzamy ramkę ze zmiennymi niezależnymi o indeksy odpowiedzi
-df = cbind(ddply(data$data, names(data$data), function(x)cbind(x, k = 1:ncol(data$counts))),
-           count = as.vector(t(data$counts)),
-           t(cnt))
-## Dodajemy indeks odpowiedzi do zmiennych dzielących na podzbiory
-df = ddply(df, unique(c(vs, names(df)[ncol(data$data)+1])),
-           ## Suma częstości obserwowanych i kwantyle sum częstości symulowanych z posterioru
-           function(x)c(sum(x[,names(df)[ncol(data$data)+2]]),
-                        quantile(apply(x[,(ncol(x)-nrow(cnt)+1):ncol(x)], 2, sum), c(alpha/2, .5, 1 - alpha/2))))
-## Do tego miejsca ok
-p = ggplot(df, aes(names(df)[ncol(df)-4], names(df)[ncol(df)-3], group = as.factor(stim), color = as.factor(stim))) + geom_line() + facet_wrap(~id + order)
-ggsave('test_plot.pdf', p)
-
-## Wykres dopasowania
-res = roc_points(fit, prepare_stan_data(data, fixed, random))
-p = plot_roc_fit(fit, prepare_stan_data(data, fixed, random))
-ggsave('hierarchical_fit_32_64_dm_md.pdf', p, width = 20, height = 20)
+## Oglądamy kryteria w pierwszym warunku
+crit = gamma_to_c(as.data.frame(fit))
+round(apply(crit, 2, mean), 2)
+HPDinterval(as.mcmc(crit))
 
 ######################################################################
 ## Dopasowanie do symulacji
@@ -83,7 +73,7 @@ random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 ## To będą nasze realistyczne oszacowania parametrów
 s = apply(as.data.frame(fit), 2, mean)
 ## Używamy tych samych danych do symulacji
-sdata = make_stan_data(data, fixed, random)
+sdata = make_stan_data(adata$stimulus, adata$counts, fixed, adata$data, random)
 gamma_fixed = matrix(nrow = ncol(sdata$X_gamma), ncol = sdata$K - 1)
 for(r in 1:nrow(gamma_fixed))
   gamma_fixed[r,] = s[paste('gamma_fixed[', 1:(sdata$K - 1), ',', r, ']', sep = '')]
@@ -92,7 +82,7 @@ for(r in 1:sdata$G_1)
   ##! Nie wiem, czy nie trzeba dać byrow = T
   gamma_random[[r]] = matrix(s[paste('gamma_random_1[', r, ',', 1:(sdata$K - 1), ',1]', sep = '')],
                              nrow = sdata$K - 1, ncol = sdata$Z_gamma_ncol)
-delta_fixed = s[rmatch('delta_fixed', names(s))]
+delta_fixed = s[grep('delta_fixed', names(s))]
 delta_random = matrix(nrow = sdata$G_1, ncol = sdata$Z_delta_ncol_1)
 for(r in 1:nrow(delta_random))
   for(i in 1:ncol(delta_random))
@@ -120,15 +110,17 @@ for(r in 1:nrow(data$counts))
   data_sim$counts[r,] = table(c(rMultinom(t(multinomial_p[r,]), sum(data$counts[r,])), 1:sdata$K)) - 1
 
 fit.sim = stan(model_code = make_stan_model(random),
-                 pars = c('delta_fixed', 'gamma_fixed',
+               pars = c('delta_fixed', 'gamma_fixed',
                           'delta_sd_1', 'gamma_sd_1',
-                          'delta_random_1', 'gamma_random_1'),
-                 data = make_stan_data(data_sim,
-                                          list(delta = ~ -1 + duration:order, gamma = ~ order),
-                                          list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))),
-                 chains = 4,
-                 iter = 8000)
+                        'delta_random_1', 'gamma_random_1',
+                        'counts_new'),
+               data = make_stan_data(data_sim$stimulus, data_sim$counts, list(delta = ~ -1 + duration:order, gamma = ~ order),
+                                     data_sim$data,
+                                     list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))),
+               chains = 4,
+               iter = 8000)
 ## save(fit.sim, file = '~/temp/fit.sim')
+## save(data_sim, file = '~/temp/data_sim')
 
 load('~/temp/fit.sim')
 
@@ -136,18 +128,29 @@ print(fit.sim, probs = c(.025, .957),
       pars = c('delta_fixed', 'gamma_fixed', 'delta_sd_1', 'gamma_sd_1'))
 
 ######################################################################
+## Wykresy dopasowania
+
+load('~/temp/fit.sim')
+load('~/temp/data_sim')
+
+(p1 = plot_sdt_fit(fit.sim, data_sim, c('duration', 'order')))
+ggsave('roc_sim_fit.pdf', p1)
+(p2 = plot_sdt_fit(fit.sim, data_sim, c('duration', 'order'), type = ''))
+ggsave('response_sim_fit.pdf', p2)
+
+######################################################################
 ## Porównanie oszacowań z wartościami zakładanymi w symulacji
 
 s2 = as.data.frame(fit.sim)
 
-res = as.data.frame(cbind(t(apply(s2[,rmatch('delta_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])), delta_fixed))
+res = as.data.frame(cbind(t(apply(s2[,grep('delta_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])), delta_fixed))
 names(res) = c('lo', 'fit', 'hi', 'true')
 res$in_ci = (res$true >= res$lo) & (res$true <= res$hi)
 res
 mean(res$in_ci)
 ## 1
 
-res = as.data.frame(cbind(t(apply(s2[,rmatch('gamma_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])),
+res = as.data.frame(cbind(t(apply(s2[,grep('gamma_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])),
                           as.vector(t(gamma_fixed))))
 names(res) = c('lo', 'fit', 'hi', 'true')
 res$in_ci = (res$true >= res$lo) & (res$true <= res$hi)
@@ -155,19 +158,19 @@ res
 mean(res$in_ci)
 ## 1
 
-res = as.data.frame(cbind(t(apply(s2[,rmatch('delta_random', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])),
+res = as.data.frame(cbind(t(apply(s2[,grep('delta_random', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])),
                           as.vector(delta_random)))
 names(res) = c('lo', 'fit', 'hi', 'true')
 res$in_ci = (res$true >= res$lo) & (res$true <= res$hi)
 res
 mean(res$in_ci)
-## .97
+## .99
 
 gamma_random_mat = matrix(ncol = length(gamma_random[[1]]), nrow = length(gamma_random))
 for(r in 1:nrow(gamma_random_mat))
   for(col in 1:ncol(gamma_random_mat))
     gamma_random_mat[r, col] = gamma_random[[r]][col]
-res = as.data.frame(cbind(t(apply(s2[,rmatch('gamma_random', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])),
+res = as.data.frame(cbind(t(apply(s2[,grep('gamma_random', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])),
                           as.vector(gamma_random_mat)))
 names(res) = c('lo', 'fit', 'hi', 'true')
 res$in_ci = (res$true >= res$lo) & (res$true <= res$hi)
@@ -178,20 +181,19 @@ c(sum(!res$in_ci), nrow(res))
 ## 6 / 329 = 0.18
 
 ######################################################################
-## Dane kompletnie zagregowane (todo na danych z symulacji, żeby
-## pokazać błędność wniosków)
+## Fitting the model to simulated data aggregated over subjects
 
-data_sim_2 = list(data = unique(data_sim$data[,c('stim', 'duration', 'order')]))
-data_sim_2$counts = matrix(nrow = nrow(data_sim_2$data), ncol = ncol(data_sim$counts))
-for(r in 1:nrow(data_sim_2$data)){
-  ss = data_sim$data$order == data_sim_2$data$order[r] & data_sim$data$duration == data_sim_2$data$duration[r] &
-      data_sim$data$stim == data_sim_2$data$stim[r]
-  data_sim_2$counts[r,] = apply(data_sim$counts[ss,], 2, sum)
-}
+load('~/temp/data_sim')
+df = data_sim$data
+df$stimulus = data_sim$stimulus
+df$i = 1:nrow(df)
+df = ddply(df, c('order', 'duration', 'stimulus'), function(x)apply(data_sim$counts[x$i,], 2, sum))
+data_sim_2 = list(data = df[,c('order', 'duration')], stimulus = df$stimulus, counts = df[, paste(1:8)])
 
 fit.aggr = stan(model_code = make_stan_model(),
                 pars = c('delta_fixed', 'gamma_fixed', 'counts_new'),
-                data = make_stan_data(data_sim_2, list(delta = ~ -1 + duration:order, gamma = ~ 1 + order)),
+                data = make_stan_data(data_sim_2$stimulus, data_sim_2$counts, list(delta = ~ -1 + duration:order, gamma = ~ 1 + order),
+                                      data_sim_2$data),
                 chains = 4,
                 iter = 8000)
 
@@ -203,59 +205,63 @@ print(fit.aggr, pars = c('delta_fixed', 'gamma_fixed'),
       probs = c(.025, .975))
 ## Próbkowanie bdb
 
-p = plot_roc_fit(fit.aggr, prepare_stan_data(data_sim_2, fixed))
-ggsave('aggregated_fit_32_64_dm_md.pdf', p)
-## Za wyjątkiem czasu 64 w jednym warunku model pasuje słabo
+## Model fit plots
+(p1 = plot_sdt_fit(fit.aggr, data_sim_2, c('order', 'duration')))
+ggsave('roc_sim_aggr_fit.pdf', p1)
+(p2 = plot_sdt_fit(fit.aggr, data_sim_2, c('order', 'duration'), type = ''))
+ggsave('response_sim_aggr_fit.pdf', p2)
 
 ## Sprawdzamy, czy wartości prawdziwe są zawarte w CI
 
 s2 = as.data.frame(fit.aggr)
 
-res = as.data.frame(cbind(t(apply(s2[,rmatch('delta_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])), delta_fixed))
+res = as.data.frame(cbind(t(apply(s2[,grep('delta_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])), delta_fixed))
 names(res) = c('lo', 'fit', 'hi', 'true')
 res$in_ci = (res$true >= res$lo) & (res$true <= res$hi)
 res
 mean(res$in_ci)
-## .5
+## .25
 
-p = ggplot(res, aes(true, fit)) + geom_point() + geom_abline(slope = 1, intercept = 0) +
-  geom_errorbar(aes(ymin = lo, ymax = hi)) + labs(x = 'True value', y = 'Estimate')
-ggsave('aggregated_fit_vs_true_delta_fixed.pdf', p)
+## (p = ggplot(res, aes(true, fit)) + geom_point() + geom_abline(slope = 1, intercept = 0) +
+##   geom_errorbar(aes(ymin = lo, ymax = hi)) + labs(x = 'True value', y = 'Estimate'))
+## ggsave('aggregated_fit_vs_true_delta_fixed.pdf', p)
 
-res = as.data.frame(cbind(t(apply(s2[,rmatch('gamma_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])),
+res = as.data.frame(cbind(t(apply(s2[,grep('gamma_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])),
                           as.vector(t(gamma_fixed))))
 names(res) = c('lo', 'fit', 'hi', 'true')
 res$in_ci = (res$true >= res$lo) & (res$true <= res$hi)
 res
 mean(res$in_ci)
-## .14
+## .36
 cbind(sum(res$in_ci), nrow(res))
-## 2 14
+## 5 14
 res$Condition = rep(1:(ncol(model.matrix(fixed$gamma, data_sim_2$data))), each = ncol(data_sim_2$counts_1) - 1)
-p = ggplot(res, aes(true, fit)) + geom_point() + geom_abline(slope = 1, intercept = 0) + geom_errorbar(aes(ymin = lo, ymax = hi)) +
-  facet_wrap(~Condition) + labs(x = 'True value', y = 'Estimate')
-ggsave('aggregated_fit_vs_true_gamma_fixed.pdf', p)
+## p = ggplot(res, aes(true, fit)) + geom_point() + geom_abline(slope = 1, intercept = 0) + geom_errorbar(aes(ymin = lo, ymax = hi)) +
+##   facet_wrap(~Condition) + labs(x = 'True value', y = 'Estimate')
+## ggsave('aggregated_fit_vs_true_gamma_fixed.pdf', p)
 
 ## Porównujemy posterior sd
 aggr.posterior.sd = apply(as.data.frame(fit.aggr), 2, sd)
 true.posterior.sd = apply(as.data.frame(fit.sim), 2, sd)
-sd.ratios = true.posterior.sd[rmatch('fixed', names(true.posterior.sd))] /
-  aggr.posterior.sd[rmatch('fixed', names(aggr.posterior.sd))]
+sd.ratios = true.posterior.sd[grep('fixed', names(true.posterior.sd))] /
+  aggr.posterior.sd[grep('fixed', names(aggr.posterior.sd))]
 mean(sd.ratios)
-## 3.15633
+## 3.126772
 
 ######################################################################
 ## Rozkłady efektów losowych
 
-p = ggplot(data.frame(delta = as.vector(t(delta_random)), i = 1:ncol(delta_random)), aes(sample = delta)) +
-  stat_qq() +
-  facet_wrap(~i)
+(p = ggplot(data.frame(delta = as.vector(t(delta_random)), i = 1:ncol(delta_random)), aes(sample = delta)) +
+     stat_qq() +
+     facet_wrap(~i) +
+     ylab('delta sample quantile') +
+     xlab('Theoretical normal quantile'))
 ggsave('delta_qq_plot.pdf', p)
 
 shapiro.test(delta_random[,1])
-## W = 0.98824, p-value = 0.9132
+## W = 0.98841, p-value = 0.9181
 shapiro.test(delta_random[,2])
-## W = 0.96922, p-value = 0.2473
+## W = 0.96939, p-value = 0.2512
 gamma_normality = data.frame(k = 1:7, statistic = NA, p.value = NA)
 for(i in 1:ncol(gamma_random_mat)){
   res = shapiro.test(gamma_random_mat[,i])
@@ -264,17 +270,19 @@ for(i in 1:ncol(gamma_random_mat)){
 }
 round(gamma_normality, 3)
 ##   k statistic p.value
-## 1 1     0.974   0.383
-## 2 2     0.992   0.985
-## 3 3     0.959   0.094
-## 4 4     0.979   0.557
-## 5 5     0.979   0.537
+## 1 1     0.974   0.372
+## 2 2     0.992   0.983
+## 3 3     0.958   0.092
+## 4 4     0.979   0.552
+## 5 5     0.978   0.527
 ## 6 6     0.945   0.028
-## 7 7     0.985   0.789
+## 7 7     0.985   0.792
 
 gamma_rnd = gamma_random_mat[,1]
 for(i in 2:ncol(gamma_random_mat))
   gamma_rnd = c(gamma_rnd, gamma_random_mat[,i])
 k = rep(1:ncol(gamma_random_mat), each = nrow(gamma_random_mat))
-p = ggplot(data.frame(gamma = gamma_rnd, k = k), aes(sample = gamma)) + stat_qq() + facet_wrap(~k)
+(p = ggplot(data.frame(gamma = gamma_rnd, k = k), aes(sample = gamma)) + stat_qq() + facet_wrap(~k) +
+     ylab('gamma sample quantile') +
+     xlab('Theoretical normal quantile'))
 ggsave('gamma_qq_plot.pdf', p)
