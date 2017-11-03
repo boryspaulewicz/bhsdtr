@@ -550,15 +550,22 @@ accuracy and rating, so the first step was to create an appropriate
 response variable using the \texttt{combined\_response} function. This
 function needs three variables, one encoding the stimulus class, one
 encoding the rating (as an integer) and one encoding decision
-accuracy. This step is required only if ratings are available and the
-combined response variable is not already present in the data. In the
-$K=2$ case the combined response variable is simply the binary
-classification decision.
+accuracy.
 
 \begin{lstlisting}{language=R}
   gabor$resp = combined_response(gabor$stim, 
                                  gabor$rating, 
                                  gabor$acc)
+\end{lstlisting}
+
+This step is required only if ratings are available and the combined
+response variable is not already present in the data. In the single
+criterion case the combined response variable is simply the binary
+classification decision. To fit the single-criterion SDT model to this
+dataset the code above would have to be replaced with the following:
+
+\begin{lstlisting}{language=R}
+  gabor$resp = combined_response(gabor$stim, accuracy = gabor$acc)
 \end{lstlisting}
 
 Next, the data was aggregated by computing combined response counts,

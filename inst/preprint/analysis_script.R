@@ -4,7 +4,7 @@
 ## IMPORTANT GLOBAL VARIABLES
 ##
 ## Change this to FALSE once all the stanfit objects are stored to
-## save time
+## save time and memory
 fresh_start = TRUE
 ## Where do you want to store all those large stanfit objects?
 temp_path = '~/temp'
@@ -80,6 +80,68 @@ ggsave(p2, file = 'response_fit.pdf')
 ## The criteria are placed fairly symmetrically
 crit = gamma_to_c(as.data.frame(fit))
 round(apply(crit, 2, mean), 2)
+
+######################################################################
+## Fitting the baic single criterion SDT model
+
+fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
+random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
+gabor$r = combined_response(gabor$stim, accuracy = gabor$acc)
+if(fresh_start){
+    fit.s = stan(model_code = make_stan_model(random),
+                 data = make_stan_data(aggregate_responses(gabor, 'stim', 'r', c('duration', 'order', 'id')),
+                                       fixed, random),
+                 pars = c('delta_fixed', 'gamma_fixed',
+                          'delta_sd_1', 'gamma_sd_1',
+                          'delta_random_1', 'gamma_random_1',
+                          'Corr_delta_1', 'Corr_gamma_1',
+                          'counts_new'),
+                 iter = 8000,
+                 chains = 4)
+    save(fit.s, file = paste(temp_path, 'fit.s', sep = '/'))
+}
+load(paste(temp_path, 'fit.s', sep = '/'))
+## Single criterion version is much faster to sample
+
+print(fit.s, probs = c(.025, .957),
+      pars = c('delta_fixed', 'gamma_fixed',
+               'delta_sd_1', 'gamma_sd_1',
+               'Corr_delta_1', 'Corr_gamma_1'))
+## All is fine
+
+## It does not make sense to use plot_sdt_fit here
+
+## Compare delta estimates
+smr1 = as.data.frame(summary(fit)$summary[,c(1, 2, 3, 4, 8, 9, 10)])
+smr2 = as.data.frame(summary(fit.s)$summary[,c(1, 2, 3, 4, 8, 9, 10)])
+smr = rbind(smr1[grep('delta', rownames(smr1)),],
+            smr2[grep('delta', rownames(smr2)),])
+smr$model = as.factor(rep(c('Multiple criteria', 'Single criterion'), each = nrow(smr) / 2))
+names(smr)[4:5] = c('ci.lo', 'ci.hi')
+smr$par = rep(rownames(smr)[1:(nrow(smr) / 2)], 2)
+(p = ggplot(smr, aes(par, mean, color = model)) +
+     geom_point() +
+     geom_errorbar(aes(ymin = ci.lo, ymax = ci.hi)) +
+     theme(axis.text.x = element_text(angle = 90)) +
+     labs(color = 'Model', y = 'Posterior point and interval estimates'))
+ggsave('single_vs_multiple_c.pdf', p)
+## Similar but not exactly the same
+
+## Let's compare the main criteria in the base condition
+c1 = gamma_to_crit(as.data.frame(fit))
+c2 = gamma_to_crit(as.data.frame(fit.s))
+round(rbind(quantile(c1[,4], c(.025, .5, .957)),
+            quantile(c2, c(.025, .5, .957))), 2)
+## Similar but not exactly the same
+##
+##       2.5%  50% 95.7%
+## [1,] -0.05 0.11  0.25
+## [2,] -0.13 0.06  0.21
+
+smr2$n_eff = as.integer(round(smr2$n_eff))
+smr2 = smr2[-grep('random', rownames(smr2)),]
+smr2 = smr2[-grep('counts_new', rownames(smr2)),]
+print(xtable(round(smr2[-nrow(smr2),], 2)), file = 'fit_table_single_c.tex')
 
 ######################################################################
 ## Fitting the model to simulated data to test if the model recovers
