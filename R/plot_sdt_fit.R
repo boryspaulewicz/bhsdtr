@@ -5,19 +5,23 @@
 #'
 #' @param fit a stanfit object.
 #' @param adata an aggregated data object produced by the
-#'   \code{aggregate_responses} function. It must be the same aggregated data
-#'   object that was used to produce the stanfit object.
-#' @param variables an optional vector of names of variables. These variables,
-#'   if specified, define the subsets of data that will be represented by
-#'   separate plots.
-#' @param type a type of plot required. If type = 'roc' then ROC curve plots are
-#'   created, if type != 'roc' then response distribution plots are created.
-#' @param alpha an alpha level for the posterior predictive intervals, e.g., if
-#'   alpha = .05 then 100\% - alpha = 95\% posterior predictive intervals will
-#'   be calculated.
+#'     \code{aggregate_responses} function. It must be the same
+#'     aggregated data object that was used to produce the stanfit
+#'     object.
+#' @param variables an optional vector of names of variables. These
+#'     variables, if specified, define the subsets of data that will
+#'     be represented by separate plots.
+#' @param type a type of plot required. If type = 'roc' then ROC curve
+#'     plots are created, if type != 'roc' then response distribution
+#'     plots are created.
+#' @param alpha an alpha level for the posterior predictive intervals,
+#'     e.g., if alpha = .05 then 100\% - alpha = 95\% posterior
+#'     predictive intervals will be calculated.
+#' @param bw if TRUE the black-and-white version of the response
+#'     distribution plot will be created. The default is FALSE.
 #' @return a plot object.
 #' @export
-plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05){
+plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05, bw = FALSE){
     s = as.data.frame(fit)
     rm(fit)
     cnt_new = t(s[,grep('counts_new', names(s))])
@@ -89,12 +93,21 @@ plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05)
         dfa[,c('count.lo', 'count.hi', 'count.fit')] = cbind(apply(cnt_new_a, 2, function(x)stats::quantile(x, alpha / 2)),
                                                              apply(cnt_new_a, 2, function(x)stats::quantile(x, 1 - alpha / 2)),
                                                              apply(cnt_new_a, 2, mean))
-        ggplot(dfa, aes(response, count / n, color = stimulus), group = stimulus) +
-            geom_errorbar(aes(ymin = count.lo / n, ymax = count.hi / n, lty = stimulus), width = 0.2) +
-            geom_line(aes(y = count.fit / n, lty = stimulus)) +
-            geom_point(aes(pch = stimulus)) +
-            labs(x = 'Response', y = 'Frequency', color = 'Stimulus', pch = 'Stimulus', lty = 'Stimulus') +
-            facet_wrap(~f)
+        if(bw){
+            ggplot(dfa, aes(response, count / n), group = stimulus) +
+                geom_errorbar(aes(ymin = count.lo / n, ymax = count.hi / n, lty = stimulus), width = 0.2) +
+                geom_line(aes(y = count.fit / n, lty = stimulus)) +
+                geom_point(aes(pch = stimulus)) +
+                labs(x = 'Response', y = 'Frequency', pch = 'Stimulus', lty = 'Stimulus') +
+                facet_wrap(~f)
+        }else{
+            ggplot(dfa, aes(response, count / n, color = stimulus), group = stimulus) +
+                geom_errorbar(aes(ymin = count.lo / n, ymax = count.hi / n, lty = stimulus), width = 0.2) +
+                geom_line(aes(y = count.fit / n, lty = stimulus)) +
+                geom_point(aes(pch = stimulus)) +
+                labs(x = 'Response', y = 'Frequency', color = 'Stimulus', pch = 'Stimulus', lty = 'Stimulus') +
+                facet_wrap(~f)
+        }
     }
 }
 ## ok
