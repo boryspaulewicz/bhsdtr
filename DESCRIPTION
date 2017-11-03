@@ -1,4 +1,4 @@
-Package: bhsdtr
+Package: bsdt
 Title: Flexible bayesian hierarchical or non-hierarchical SDT models with or without ratings
 Version: 0.0.0.9000
 Imports: plyr, ggplot2, StanHeaders, rstan, stats
