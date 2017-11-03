@@ -1,5 +1,8 @@
 ## -*- coding: utf-8 -*-
 
+######################################################################
+## IMPORTANT GLOBAL VARIABLES
+##
 ## Change this to FALSE once all the stanfit objects are stored to
 ## save time
 fresh_start = TRUE
@@ -9,10 +12,7 @@ temp_path = '~/temp'
 library(rstan)
 library(ggplot2)
 library(Hmisc) # rMultinom for simulations
-devtools::document('~/cs/code/r/bhsdtr')
-devtools::install('~/cs/code/r/bhsdtr')
 library(bhsdtr)
-data(gabor)
 ## Standard Stan optimizations
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
@@ -22,6 +22,7 @@ library(plyr)
 ## Fitting the model to real study data
 
 ## We will be using the dataset provided with the package
+data(gabor)
 ?gabor
 
 ## Combined response has to be calculated for this dataset
