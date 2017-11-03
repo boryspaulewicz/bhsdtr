@@ -24,7 +24,7 @@ random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 model = make_stan_model(random)
 
 ## Stan data structure
-sdata = make_stan_data(adata$stimulus, adata$counts, fixed, adata$data, random)
+sdata = make_stan_data(adata, fixed, random)
 
 ## Main model fit
 fit = stan(model_code = model,
@@ -58,6 +58,17 @@ ggsave(p1, file = 'roc_fit.pdf')
 (p2 = plot_sdt_fit(fit, adata, c('order', 'duration'), type = ''))
 ggsave(p2, file = 'response_fit.pdf')
 
+## Testujemy izomorficzność mapowania gamma-c
+criteria = c(-2, -1, 0, 1, 2)
+cumprobs = c(pnorm(criteria, sd = 2), 1)
+areas = c(cumprobs[1], cumprobs[-1] - cumprobs[-length(cumprobs)])
+gamma = log(areas / areas[length(areas)])
+g_to_c = function(x, s = 2){
+    x = exp(x)
+    s * qnorm(cumsum(x/sum(x))[-length(x)])
+}
+rbind(g_to_c(gamma), criteria)
+
 ## Oglądamy kryteria w pierwszym warunku
 crit = gamma_to_c(as.data.frame(fit))
 round(apply(crit, 2, mean), 2)
@@ -73,7 +84,7 @@ random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 ## To będą nasze realistyczne oszacowania parametrów
 s = apply(as.data.frame(fit), 2, mean)
 ## Używamy tych samych danych do symulacji
-sdata = make_stan_data(adata$stimulus, adata$counts, fixed, adata$data, random)
+sdata = make_stan_data(adata, fixed, random)
 gamma_fixed = matrix(nrow = ncol(sdata$X_gamma), ncol = sdata$K - 1)
 for(r in 1:nrow(gamma_fixed))
   gamma_fixed[r,] = s[paste('gamma_fixed[', 1:(sdata$K - 1), ',', r, ']', sep = '')]
@@ -114,8 +125,7 @@ fit.sim = stan(model_code = make_stan_model(random),
                           'delta_sd_1', 'gamma_sd_1',
                         'delta_random_1', 'gamma_random_1',
                         'counts_new'),
-               data = make_stan_data(data_sim$stimulus, data_sim$counts, list(delta = ~ -1 + duration:order, gamma = ~ order),
-                                     data_sim$data,
+               data = make_stan_data(data_sim, list(delta = ~ -1 + duration:order, gamma = ~ order),
                                      list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))),
                chains = 4,
                iter = 8000)
@@ -192,8 +202,7 @@ data_sim_2 = list(data = df[,c('order', 'duration')], stimulus = df$stimulus, co
 
 fit.aggr = stan(model_code = make_stan_model(),
                 pars = c('delta_fixed', 'gamma_fixed', 'counts_new'),
-                data = make_stan_data(data_sim_2$stimulus, data_sim_2$counts, list(delta = ~ -1 + duration:order, gamma = ~ 1 + order),
-                                      data_sim_2$data),
+                data = make_stan_data(data_sim_2, list(delta = ~ -1 + duration:order, gamma = ~ 1 + order)),
                 chains = 4,
                 iter = 8000)
 

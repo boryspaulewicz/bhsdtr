@@ -1,9 +1,9 @@
-Package: bhsdtr
+Package: bsdt
 Title: Flexible bayesian hierarchical or non-hierarchical SDT models with or without ratings
 Version: 0.0.0.9000
 Imports: plyr, ggplot2, StanHeaders, rstan, stats
 Authors@R: person("Boryslaw", "Paulewicz", email = "borys.paulewicz@gmail.com", role = c("aut", "cre"))
-Description: Fitting hierarchical or non-hierarchical bayesian Signal Detection Theory models 
+Description: Flexible fitting of hierarchical or non-hierarchical bayesian Signal Detection Theory models 
     with or without ratings with correlated random effects. The SDT parameters (sensitivity 
     and criteria) are derived from unconstrained parameters (delta and gamma) allowing the delta
     and gamma parameters to be linearly regressed on additional variables within the same model.
