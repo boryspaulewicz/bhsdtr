@@ -1,19 +1,6 @@
-% TODO Bardziej szczegółowo przedstawić wyniku testów na symulacji
-
-% TODO Wspomnieć o gamma_to_crit
-
-% TODO wyjaśnić sens prioru ln(100) dla gamma
-
-% TODO opisać domyślne priory dla zeta
-
-% mixing properties?
-
-% constrained czy restricted?
+% mixing properties, constrained czy restricted
 
 \documentclass[oneside,a4paper]{article}
-% \usepackage[MeX]{polski} %pakiety m.in. umozliwia rozne ciekawe rzeczy
-% \usepackage[latin2]{inputenc}
-% Bedzie osobnym punktem, na osobnej stronie
 \usepackage[sectionbib,bibnewpage]{apacite}
 \usepackage{amsmath}
 \usepackage{bm}
@@ -26,6 +13,7 @@
   Detection Theory models with or without ratings.}
 
 \begin{document}
+\maketitle
 \tableofcontents{}
 
 \section{Abstract}
@@ -114,7 +102,6 @@ in Fig.~\ref{fig:1} below.
     additional criteria}
   \label{fig:1}
 \end{figure}
-% Czułość i kryterium
 
 The stimulus is assumed to give rise, by some unspecified cognitive
 process, to unidimensional internal evidence value $s$ sampled from a
@@ -198,7 +185,7 @@ hierarchical data structure. Invalidity of this approach in the
 context of SDT was clearly illustrated with results of simulational
 studies by \citeA{morey2008problematic}, although strictly speaking it
 requires such demonstrations only in order to make a point about a
-specific case. SDT is a non-linear model, therefore, by definition
+specific case. Because SDT is a non-linear model, by definition
 expected values of estimates of its parameters based on data
 aggregated over sampled factors are not in general true population
 averages. Such estimates are biased and inference about the target
@@ -345,10 +332,6 @@ assuming that $\delta$ is normally distributed. Difficulties in
 representing the hierarchical structure of the criteria stem from the
 fact that even though each criterion considered in isolation is an
 unconstrained parameter, the vector of all the criteria is ordered.
-% The solution used in the \texttt{bhsdtr} package is based on
-% the way ordered categorical variables with two or more categories,
-% such as confidence ratings, are modelled in ordered logistic
-% regression.
 We propose to map the $R^{K-1}$ space, representing unconstrained
 criteria, to the $K$ dimensional probability simplex space using the
 softmax function and to map the simplex space to the ordered criteria
@@ -379,10 +362,8 @@ between adjacent criteria because their exponents represent relative
 magnitudes of areas under the normal curve delineated by the pairs of
 adjacent criteria:
 $e^{\bm{\gamma}_i} / e^{\bm{\gamma}_j} = (\Phi(\bm{c}_i) -
-\Phi(\bm{c}_{i-1})) / (\Phi(\bm{c}_j) - \Phi(\bm{c}_{j-1}))$.
-% Other things being equal, the greater the $\bm{\gamma}_i$ value the
-% more the $\bm{c}_{j \geq i}$ criteria are shifted to the right.
-When $K=2$ only $\bm{\gamma}_1$ is free to vary and its value directly
+\Phi(\bm{c}_{i-1})) / (\Phi(\bm{c}_j) - \Phi(\bm{c}_{j-1}))$. When
+$K=2$ only $\bm{\gamma}_1$ is free to vary and its value directly
 represents the direction and magnitude of bias: $\bm{\gamma}_1$ is $0$
 when the criterion is placed at the midpoint between the means of
 evidence distributions, and the more negative (positive) it is the
@@ -528,8 +509,6 @@ calculated for the chosen $\alpha$ level.
 \subsection{Usage example: installing the package and testing the
   model on real data}
 
-% Instalacja
-
 In order to make full use of the \texttt{bhsdtr} package functionality
 three non-standard R packages are required, namely \texttt{rstan},
 \texttt{plyr} and \texttt{ggplot2}. We recommend using the
@@ -541,8 +520,6 @@ install any missing required packages:
   devtools::install_git('boryspaulewicz/bhsdtr')
   library(bhsdtr)
 \end{lstlisting}
-
-% gabor 13
 
 We tested our method on the \texttt{gabor} dataset that is part of the
 \texttt{bhsdtr} package. The \texttt{gabor} dataset comes from an
@@ -567,7 +544,6 @@ model, assessing the fit, and possibly converting the unconstrained
 $\gamma$ and $\delta$ parameters to $d'$ and $c$.
 
 \subsubsection{Step 1: preparing the data}
-% Combined response
 
 In the study in question the response was originally encoded as
 accuracy and rating, so the first step was to create an appropriate
@@ -584,8 +560,6 @@ classification decision.
                                  gabor$rating, 
                                  gabor$acc)
 \end{lstlisting}
-
-% aggregate_responses
 
 Next, the data was aggregated by computing combined response counts,
 but only to the extent that preserved all the participant effects. The
@@ -618,7 +592,6 @@ of counts with $K$ columns, where $K$ is the highest possible combined
 response.
 
 \subsubsection{Step 2: creating the model code}
-% stan requirements
 
 The model is fitted using the \texttt{stan} function from the
 \texttt{rstan} package which needs a special list of data structures
@@ -634,21 +607,11 @@ model formulae is composed of at least three elements and specifies
 correlated random effects of one sampled factor. The element named
 \texttt{group} specifies the sampled factor and the elements named
 \texttt{delta} and \texttt{gamma} specify which effects are assumed to
-vary between the levels of this sampled factor. % Four other optional
-% elements can be used to specify the priors on random effects
-% distributions. The elements named \texttt{delta\_nu} and
-% \texttt{gamma\_nu} correspond to $\nu^{(\bm{\delta})}$ and
-% $\nu^{(\bm{\gamma})}$ parameters and the elements named
-% \texttt{delta\_scale} and \texttt{gamma\_scale} correspond to
-% $\tau^{(\bm{\delta})}$ and $\tau^{(\bm{\delta})}$ parameters.
-%
-% Of course, random effects must be estimable within the levels of the
-% sampled factor and must already be present in the fixed effects
-% specification for the respective parameter, at least implicitly.
-When \texttt{make\_stan\_model} is used without any arguments it
-specifies the SDT model without any random effects. Fixed effects
-model matrices are specified by providing a list with at least two
-model formulae, named \texttt{delta} and \texttt{gamma}, to the
+vary between the levels of this sampled factor. When
+\texttt{make\_stan\_model} is used without any arguments it specifies
+the SDT model without any random effects. Fixed effects model matrices
+are specified by providing a list with at least two model formulae,
+named \texttt{delta} and \texttt{gamma}, to the
 \texttt{make\_stan\_data} function, described later in this
 paper. Non-default priors can be specified by adding optional elements
 to the random and fixed effects specification lists, as described in
@@ -672,8 +635,6 @@ random = list(list(group = ~ id,
 model = make_stan_model(random)
 \end{lstlisting}
 
-% KOD Specyfikacja i dopasowanie modelu
-
 The \texttt{make\_stan\_data} function creates fixed and random effect
 model matrices based on the respective model formulae using dummy
 contrast coding. Note that the implicit intercept was suppressed for
@@ -693,7 +654,6 @@ a broad class of linear models representing the dependence of
 sensitivity and criteria on additional variables.
 
 \subsubsection{Step 3: fitting the model}
-% make_stan_data
 
 A separate data structure used by the Stan sampler has to be created
 using the \texttt{make\_stan\_data} function. The obligatory arguments
@@ -733,7 +693,6 @@ posterior predictive samples that are required by the
 refer to random effects correlation matrices.
 
 \subsubsection{Step 4: assessing the model fit}
-% Jak się zbiega
 
 Four chains of 8000 iterations each were run simultaneously and the
 first half of the posterior samples serving as a warm-up period for
@@ -856,12 +815,6 @@ predictive regions.
   \caption{ROC curve fit}
   \label{fig:3}
 \end{figure}
-
-% The reader should be warned that ROC point posterior predictive
-% intervals must be interpreted with care, because ROC points are not
-% independent and it is in general not correct to expect 95\% coverage
-% from 95\% ROC point posterior predictive intervals when the model is
-% true.
 
 Another way to assess the model fit visually is by inspecting the
 conditional response distributions ($p(y|stim)$) shown in
