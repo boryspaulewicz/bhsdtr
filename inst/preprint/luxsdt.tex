@@ -26,7 +26,7 @@ distribution. Our method can accommodate binary responses as well as
 additional ratings, the user can specify an arbitrary number of random
 grouping factors, sensitivity and criteria parameters can be regressed
 on additional predictors within the same model via intermediate
-unconstrained parameters and the model can be extended by using an
+unconstrained parameters, and the model can be extended by using an
 automatically generated human-readable Stan code as a template. We
 explain how our method improves other similar available methods, we
 also provide an overview of the package and demonstrate the ease of
@@ -283,7 +283,7 @@ inverse gamma prior placed on variances.
 Fleming's \citeyear{hmetad} HMeta-d' model is a hierarchical version
 of the meta-d' model \cite{maniscalco2012signal}, which in turn is a
 generalization of the SDT model with additional criteria that allows
-for a separate "meta-sensitivity" in order to account for possible
+for a separate "meta-sensitivity" to account for possible
 discrepancies between binary stimulus classification (referred to as
 type 1 task) and a rating task (referred to as type 2 or
 meta-cognitive task). We consider HMeta-d' here because it reduces to
@@ -509,8 +509,8 @@ calculated for the chosen $\alpha$ level.
 \subsection{Usage example: installing the package and testing the
   model on real data}
 
-In order to make full use of the \texttt{bhsdtr} package functionality
-three non-standard R packages are required, namely \texttt{rstan},
+To make full use of the \texttt{bhsdtr} package functionality three
+non-standard R packages are required, namely \texttt{rstan},
 \texttt{plyr} and \texttt{ggplot2}. We recommend using the
 \texttt{devtools} package to install the \texttt{bhsdtr} package
 directly from the github repository. This will also automatically
