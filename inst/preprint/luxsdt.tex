@@ -84,7 +84,7 @@ the figures presented in this paper.
 % OPIS STRUKTURY ARTYKUŁU
 
 In what follows, after introducing the most common version of the SDT
-model, we describe its generalization which can accomodate data from
+model, we describe its generalization which can accommodate data from
 rating experiments. Next, we explain briefly why, if a method of
 inference for SDT models were to be of general use in psychology
 studies, it is essential that it was based on a model equipped with
@@ -108,7 +108,7 @@ a group and a member of some group, while at the same time the term
 "group" is perhaps most strongly associated with study conditions, as
 in "experimental group". In this paper we use the term "sampled
 factor" instead, because, by virtue of being a new term, it is
-unambiguous, and because it seems descriprively correct: the term
+unambiguous, and because it seems descriptively correct: the term
 "sampled factor" captures all the essential properties of such
 variables, i.e., a nominal scale, the fact that values are sampled
 from a larger population and are usually not of direct interest, as in
@@ -127,7 +127,7 @@ unidimensional internal evidence value $s$ sampled from
 % ?? stimulus już był wprowadzony, więc jego klasa jest (jakaś, ale)
 % określona
 a distribution that depends on the stimulus class. For historical
-reasons the two stimulus classess are often referred to as "noise" and
+reasons the two stimulus classes are often referred to as "noise" and
 "signal", and task performance is described in terms of hits, correct
 rejections, omissions, and false alarms, but this terminology is
 appropriate only when the model is applied to tasks that require
@@ -242,7 +242,7 @@ classification tasks are used the data have hierarchical structure,
 i.e., there are repeated measures for each participant or item and
 participants or items are only samples from the target population. It
 seems worthwhile to explain why a general-purpose method of inference
-for SDT models should accomodate both kinds of situations.
+for SDT models should accommodate both kinds of situations.
 
 % ?? Ważność hierarchical structure jako takiej
 \subsection{The importance of hierarchical regression structure}
@@ -299,7 +299,7 @@ target population.
 % mówimy o ogólnym co prawda, ale zarazem pojedynczym/unikalnym
 % problemie: the separation? Chętnie bym się pozbył przedimka
 Another common source of problems is the separation of estimation of
-non-linear model parameters from regression analysis whichs aim to
+non-linear model parameters from regression analysis which aim to
 relate these parameters to measured or manipulated variables. When the
 SDT parameters are estimated separately for each subject and
 condition, and only later regressed on predictors of interest, a
@@ -373,7 +373,7 @@ complicate analysis. At the same time the authors fail to mention that
 an immediate consequence of allowing for negative $d'$ values is that
 the resulting posterior distribution looses its intended
 interpretation, since it can have a non-zero mass when $d' < 0$. The
-outermost criteria are fixed at $0$ and $1$, and the oredering
+outermost criteria are fixed at $0$ and $1$, and the ordering
 restriction is enforced by assuming that the likelihood is $0$
 whenever $\bm{c}_{i+1} \leq \bm{c}_i$. As the authors explain, because
 a sampled factor can have independent random effects on the evidence
@@ -430,7 +430,7 @@ order-restricted criteria vectors by means of the inverse normal CDF:
 \label{eq:1}
 \end{align}
 
-\noindent where $\Phi$ is the CDF of the standard normal distrubution
+\noindent where $\Phi$ is the CDF of the standard normal distribution
 and $\bm{\gamma} \in R^K$, with $\bm{\gamma}_K$ fixed at $0$ for
 identifiability. The idea is illustrated in Fig.~\ref{fig:2} below:
 
@@ -481,8 +481,8 @@ Once $d'$ and $c$ are derived from the unconstrained $\delta$ and
 $\gamma$ parameters, the SDT model can be supplemented with a
 hierarchical linear regression structure. To avoid having to deal with
 an even more complicated index notation\footnote{The reader familiar
-  with hierarchical models may be surprised by our use of superscrip
-  parenthesised greek letters to express hierarchical
+  with hierarchical models may be surprised by our use of superscript
+  parenthesised Greek letters to express hierarchical
   relationships. We chose this convention because it allowed us to use
   subscripts to denote elements of vectors and matrices while
   minimizing the number of nested sub- or superscripts.}, below we
@@ -970,7 +970,7 @@ that purpose:
 plot_sdt_fit(fit, adata, c('order', 'duration')))
 \end{lstlisting}
 
-This function requires at least three agruments; a stanfit object, an
+This function requires at least three arguments; a stanfit object, an
 aggregated data list produced by the \texttt{aggregate\_responses}
 function and that was used to produce the stanfit object, and a vector
 of names of variables that will determine how the data will be
