@@ -65,4 +65,3 @@ gamma_to_crit = function(samples, beta_index = 1, s = 2){
     colnames(crit) = gsub('gamma', 'criteria', colnames(crit))
     crit
 }
-## ok

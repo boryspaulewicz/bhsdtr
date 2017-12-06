@@ -69,4 +69,3 @@ combined_response = function(stimulus, rating = NULL, accuracy = NULL, decision 
         (1 - decision) * (max.rating + 1 - rating) + decision * (max.rating + rating)
     }
 }
-## ok

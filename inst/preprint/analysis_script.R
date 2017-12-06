@@ -19,6 +19,25 @@ options(mc.cores = parallel::detectCores())
 library(plyr)
 
 ######################################################################
+## Combining parameter estimation and regression analysis relating
+## these parameters to additional variables
+
+I = 10
+J = 10
+d = expand.grid(i = 1:I, j = 1:J)
+## We have a strong linear relationship
+d$x = (1:I)[d$i]
+d$y = rnorm(nrow(d)) + d$x
+## except for the subset with a lower number of data points that look like outliers
+d = d[!(d$i == I & d$j <= (J / 2)),]
+d$y[d$x == I] = rnorm(sum(d$x == I))
+d$y[d$x == I] = d$y[d$x == I] - mean(d$y[d$x == I])
+est = aggregate(y ~ x, d, mean)
+names(est) = c('x_aggregated', 'par_estimate')
+res = stan(file = 'regression.stan', data = append(d, append(est, list(N = nrow(d), I = I))),
+           pars = c('a0', 'b0', 'a1', 'b1', 'sigma', 'par'), chains = 1)
+
+######################################################################
 ## Fitting the model to real study data
 
 ## We will be using the dataset provided with the package
@@ -54,8 +73,9 @@ if(fresh_start){
                iter = 8000,
                chains = 4)
     save(fit, file = paste(temp_path, 'fit', sep = '/'))
+}else{
+    load(paste(temp_path, 'fit', sep = '/'))
 }
-load(paste(temp_path, 'fit', sep = '/'))
 
 ## Model fit summary does not indicate any convergence issues
 print(fit, probs = c(.025, .957),
@@ -82,7 +102,7 @@ crit = gamma_to_c(as.data.frame(fit))
 round(apply(crit, 2, mean), 2)
 
 ######################################################################
-## Fitting the baic single criterion SDT model
+## Fitting the basic single criterion SDT model
 
 fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
 random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
@@ -99,8 +119,9 @@ if(fresh_start){
                  iter = 8000,
                  chains = 4)
     save(fit.s, file = paste(temp_path, 'fit.s', sep = '/'))
+}else{
+    load(paste(temp_path, 'fit.s', sep = '/'))
 }
-load(paste(temp_path, 'fit.s', sep = '/'))
 ## Single criterion version is much faster to sample
 
 print(fit.s, probs = c(.025, .957),
@@ -191,7 +212,9 @@ if(fresh_start){
         data_sim$counts[r,] = table(c(rMultinom(t(multinomial_p[r,]), sum(data$counts[r,])), 1:sdata$K)) - 1
     save(data_sim, file = paste(temp_path, 'data_sim', sep = '/'))
 }
-load(paste(temp_path, 'data_sim', sep = '/'))
+else{
+    load(paste(temp_path, 'data_sim', sep = '/'))
+}
 
 if(fresh_start){
     fit.sim = stan(model_code = make_stan_model(random),
@@ -204,8 +227,9 @@ if(fresh_start){
                    chains = 4,
                    iter = 8000)
     save(fit.sim, file = paste(temp_path, 'fit.sim', sep = '/'))
+}else{
+    load(paste(temp_path, 'fit.sim', sep = '/'))
 }
-load(paste(temp_path, 'fit.sim', sep = '/'))
 
 ## All is fine
 print(fit.sim, probs = c(.025, .957),
@@ -276,8 +300,9 @@ if(fresh_start){
                     chains = 4,
                     iter = 8000)
     save(fit.aggr, file = paste(temp_path, 'fit_aggr', sep = '/'))
+}else{
+    load(paste(temp_path, 'fit_aggr', sep = '/'))
 }
-load(paste(temp_path, 'fit_aggr', sep = '/'))
 
 ## Excellent sampling
 print(fit.aggr, pars = c('delta_fixed', 'gamma_fixed'),
@@ -290,11 +315,49 @@ ggsave('roc_sim_aggr_fit.pdf', p1)
 ggsave('response_sim_aggr_fit.pdf', p2)
 
 ######################################################################
-## Comparison between the true hierarchical and simplified
-## non-hierarchical models
+## A model with fixed participant effects
+
+sdata.fixed = make_stan_data(data_sim, fixed = list(delta = ~ -1 + as.factor(id):duration:order,
+                                                    gamma = ~ -1 + as.factor(id) + order))
+if(fresh_start){
+    fit.fixed = stan(model_code = make_stan_model(),
+                     data = sdata.fixed,
+                     pars = c('delta_fixed', 'gamma_fixed'),
+                     iter = 8000,
+                     chains = 4)
+    save(fit.fixed, file = paste(temp_path, 'fit.fixed', sep = '/'))
+}else{
+    load(paste(temp_path, 'fit.fixed', sep = '/'))
+}
+
+print(fit.fixed, pars = c('delta_fixed', 'gamma_fixed'),
+      probs = c(.025, .975))
+## All is good
+
+######################################################################
+## Comparison between the models fitted to the simulated data
 
 ss = list('True hierarchical model' = as.data.frame(fit.sim),
           'Non-hierarchical model' = as.data.frame(fit.aggr))
+## ## This will add the fixed effects averaged over the participants
+## sf = as.data.frame(fit.fixed)
+## ss[['Fixed participants effects model']] = ss[[2]]
+## sdata = make_stan_data(data_sim_2, list(delta = ~ -1 + duration:order, gamma = ~ 1 + order))
+## for(i in 1:sdata$X_delta_ncol){
+##     ss[[3]][,sprintf('delta_fixed[%d]', i)] =
+##         apply(sf[, paste('delta_fixed[',
+##                          grep(colnames(sdata$X_delta)[i], colnames(sdata.fixed$X_delta)),
+##                          ']', sep = '')], 1, mean)
+## }
+## colnames(sdata.fixed$X_gamma)[-grep('order', colnames(sdata.fixed$X_gamma))] = '(Intercept)'
+## for(i in 1:sdata$X_gamma_ncol){
+##     for(k in 1:7)
+##     ss[[3]][,sprintf('gamma_fixed[%d,%d]', k, i)] =
+##         apply(sf[, paste('gamma_fixed[', k, ',',
+##                          grep(colnames(sdata$X_gamma)[i], colnames(sdata.fixed$X_gamma)),
+##                          ']', sep = '')], 1, mean)
+## }
+
 s = as.data.frame(fit)
 
 df = data.frame(model = rep(names(ss), each = length(grep('fixed', names(ss[[1]])))),
@@ -311,13 +374,14 @@ df$par.type = NA
 df$par.type[grep('delta', as.character(df$par))] = 'delta'
 df$par.type[grep('gamma', as.character(df$par))] = 'gamma'
 ggplot(df, aes(par, point.est - true)) +
-    geom_abline(intercept = 0, slope = 0) +
+    geom_abline(intercept = 0, slope = 0, lty = 2, alpha = .5) +
     geom_point() +
     geom_errorbar(aes(ymin = ci.lo - true, ymax = ci.hi - true)) +
     facet_grid(~ model) +
     theme(axis.text.x = element_text(angle = 90)) +
     labs(color = 'Parameter type', y = 'Point and interval estimates centered on true values',
-         x = 'Model parameter')
+         x = 'Model parameter') +
+    theme_minimalist()
 ggsave('true_vs_nonhier.pdf')
 ## This is really ugly
 
@@ -350,11 +414,11 @@ mean(sd.ratios)
 ######################################################################
 ## Approximate normality of random effects distributions
 
-(p = ggplot(data.frame(delta = as.vector(t(delta_random)), i = 1:ncol(delta_random)), aes(sample = delta)) +
+(p = ggplot(data.frame(delta = as.vector(t(delta_random)), i = c('32ms', '64ms')), aes(sample = delta)) +
      stat_qq() +
      facet_wrap(~i) +
      ylab('delta sample quantile') +
-     xlab('Theoretical normal quantile'))
+     xlab('Theoretical normal quantile') + theme_minimalist())
 ggsave('delta_qq_plot.pdf', p)
 ## this is perfectly acceptable
 
@@ -384,6 +448,7 @@ for(i in 2:ncol(gamma_random_mat))
 k = rep(1:ncol(gamma_random_mat), each = nrow(gamma_random_mat))
 (p = ggplot(data.frame(gamma = gamma_rnd, k = k), aes(sample = gamma)) + stat_qq() + facet_wrap(~k) +
      ylab('gamma sample quantile') +
-     xlab('Theoretical normal quantile'))
+     xlab('Theoretical normal quantile') +
+     theme_minimalist())
 ggsave('gamma_qq_plot.pdf', p)
 ## this is perfectly acceptable as well

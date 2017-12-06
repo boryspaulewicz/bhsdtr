@@ -46,7 +46,6 @@ make_stan_model = function(random = NULL){
     close(f)
     paste(model, collapse = '\n')
 }
-## ok
 
 rmatch = function (pattern, vector){
   res = TRUE

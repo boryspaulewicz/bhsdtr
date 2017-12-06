@@ -17,11 +17,11 @@
 #' @param alpha an alpha level for the posterior predictive intervals,
 #'     e.g., if alpha = .05 then 100\% - alpha = 95\% posterior
 #'     predictive intervals will be calculated.
-#' @param bw if TRUE the black-and-white version of the response
-#'     distribution plot will be created. The default is FALSE.
+#' @param bw if TRUE (the default), a black-and-white publication-friendly version
+#'     of the response distribution plot will be created.
 #' @return a plot object.
 #' @export
-plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05, bw = FALSE){
+plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05, bw = TRUE){
     s = as.data.frame(fit)
     rm(fit)
     cnt_new = t(s[,grep('counts_new', names(s))])
@@ -80,7 +80,7 @@ plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05,
         dfrocs = dfroc[dfroc$stimulus == '1',]
         dfrocs$stim2 = dfroc[dfroc$stimulus == '2',]
         rm(dfroc)
-        ggplot(dfrocs, aes(cumfr, stim2$cumfr)) +
+        p = ggplot(dfrocs, aes(cumfr, stim2$cumfr)) +
             geom_line(aes(x = cumfr.fit, y = stim2$cumfr.fit), lty = 2) +
             geom_errorbar(aes(ymin = stim2$cumfr.lo, ymax = stim2$cumfr.hi, x = cumfr.fit), width = 0.02) +
             geom_errorbarh(aes(xmin = cumfr.lo, xmax = cumfr.hi, y = stim2$cumfr.fit), height = 0.02) +
@@ -88,6 +88,11 @@ plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05,
             labs(x = 'p(Hit)', y = 'p(FA)') +
             coord_fixed() +
             facet_wrap(~f)
+        if(bw){
+            p + theme_minimalist()
+        }else{
+            p
+        }
     }else{
         ## Wykres rozkładów odpowiedzi
         dfa[,c('count.lo', 'count.hi', 'count.fit')] = cbind(apply(cnt_new_a, 2, function(x)stats::quantile(x, alpha / 2)),
@@ -99,7 +104,7 @@ plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05,
                 geom_line(aes(y = count.fit / n, lty = stimulus)) +
                 geom_point(aes(pch = stimulus)) +
                 labs(x = 'Response', y = 'Frequency', pch = 'Stimulus', lty = 'Stimulus') +
-                facet_wrap(~f)
+                facet_wrap(~f) + theme_minimalist()
         }else{
             ggplot(dfa, aes(response, count / n, color = stimulus), group = stimulus) +
                 geom_errorbar(aes(ymin = count.lo / n, ymax = count.hi / n, lty = stimulus), width = 0.2) +
@@ -110,4 +115,7 @@ plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05,
         }
     }
 }
-## ok
+
+#' @export
+theme_minimalist = function()theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                                   panel.background = element_blank(), axis.line = element_line(colour = "black"))

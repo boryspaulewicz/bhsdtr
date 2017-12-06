@@ -30,4 +30,3 @@
 #'   experience', 3 = 'absolutely clear image'} \item{stim}{Stimulus class: 0 =
 #'   gabor tilted to the left, 1 = gabor tilted to the right.} }
 "gabor"
-## ok

@@ -43,4 +43,3 @@ aggregate_responses = function(data, stimulus, response, variables = NULL){
        stimulus = res[[stimulus[1]]],
        counts = counts)
 }
-## ok

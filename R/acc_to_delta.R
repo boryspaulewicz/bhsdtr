@@ -10,4 +10,3 @@ acc_to_delta = function(acc){
         stop('Some accuracy scores were to extreme')
     log(2 * stats::qnorm(acc))
 }
-## ok

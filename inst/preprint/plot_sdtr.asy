@@ -20,6 +20,7 @@ real ys = 7;
 a = yscale(ys) * a;
 b = yscale(ys) * b;
 m = yscale(ys) * m;
+real dist_top = ypart(max(a));
 
 // Rysujemy kryteria
 int nof_c = 8;
@@ -33,11 +34,18 @@ real crit_x(real c){
 draw(a, black);
 draw(b, black);
 int fs = 8;
-for(int c = 1; c < nof_c; ++c){
-  draw((crit_x(c),0) -- (crit_x(c), ypart(max(a)) + 0.5), dashed+gray);
+for(int c = 1; c < 3; ++c){
+  draw((crit_x(c),0) -- (crit_x(c), dist_top), dashed+gray);
   label(format("$c_%d$", c), (crit_x(c),0), S, fontsize(fs));
   label(format("$y=%d$", c), ((crit_x(c-1) + crit_x(c)) / 2, 2), S, fontsize(fs));
 }
-label(format("$y=%d$", 8), ((crit_x(8-1) + crit_x(8)) / 2, 2), S, fontsize(fs));
+draw((crit_x(nof_c - 1),0) -- (crit_x(nof_c - 1), dist_top), dashed+gray);
+label("$c_{K-1}$", (crit_x(nof_c - 1),0), S, fontsize(fs));
+label("$y=K$", ((crit_x(nof_c - 1) + crit_x(nof_c)) / 2, 2), S, fontsize(fs));
+draw((crit_x(nof_c - 2),0) -- (crit_x(nof_c - 2), dist_top), dashed+gray);
+label("$c_{K-2}$", (crit_x(nof_c - 2),0), S, fontsize(fs));
+label("$y=K-1$", ((crit_x(nof_c - 2) + crit_x(nof_c - 1)) / 2, 2), S, fontsize(fs));
+label("$\dots$", (crit_x(nof_c / 2),0), S, fontsize(fs));
+label("$\dots$", (crit_x(nof_c / 2), 1.9), S, fontsize(fs), filltype = Fill(white));
 draw(evidence, Arrow(TeXHead), L = Label("$s$", EndPoint, fontsize(fs)));
-label("evidence distributions $p(s|stim)$", position = (0, ypart(max(b)) + 0.5), fontsize(fs), align = S, filltype = Fill(white));
+// label("evidence distributions $p(s|stim)$", position = (0, ypart(max(b)) + 0.5), fontsize(fs), align = S, filltype = Fill(white));
