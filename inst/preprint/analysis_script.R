@@ -452,3 +452,103 @@ k = rep(1:ncol(gamma_random_mat), each = nrow(gamma_random_mat))
      theme_minimalist())
 ggsave('gamma_qq_plot.pdf', p)
 ## this is perfectly acceptable as well
+
+######################################################################
+## EXPERIMENTAL fitting the meta-d' model to simulated data
+
+simulate_metad_data = function(span = 2, d1 = 2, d2 = 1, nof_crit = 10 + 1){
+    ## outermost criteria spread = d' + 2 * span
+    if((nof_crit / 2) == floor(nof_crit / 2)){
+        print("nof_crit must be ann odd number, increasing by 1")
+        nof_crit = nof_crit + 1
+    }
+    nof_r = nof_crit + 1
+    ## the main criterion
+    k = floor(nof_crit / 2) + 1
+    crit = round(seq(-d1/2 - span, d1/2 + span, length.out = nof_crit), 1000)
+    crit_ex = c(-Inf, crit, Inf)
+    d = expand.grid(r = 1:(nof_crit + 1), s = c(-0.5, .5))
+    ## p1 contains combined response probabilities for the metad' = d'
+    ## case, p2 contains combined response probabilities for the metad' !=
+    ## d' case.
+    d$p1 = d$p2 = NA
+    for(i in 1:nrow(d)){
+        d$p1[i] = pnorm(crit_ex[d$r[i]+1] - d$s[i] * d1) - pnorm(crit_ex[d$r[i]] - d$s[i] * d1)
+        if(d$r[i] <= nof_r / 2){
+            d$p2[i] = (pnorm(crit_ex[d$r[i]+1] - d$s[i] * d2) - pnorm(crit_ex[d$r[i]] - d$s[i] * d2)) /
+                pnorm(crit[k] - d$s[i] * d2) * pnorm(crit[k] - d$s[i] * d1)
+        }else{
+            d$p2[i] = (pnorm(crit_ex[d$r[i]+1] - d$s[i] * d2) - pnorm(crit_ex[d$r[i]] - d$s[i] * d2)) /
+                pnorm(-(crit[k] - d$s[i] * d2)) * pnorm(-(crit[k] - d$s[i] * d1))
+        }
+    }
+    d$stim = as.numeric(as.factor(d$s))
+    d
+}
+
+d = simulate_metad_data(nof_crit = 100)
+
+## Let's see how the combined response distributions differ
+ggplot(d[d$r > 1 & d$r < max(d$r),], aes(r, p1, group = stim, color = stim)) + geom_line() +
+    xlab("Combined response distributions for the meta-d' = d' case") + ylab('Combined response probability')
+ggplot(d[d$r > 1 & d$r < max(d$r),], aes(r, p2, group = stim, color = stim)) + geom_line() +
+    xlab("Combined response distributions for the meta-d' != d' case") + ylab('Combined response probability')
+## It's weird, but this is how the meta-d' model works
+
+d = simulate_metad_data()
+
+## Let's simulate some data
+N = 1000
+ds = expand.grid(stim = 1:2, i = 1:(N/2))
+ds$r = NA
+for(i in 1:N)
+    ds$r[i] = rMultinom(t(d$p2[d$stim == ds$stim[i]]), 1)
+
+adata = aggregate_responses(ds, 'stim', 'r')
+fixed = list(delta = ~ 1, gamma = ~ 1)
+
+if(fresh_start){
+    fit.metad = stan(model_code = make_stan_model(metad = TRUE),
+                     data = make_stan_data(adata, fixed, metad = TRUE),
+                     pars = c('delta_fixed', 'gamma_fixed',
+                              ## we need counts_new for plotting
+                              'counts_new'),
+                     iter = 4000,
+                     chains = 3)
+    print(fit.metad, probs = c(.025, .957), pars = c('delta_fixed', 'gamma_fixed'))
+    save(fit.metad, file = paste(temp_path, 'fit.metad', sep = '/'))
+}else{
+    load(paste(temp_path, 'fit.metad', sep = '/'))
+}
+
+if(fresh_start){
+    fit.sdt = stan(model_code = make_stan_model(),
+                   data = make_stan_data(adata, fixed),
+                   pars = c('delta_fixed', 'gamma_fixed',
+                            ## we need counts_new for plotting
+                            'counts_new'),
+                   iter = 4000,
+                   chains = 3)
+    print(fit.sdt, probs = c(.025, .957), pars = c('delta_fixed', 'gamma_fixed'))
+    save(fit.sdt, file = paste(temp_path, 'fit.sdt', sep = '/'))
+}else{
+    load(paste(temp_path, 'fit.sdt', sep = '/'))
+}
+
+## Let's see how it 
+s = as.data.frame(fit.metad)
+round(apply(exp(s[,1:2]), 2, mean), 2)
+## Works for the dprim parameters
+res = as.data.frame(cbind(round(apply(gamma_to_crit(s), 2, mean), 1), crit))
+names(res) = c('estimated', 'true')
+ggplot(res, aes(true, estimated)) + geom_point() + geom_abline(intercept = 0, slope = 1) +
+    xlab('True criteria') + ylab('Estimated criteria')
+## Works for the criteria
+
+plot_sdt_fit(fit.metad, adata)
+## Fits nicely
+plot_sdt_fit(fit.sdt, adata)
+## Also seems to fit nicely
+plot_sdt_fit(fit.metad, adata, type = F)
+plot_sdt_fit(fit.sdt, adata, type = F)
+## The lack of fit is very apparent here

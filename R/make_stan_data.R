@@ -104,18 +104,21 @@
 #'
 #' }
 #'
-#' @param adata an aggregated data object created by \code{aggregate_responses}
-#'   function.
-#' @param fixed a list specifying gamma and delta fixed effects and priors. See
-#'   also 'Details'.
-#' @param random an optional list specifying gamma and delta random effects and
-#'   priors. The default is list(), which corresponds to a non-hierarchical SDT
-#'   model. See also 'Details'.
+#' @param adata an aggregated data object created by
+#'     \code{aggregate_responses} function.
+#' @param fixed a list specifying gamma and delta fixed effects and
+#'     priors. See also 'Details'.
+#' @param random an optional list specifying gamma and delta random
+#'     effects and priors. The default is list(), which corresponds to
+#'     a non-hierarchical SDT model. See also 'Details'.
 #' @param criteria_scale a scaling factor corresponding to mapping
-#'   distribution's standard deviation. The default is 2. See also 'Details'.
-#' @return a list with response and stimulus data, model matrices, prior
-#'   parameter values, and other data required by the stan model generated using
-#'   \code{make_stan_model}.
+#'     distribution's standard deviation. The default is 2. See also
+#'     'Details'.
+#' @param metad [experimental] when TRUE data for the meta-d' model are created, the
+#'     default if FALSE.
+#' @return a list with response and stimulus data, model matrices,
+#'     prior parameter values, and other data required by the stan
+#'     model generated using \code{make_stan_model}.
 #' @examples
 #' data(gabor)
 #' gabor$r = combined_response(gabor$stim, gabor$rating, gabor$acc)
@@ -125,7 +128,7 @@
 #' sdata = make_stan_data(adata, fixed, random)
 #' sdata
 #' @export
-make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2){
+make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, metad = FALSE){
   K = ncol(adata$counts)
   if(length(random) > 0){
     for(l in 1:length(random)){
@@ -149,11 +152,17 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2){
               X_gamma_ncol = ncol(X_gamma),
               X_gamma = X_gamma,
               criteria_scale = criteria_scale,
+              ## stim_sign = -1, 1
               stim_sign = 2 * as.numeric(as.factor(as.character(adata$stimulus))) - 3,
               counts = adata$counts)
   ## Priors
-  data$delta_fixed_mu = parse_prior(fixed$delta_mu, acc_to_delta(.75), ncol(X_delta), 'delta_mu')
-  data$delta_fixed_sd = parse_prior(fixed$delta_sd, .5 * (acc_to_delta(.99) - acc_to_delta(.51)), ncol(X_delta), 'delta_sd')
+  if(!metad){
+      data$delta_fixed_mu = parse_prior(fixed$delta_mu, acc_to_delta(.75), ncol(X_delta), 'delta_mu')
+      data$delta_fixed_sd = parse_prior(fixed$delta_sd, .5 * (acc_to_delta(.99) - acc_to_delta(.51)), ncol(X_delta), 'delta_sd')
+  }else{
+      data$delta_fixed_mu = parse_prior(fixed$delta_mu, acc_to_delta(.75), c(2, ncol(X_delta)), 'delta_mu')
+      data$delta_fixed_sd = parse_prior(fixed$delta_sd, .5 * (acc_to_delta(.99) - acc_to_delta(.51)), c(2, ncol(X_delta)), 'delta_sd')
+  }
   data$gamma_fixed_mu = parse_prior(fixed$gamma_mu, 0, c(K - 1, ncol(X_gamma)), 'gamma_mu')
   data$gamma_fixed_sd = parse_prior(fixed$gamma_sd, log(100), c(K - 1, ncol(X_gamma)), 'gamma_sd')
   ## Random effects
@@ -167,12 +176,20 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2){
         data[[sprintf('Z_delta_%d', l)]] = mm
         data[[sprintf('lkj_delta_nu_%d', l)]] = if(is.null(random[[l]]$delta_nu)){ 1 }else{ random[[l]]$delta_nu }
         if(is.null(random[[l]]$delta_scale)){
-          delta_sd_scale = rep(.5 * (acc_to_delta(.99) - acc_to_delta(.51)), ncol(mm))
+            if(!metad){
+                delta_sd_scale = rep(.5 * (acc_to_delta(.99) - acc_to_delta(.51)), ncol(mm))
+            }else{
+                delta_sd_scale = rep(.5 * (acc_to_delta(.99) - acc_to_delta(.51)), 2 * ncol(mm))
+            }
         }else{
           if(length(random[[l]]$delta_scale) == 1){
-            delta_sd_scale = rep(random[[l]]$delta_scale[1], ncol(mm))
+              if(!metad){
+                  delta_sd_scale = rep(random[[l]]$delta_scale[1], ncol(mm))
+              }else{
+                  delta_sd_scale = rep(random[[l]]$delta_scale[1], 2 * ncol(mm))
+              }
           }else{
-            delta_sd_scale = random[[l]]$delta_scale
+              delta_sd_scale = random[[l]]$delta_scale
           }
         }
         data[[sprintf('delta_sd_scale_%d', l)]] = fix_stan_dim(delta_sd_scale)

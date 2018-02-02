@@ -11,6 +11,8 @@
 #'
 #' @param random an optional list specifying random effects
 #'     structure. See \code{\link{make_stan_data}} for details.
+#' @param metad [experimental] if TRUE meta-d' model code is created,
+#'     default is FALSE.
 #' @return a string containing the full model definition in the stan
 #'     modelling language.
 #' @examples
@@ -18,9 +20,13 @@
 #' model = make_stan_model(list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1)))
 #' cat(model)
 #' @export
-make_stan_model = function(random = NULL){
+make_stan_model = function(random = NULL, metad = FALSE){
     model = ''
-    f = file(paste(path.package('bhsdtr'), '/stan_templates/sdt_template.stan', sep = ''))
+    if(!metad){
+        f = file(paste(path.package('bhsdtr'), '/stan_templates/sdt_template.stan', sep = ''))
+    }else{
+        f = file(paste(path.package('bhsdtr'), '/stan_templates/metad_template.stan', sep = ''))
+    }
     for(part in readLines(f)){
         ## Jeżeli to jest fragment dotyczący efektów losowych ...
         if(rmatch('//(common|delta|gamma)', part)){
