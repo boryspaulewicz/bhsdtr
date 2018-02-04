@@ -19,25 +19,6 @@ options(mc.cores = parallel::detectCores())
 library(plyr)
 
 ######################################################################
-## Combining parameter estimation and regression analysis relating
-## these parameters to additional variables
-
-I = 10
-J = 10
-d = expand.grid(i = 1:I, j = 1:J)
-## We have a strong linear relationship
-d$x = (1:I)[d$i]
-d$y = rnorm(nrow(d)) + d$x
-## except for the subset with a lower number of data points that look like outliers
-d = d[!(d$i == I & d$j <= (J / 2)),]
-d$y[d$x == I] = rnorm(sum(d$x == I))
-d$y[d$x == I] = d$y[d$x == I] - mean(d$y[d$x == I])
-est = aggregate(y ~ x, d, mean)
-names(est) = c('x_aggregated', 'par_estimate')
-res = stan(file = 'regression.stan', data = append(d, append(est, list(N = nrow(d), I = I))),
-           pars = c('a0', 'b0', 'a1', 'b1', 'sigma', 'par'), chains = 1)
-
-######################################################################
 ## Fitting the model to real study data
 
 ## We will be using the dataset provided with the package
@@ -456,7 +437,7 @@ ggsave('gamma_qq_plot.pdf', p)
 ######################################################################
 ## EXPERIMENTAL fitting the meta-d' model to simulated data
 
-simulate_metad_data = function(span = 2, d1 = 2, d2 = 1, nof_crit = 10 + 1){
+simulate_metad_data = function(span = 2, d1 = 2, d2 = 1, nof_crit = 10 + 1, bias = 0, crit_scale = 1){
     ## outermost criteria spread = d' + 2 * span
     if((nof_crit / 2) == floor(nof_crit / 2)){
         print("nof_crit must be ann odd number, increasing by 1")
@@ -465,7 +446,7 @@ simulate_metad_data = function(span = 2, d1 = 2, d2 = 1, nof_crit = 10 + 1){
     nof_r = nof_crit + 1
     ## the main criterion
     k = floor(nof_crit / 2) + 1
-    crit = round(seq(-d1/2 - span, d1/2 + span, length.out = nof_crit), 1000)
+    crit = (seq(-d1/2 - span, d1/2 + span, length.out = nof_crit) * crit_scale) + bias
     crit_ex = c(-Inf, crit, Inf)
     d = expand.grid(r = 1:(nof_crit + 1), s = c(-0.5, .5))
     ## p1 contains combined response probabilities for the metad' = d'
@@ -482,11 +463,13 @@ simulate_metad_data = function(span = 2, d1 = 2, d2 = 1, nof_crit = 10 + 1){
                 pnorm(-(crit[k] - d$s[i] * d2)) * pnorm(-(crit[k] - d$s[i] * d1))
         }
     }
-    d$stim = as.numeric(as.factor(d$s))
+    d$stim = as.factor(as.numeric(as.factor(d$s)))
     d
 }
 
-d = simulate_metad_data(nof_crit = 100)
+## d = simulate_metad_data(nof_crit = 100)
+## save(d, file = '~/temp/d')
+load('~/temp/d')
 
 ## Let's see how the combined response distributions differ
 ggplot(d[d$r > 1 & d$r < max(d$r),], aes(r, p1, group = stim, color = stim)) + geom_line() +
@@ -495,14 +478,19 @@ ggplot(d[d$r > 1 & d$r < max(d$r),], aes(r, p2, group = stim, color = stim)) + g
     xlab("Combined response distributions for the meta-d' != d' case") + ylab('Combined response probability')
 ## It's weird, but this is how the meta-d' model works
 
-d = simulate_metad_data()
-
 ## Let's simulate some data
+d = simulate_metad_data()
 N = 1000
 ds = expand.grid(stim = 1:2, i = 1:(N/2))
 ds$r = NA
 for(i in 1:N)
     ds$r[i] = rMultinom(t(d$p2[d$stim == ds$stim[i]]), 1)
+## save(ds, file = '~/temp/ds')
+load('~/temp/ds')
+ds$dec = as.numeric(ds$r > 6) + 1
+ds$rating = ds$r
+ds$rating[ds$r > 6] = ds$rating[ds$r > 6] - 6
+ds$rating[ds$r <= 6] = 7 - ds$rating[ds$r <= 6]
 
 adata = aggregate_responses(ds, 'stim', 'r')
 fixed = list(delta = ~ 1, gamma = ~ 1)
@@ -535,20 +523,37 @@ if(fresh_start){
     load(paste(temp_path, 'fit.sdt', sep = '/'))
 }
 
-## Let's see how it 
+## Let's see how it performs
 s = as.data.frame(fit.metad)
 round(apply(exp(s[,1:2]), 2, mean), 2)
 ## Works for the dprim parameters
+round(HPDinterval(as.mcmc(exp(s[,1]) - exp(s[,2]))), 2)
 res = as.data.frame(cbind(round(apply(gamma_to_crit(s), 2, mean), 1), crit))
 names(res) = c('estimated', 'true')
 ggplot(res, aes(true, estimated)) + geom_point() + geom_abline(intercept = 0, slope = 1) +
     xlab('True criteria') + ylab('Estimated criteria')
 ## Works for the criteria
 
+dm = as.matrix(read.csv('maniscalco.csv'))[,-3]
+res = rbind(dm[c(1:2,4:8,3,9:13)],
+            c(apply(s[,1:2], 2, function(x)mean(exp(x))),
+              apply(gamma_to_crit(s), 2, mean)))
+colnames(res) = c('dprim', 'meta-dprim', paste('c', 1:11, sep = ''))
+round(res[,1:2], 2)
+round(res[,3:13], 2)
+crit_t = as.data.frame(t(res[,3:13]))
+names(crit_t) = c('Maniscalco', 'bhsdtr')
+ggplot(crit_t, aes(bhsdtr, Maniscalco)) + geom_point() + geom_line() + labs(title = 'Criteria estimates')
+ggsave('criteria_maniscalco_vs_moi.pdf')
+
 plot_sdt_fit(fit.metad, adata)
+ggsave('metad_roc_fit.pdf')
 ## Fits nicely
 plot_sdt_fit(fit.sdt, adata)
+ggsave('metad_roc_sdt_fit.pdf')
 ## Also seems to fit nicely
 plot_sdt_fit(fit.metad, adata, type = F)
+ggsave('metad_resp_fit.pdf')
 plot_sdt_fit(fit.sdt, adata, type = F)
+ggsave('metad_resp_sdt_fit.pdf')
 ## The lack of fit is very apparent here
