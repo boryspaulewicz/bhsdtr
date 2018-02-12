@@ -42,7 +42,7 @@ all the relevant random grouping factors by supplementing the SDT
 model with a hierarchical structure.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
-hierarchical linear regression structure (normally distributed
+hierarchical *linear* regression structure (normally distributed
 correlated random effects) thanks to the novel parametrization
 described in this non peer-reviewed [preliminary
 paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
@@ -138,3 +138,10 @@ fit = stan(model_code = make_stan_model(random),
     iter = 8000,
     chains = 4)
 ```
+
+When the make_stan_model and make_stan_data functions are called with
+the optional metad=TRUE argument the meta-d' model is fitted. There
+are two delta (d') parameters in the meta-d' model and so the
+regression coefficients form a two-column matrix: the first column
+represents the fixed effects for the d' parameter and the second
+column represents the fixed effects for the meta-d' parameter.
