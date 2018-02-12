@@ -19,17 +19,17 @@ hierarchical version of equal-variance SDT **with one
 criterion**. However, the single-criterion SDT model is untestable,
 because the data and the model have the same dimensionality (=2). The
 SDT model becomes testable (e.g., by comparing the theoretical and the
-observed ROC curves) when it is generalized to the version that
-accomodates ratings by introducing additional criteria.
+observed ROC curves) when it is generalized - by introducing
+additional criteria - to the version that accomodates ratings.
 
-In the bhsdtr package the SDT model with one or more criterion is
-supplemented with a general hierarchical linear regression structure
-thanks to a novel parametrization which is described in this non
-peer-reviewed [preliminary
+In the bhsdtr package the generalized SDT model is supplemented with a
+general hierarchical linear regression structure thanks to a novel
+parametrization which is described in this non peer-reviewed
+[preliminary
 paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf). This
-reparametrization requires some getting used to but it is the
-necessary price to pay for the correctness of the implementation of
-the general hierarchical regression structure.
+parametrization requires some getting used to but it is the necessary
+price to pay for the correctness of the implementation of the general
+hierarchical regression structure.
 
 ### Prerequisites
 
