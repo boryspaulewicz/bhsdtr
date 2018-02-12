@@ -36,10 +36,10 @@ factors (such as subjects, items, etc.) is *invalid* because the
 estimates of SDT parameters based on such overly-aggregated data are
 biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
-by Morey, Pratte, and Rouder for a demonstration of this problem). The
-only way to avoid this problem in the general case is by modelling the
-effects of all the relevant random grouping factors by supplementing
-the SDT model with a hierarchical structure.
+by Morey, Pratte, and Rouder for a demonstration). The only way to
+avoid this problem in the general case is by modelling the effects of
+all the relevant random grouping factors by supplementing the SDT
+model with a hierarchical structure.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
 hierarchical linear regression structure (normally distributed
