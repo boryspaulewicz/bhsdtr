@@ -47,8 +47,8 @@ described in [this non peer-reviewed
 paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
 and (more concisely) in the package
 documentation. [Here](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/analysis_script.R)
-is the R script that was used to perform all the analyses and produce
-all the tables and some of the figures in the paper.
+is the annotated R script that was used to perform all the analyses
+and produce all the tables and some of the figures in the paper.
 
 ## Features
 
