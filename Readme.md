@@ -46,7 +46,10 @@ hierarchical *linear* regression structure (normally distributed
 correlated random effects) thanks to the novel parametrization
 described in this non peer-reviewed [preliminary
 paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
-and (more concisely) in the package documentation.
+and (more concisely) in the package
+documentation. [Here](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/analysis_script.R)
+is the R script that was used to perform all the analyses and produce
+all the figures and tables in the paper.
 
 ## Features
 
