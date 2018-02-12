@@ -13,6 +13,8 @@ intermediate unconstrained parameters, and the model can be extended
 by using automatically generated human-readable Stan code as a
 template.
 
+## Some background
+
 The equal-variance SDT with one criterion is trivially equivalent to
 probit regression (see
 [this](http://www.columbia.edu/~ld208/psymeth98.pdf) paper by DeCarlo)
@@ -34,6 +36,8 @@ and (more concisely) in the package documentation. This
 parametrization requires some getting used to but it is the necessary
 price to pay for the correctness of the implementation of the general
 hierarchical linear regression structure.
+
+## Features
 
 The bhsdtr package can be used to:
 
