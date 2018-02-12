@@ -144,9 +144,9 @@ fit = stan(model_code = make_stan_model(random),
 When the make_stan_model and make_stan_data functions are called with
 the optional metad=TRUE argument the meta-d' model is fitted. There
 are two delta (d') parameters in the meta-d' model and so the
-delta_fixed regression coefficients form a two-column matrix: the
-first column represents the fixed effects for the d' parameter and the
-second column represents the fixed effects for the meta-d' parameter.
+delta_fixed regression coefficients form a two-row matrix: the first
+row represents the fixed effects for the d' parameter and the
+second row represents the fixed effects for the meta-d' parameter.
 
 The model fit can be assessed using the plot_sdt_fit function, which
 produces ROC curve plots ...
