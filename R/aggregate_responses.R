@@ -34,12 +34,12 @@
 #' @export
 aggregate_responses = function(data, stimulus, response, variables = NULL){
   ## stimulus classes encoded as 1 or 2
-  data[[stimulus[1]]] = as.numeric(as.factor(as.character(data[[stimulus[1]]])))
-  K = max(data[[response[1]]], na.rm = T)
-  res = plyr::ddply(data, unique(c(variables, stimulus[1])),
-                    function(df)table(c(df[[response[1]]], 1:K)) - 1)
-  counts = res[, c((ncol(res)-K+1):ncol(res))]
-  list(data = res[, setdiff(variables, c(stimulus[1], response[1]))],
-       stimulus = res[[stimulus[1]]],
-       counts = counts)
+    data[[stimulus[1]]] = as.numeric(as.factor(as.character(data[[stimulus[1]]])))
+    K = max(data[[response[1]]], na.rm = T)
+    res = plyr::ddply(data, unique(c(variables, stimulus[1])),
+                      function(df)table(c(df[[response[1]]], 1:K)) - 1)
+    counts = res[, c((ncol(res)-K+1):ncol(res))]
+    list(data = res[, setdiff(variables, c(stimulus[1], response[1]))],
+         stimulus = res[[stimulus[1]]],
+         counts = counts)
 }

@@ -11,8 +11,8 @@
 #'
 #' @param random an optional list specifying random effects
 #'     structure. See \code{\link{make_stan_data}} for details.
-#' @param metad [experimental] if TRUE meta-d' model code is created,
-#'     default is FALSE.
+#' @param metad if TRUE meta-d' model code is created, default is
+#'     FALSE.
 #' @return a string containing the full model definition in the stan
 #'     modelling language.
 #' @examples

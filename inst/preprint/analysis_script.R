@@ -5,7 +5,7 @@
 ##
 ## Change this to FALSE once all the stanfit objects are stored to
 ## save time and memory
-fresh_start = TRUE
+fresh_start = FALSE
 ## Where do you want to store all those large stanfit objects?
 temp_path = '~/temp'
 

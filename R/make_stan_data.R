@@ -114,8 +114,8 @@
 #' @param criteria_scale a scaling factor corresponding to mapping
 #'     distribution's standard deviation. The default is 2. See also
 #'     'Details'.
-#' @param metad [experimental] when TRUE data for the meta-d' model are created, the
-#'     default if FALSE.
+#' @param metad when TRUE additional data required by the meta-d'
+#'     model are created, the default if FALSE.
 #' @return a list with response and stimulus data, model matrices,
 #'     prior parameter values, and other data required by the stan
 #'     model generated using \code{make_stan_model}.
