@@ -102,8 +102,8 @@ gabor$r = combined_response(gabor$stim, gabor$rating, gabor$acc)
 
 The combined responses have to be aggregated to make the sampling more
 efficient. This is done using the aggregate_resoponses function, which
-requires the names of the stimulus variable and the combined response
-variable. If the data have a hierarchical structure, this structure
+requires the names of the stimulus and the combined response
+variables. If the data have a hierarchical structure, this structure
 has to be preserved by listing the variables that cannot be collapsed
 by the aggregation step. Here we list three variables that have to be
 preserved: duration, id and orded.
