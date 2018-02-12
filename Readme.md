@@ -4,13 +4,14 @@ The bhsdtr (short for Bayesian Hierarchical Signal Detection Theory
 with Ratings) R package implements a novel method of Bayesian
 inference for hierarchical or non-hierarchical equal variance normal
 Signal Detection Theory models with one or more criteria. It uses the
-state-of-the-art platform Stan for sampling from posterior
-distributions. Our method can accommodate binary responses as well as
-additional ratings and an arbitrary number of nested or crossed random
-grouping factors. The SDT parameters can be regressed on additional
-predictors within the same model via intermediate unconstrained
-parameters, and the model can be extended by using automatically
-generated human-readable Stan code as a template.
+state-of-the-art platform [Stan](http://mc-stan.org/) for sampling
+from posterior distributions. Our method can accommodate binary
+responses as well as additional ratings and an arbitrary number of
+nested or crossed random grouping factors. The SDT parameters can be
+regressed on additional predictors within the same model via
+intermediate unconstrained parameters, and the model can be extended
+by using automatically generated human-readable Stan code as a
+template.
 
 The equal-variance SDT with one criterion is trivially equivalent to
 probit regression (see
