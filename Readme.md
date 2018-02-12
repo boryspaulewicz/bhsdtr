@@ -52,10 +52,10 @@ and (more concisely) in the package documentation.
 
 The bhsdtr package can be used to:
 
-- fit generalized (more than one criterion) or basic (one criterion) equal variance SDT models
-- fit hierarchical or non-hierarchical (e.g., single subject) equal variance SDT models
+- fit generalized (more than one criterion), [meta-d'](http://www.columbia.edu/~bsm2105/type2sdt/), or basic (one criterion) equal variance SDT models
+- fit hierarchical or non-hierarchical (e.g., single subject) models
 - assess the fit using publication-ready ROC curve and combined response distribution plots with predictive intervals calculated for the chosen alpha level
-- model the dependence of the SDT parameters on additional variables (e.g., task difficulty) using separate linear regression structures for the d' (delta) and c (gamma) parameters
+- model the dependence of the SDT parameters on additional variables (e.g., task difficulty) using separate linear regression structures for the delta (d', meta-d') and gamma (c) parameters
 
 ### Prerequisites
 
