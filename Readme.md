@@ -14,7 +14,7 @@ generated human-readable Stan code as a template.
 The SDT model is supplemented with a general hierarchical linear
 regression structure thanks to a novel parametrization which is
 described in this non peer-reviewed [preliminary
-paper](inst/preprint/luxsdt.pdf).
+paper](https://github.com/boryspaulewicz/bhsdtr/inst/preprint/luxsdt.pdf).
 
 ### Prerequisites
 
