@@ -11,6 +11,11 @@ predictors within the same model via intermediate unconstrained
 parameters, and the model can be extended by using automatically
 generated human-readable Stan code as a template.
 
+The SDT model is supplemented with a general hierarchical linear
+regression structure thanks to a novel parametrization which is
+described in this non peer-reviewed [preliminary
+paper](inst/preprint/luxsdt.pdf).
+
 ### Prerequisites
 
 All you need is a fairly up-to-date version of R.
@@ -54,8 +59,36 @@ efficient. This is done using the aggregate_resoponses function, which
 requires the names of the stimulus variable and the combined response
 variable. If the data have a hierarchical structure, this structure
 has to be preserved by listing the variables that cannot be collapsed
-by the aggregation step:
+by the aggregation step. Here we list three variables that have to be
+preserved: duration, id and orded.
 
 ```
 adata = aggregate_responses(gabor, 'stim', 'r', c('duration', 'id', 'order'))
+```
+
+Finally, the fixed and random effects structure has to be specified
+using lists of R model formulae. Here we assume that d' (= exp(delta))
+depends on duration (a within-subject variable) and order (a
+between-subject variable), but gamma (from which the criteria
+parameter vector is derived) depends only on order. There is only one
+random grouping factor - id - which represents the subjects.
+
+```
+fixed = list(delta = ~ -1 + duration:order, gamma = ~ -1 + order)
+random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
+```
+
+Now we can start sampling:
+
+```
+fit = stan(model_code = make_stan_model(random),
+    data = make_stan_data(adata, fixed, random),
+    pars = c('delta_fixed', 'gamma_fixed',
+        'delta_sd_1', 'gamma_sd_1',
+        'delta_random_1', 'gamma_random_1',
+        'Corr_delta_1', 'Corr_gamma_1',
+        ## we need counts_new for plotting
+        'counts_new'),
+    iter = 8000,
+    chains = 4)
 ```
