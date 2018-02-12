@@ -18,7 +18,7 @@ template.
 The equal-variance SDT with one criterion is trivially equivalent to
 probit regression (see
 [this](http://www.columbia.edu/~ld208/psymeth98.pdf) paper by DeCarlo)
-which means that any software capable of fitting hierarhical
+which means that any software capable of fitting hierarchical
 generalized linear models can be used to fit the hierarchical version
 of equal-variance SDT *with one criterion*. However, the
 single-criterion SDT model is untestable, because the data and the
@@ -33,13 +33,12 @@ new").
 
 SDT is a *non-linear* model. An immediate consequence of non-linearity
 is that inference based on data aggregated over random grouping
-factors (such as subjects, items, etc.) is *invalid* because the
+factors (such as subjects, items, etc.) is invalid, because the
 resulting estimates are biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
 by Morey, Pratte, and Rouder for a demonstration). The only way to
 avoid this problem in the general case is by modelling the effects of
-all the relevant random grouping factors by supplementing the SDT
-model with a hierarchical structure.
+all the relevant random grouping factors.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
 hierarchical *linear* regression structure (normally distributed
@@ -62,14 +61,14 @@ The bhsdtr package can be used to:
 
 ### Prerequisites
 
-All you need is a fairly up-to-date version of
-[R](https://www.r-project.org/) with [the devtools
+A fairly up-to-date version of [R](https://www.r-project.org/) with
+[the devtools
 package](https://cran.r-project.org/web/packages/devtools/index.html)
 already installed.
 
 ## Installing
 
-The bhsdtr package, together will all its dependencies, can be
+The bhsdtr package, together will all of its dependencies, can be
 installed directly from this github repository using the devtools
 package:
 
@@ -85,7 +84,7 @@ library(bhsdtr)
 
 ## Usage example
 
-The bhsdtr package contains the gabor dataset
+The package contains the gabor dataset
 
 
 ```
@@ -145,11 +144,12 @@ fit = stan(model_code = make_stan_model(random),
 When the make_stan_model and make_stan_data functions are called with
 the optional metad=TRUE argument the meta-d' model is fitted. There
 are two delta (d') parameters in the meta-d' model and so the
-regression coefficients form a two-column matrix: the first column
-represents the fixed effects for the d' parameter and the second
-column represents the fixed effects for the meta-d' parameter.
+delta_fixed regression coefficients form a two-column matrix: the
+first column represents the fixed effects for the d' parameter and the
+second column represents the fixed effects for the meta-d' parameter.
 
-The model fit can be assessed using the plot_sdt_fit function, which produces ROC curve plots:
+The model fit can be assessed using the plot_sdt_fit function, which
+produces ROC curve plots ...
 
 
 ```
@@ -158,7 +158,7 @@ plot_sdt_fit(fit, adata, c('order', 'duration')))
 
 ![ROC curve](inst/preprint/roc_fit.png)
 
-or combined response distribution plots:
+... or combined response distribution plots:
 
 ```
 plot_sdt_fit(fit, adata, c('order', 'duration'), type = 'response')
