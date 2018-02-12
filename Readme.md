@@ -91,9 +91,10 @@ head(gabor)
 ?gabor
 ```
 
-We need to create some data structures required by the stan
-function. This is how you can create the combined response variable
-that encodes both the binary classification decision and rating:
+To fit a hierarchical SDT model to this data we need to create some
+data structures required by the stan function. This is how you can
+create the combined response variable that encodes both the binary
+classification decision and rating:
 
 ```
 gabor$r = combined_response(gabor$stim, gabor$rating, gabor$acc)
