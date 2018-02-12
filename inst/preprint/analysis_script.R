@@ -75,8 +75,10 @@ print(xtable(smr[-nrow(smr),]), file = 'fit_table.tex')
 ## Some plots
 (p1 = plot_sdt_fit(fit, adata, c('order', 'duration')))
 ggsave(p1, file = 'roc_fit.pdf')
-(p2 = plot_sdt_fit(fit, adata, c('order', 'duration'), type = ''))
+ggsave(p1, file = 'roc_fit.png')
+(p2 = plot_sdt_fit(fit, adata, c('order', 'duration'), type = 'response'))
 ggsave(p2, file = 'response_fit.pdf')
+ggsave(p2, file = 'response_fit.png')
 
 ## The criteria are placed fairly symmetrically
 crit = gamma_to_c(as.data.frame(fit))

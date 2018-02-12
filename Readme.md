@@ -156,7 +156,7 @@ The model fit can be assessed using the plot_sdt_fit function, which produces RO
 plot_sdt_fit(fit, adata, c('order', 'duration')))
 ```
 
-![ROC curve plot](inst/preprint/roc_fit.pdf?raw=true "ROC curve plot")
+[[inst/preprint/roc_fit.pdf]]
 
 or combined response distribution plots:
 
