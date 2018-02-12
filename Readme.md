@@ -34,8 +34,7 @@ certain that this item is new").
 SDT is a *non-linear* model. An immediate consequence of non-linearity
 is that inference based on data aggregated over random grouping
 factors (such as subjects, items, etc.) is *invalid* because the
-estimates of SDT parameters based on such overly-aggregated data are
-biased (see [this
+resulting estimates are biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
 by Morey, Pratte, and Rouder for a demonstration). The only way to
 avoid this problem in the general case is by modelling the effects of
