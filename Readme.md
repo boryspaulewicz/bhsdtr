@@ -43,13 +43,10 @@ model with a hierarchical structure.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
 hierarchical linear regression structure (normally distributed
-correlated random effects) thanks to a novel parametrization described
-in this non peer-reviewed [preliminary
+correlated random effects) thanks to the novel parametrization
+described in this non peer-reviewed [preliminary
 paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
-and (more concisely) in the package documentation. This
-parametrization requires some getting used to but it is the necessary
-price to pay for the correctness of the implementation of the general
-hierarchical linear regression structure.
+and (more concisely) in the package documentation.
 
 ## Features
 
