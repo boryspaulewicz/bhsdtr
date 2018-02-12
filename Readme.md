@@ -16,16 +16,16 @@ template.
 ## Some background
 
 The equal-variance SDT with one criterion is trivially equivalent to
-probit regression (see
-[this](http://www.columbia.edu/~ld208/psymeth98.pdf) paper by DeCarlo)
-which means that any software capable of fitting hierarchical
-generalized linear models can be used to fit the hierarchical version
-of equal-variance SDT *with one criterion*. However, the
-single-criterion SDT model is untestable, because the data and the
-model have the same dimensionality (=2). The main reason for using SDT
-is to deconfound sensitivity and bias. This can only be achieved if
-the SDT model is approximately true, but there is no way to test it in
-the single-criterion case. The SDT model becomes testable (e.g., by
+probit regression (see [this
+paper](http://www.columbia.edu/~ld208/psymeth98.pdf) by DeCarlo) which
+means that any software capable of fitting hierarchical generalized
+linear models can be used to fit the hierarchical version of
+equal-variance SDT *with one criterion*. However, the single-criterion
+SDT model is untestable, because the data and the model have the same
+dimensionality (=2). The main reason for using SDT is to deconfound
+sensitivity and bias. This can only be achieved if the SDT model is
+approximately true, but there is no way to test it in the
+single-criterion case. The SDT model becomes testable (e.g., by
 comparing the theoretical and the observed ROC curves) when it is
 generalized - by introducing additional criteria - to the version that
 accomodates ratings (e.g., "I am almost certain that this item is
@@ -43,7 +43,7 @@ all the relevant random grouping factors.
 In the bhsdtr package the generalized SDT model is supplemented with a
 hierarchical *linear* regression structure (normally distributed
 correlated random effects) thanks to the novel parametrization
-described in this [non peer-reviewed
+described in [this non peer-reviewed
 paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
 and (more concisely) in the package
 documentation. [Here](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/analysis_script.R)
