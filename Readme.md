@@ -37,7 +37,7 @@ The bhsdtr package can be used to:
 
 - fit generalized (more than one criterion) or basic (one criterion) equal variance SDT models
 - fit hierarchical or non-hierarchical (e.g., single subject) equal variance SDT models
-- assess the fit using ROC curve and combined response distribution plots with predictive intervals calculated for the chosen alpha level
+- assess the fit using publication-ready ROC curve and combined response distribution plots with predictive intervals calculated for the chosen alpha level
 - model the dependence of the SDT parameters on additional variables (e.g., task difficulty) using separate linear regression structures for the d' (delta) and c (gamma) parameters
 
 ### Prerequisites
