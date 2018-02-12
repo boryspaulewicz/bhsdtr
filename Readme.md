@@ -86,6 +86,7 @@ The bhsdtr package contains the gabor dataset
 ```
 data(gabor)
 head(gabor)
+?gabor
 ```
 
 We need to create some data structures required by the stan
