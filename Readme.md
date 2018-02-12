@@ -28,7 +28,8 @@ the SDT model is approximately true, but there is no way to test if it
 is approximately true in the single-criterion case. The SDT model
 becomes testable (e.g., by comparing the theoretical and the observed
 ROC curves) when it is generalized - by introducing additional
-criteria - to the version that accomodates ratings.
+criteria - to the version that accomodates ratings (e.g., "I am almost
+certain that this item is new").
 
 SDT is a *non-linear* model. An immediate consequence of non-linearity
 is that inference based on data aggregated over random grouping
