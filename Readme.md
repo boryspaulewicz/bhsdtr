@@ -11,16 +11,17 @@ predictors within the same model via intermediate unconstrained
 parameters, and the model can be extended by using automatically
 generated human-readable Stan code as a template.
 
-The equal-variance SDT with one criterion is equivalent to probit
-regression (see [this](http://www.columbia.edu/~ld208/psymeth98.pdf)
-paper by DeCarlo) which means that any software capable of fitting
-hierarhical generalized linear models can be used to fit the
-hierarchical version of equal-variance SDT *with one
-criterion*. However, the single-criterion SDT model is untestable,
-because the data and the model have the same dimensionality (=2). The
-SDT model becomes testable (e.g., by comparing the theoretical and the
-observed ROC curves) when it is generalized - by introducing
-additional criteria - to the version that accomodates ratings.
+The equal-variance SDT with one criterion is trivially equivalent to
+probit regression (see
+[this](http://www.columbia.edu/~ld208/psymeth98.pdf) paper by DeCarlo)
+which means that any software capable of fitting hierarhical
+generalized linear models can be used to fit the hierarchical version
+of equal-variance SDT *with one criterion*. However, the
+single-criterion SDT model is untestable, because the data and the
+model have the same dimensionality (=2). The SDT model becomes
+testable (e.g., by comparing the theoretical and the observed ROC
+curves) when it is generalized - by introducing additional criteria -
+to the version that accomodates ratings.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
 general hierarchical linear regression structure thanks to a novel
