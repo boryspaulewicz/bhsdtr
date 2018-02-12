@@ -27,10 +27,18 @@ In the bhsdtr package the generalized SDT model is supplemented with a
 general hierarchical linear regression structure thanks to a novel
 parametrization which is described in this non peer-reviewed
 [preliminary
-paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf). This
+paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
+and (more concisely) in the package documentation. This
 parametrization requires some getting used to but it is the necessary
 price to pay for the correctness of the implementation of the general
 hierarchical linear regression structure.
+
+The bhsdtr package can be used to:
+
+- fit generalized (more than one criterion) or basic (one criterion) equal variance SDT models
+- fit hierarchical or non-hierarchical (e.g., single subject) equal variance SDT models
+- assess the fit using ROC curve and combined response distribution plots with predictive intervals calculated for the chosen alpha level
+- model the dependence of the SDT parameters on additional variables (e.g., task difficulty) using separate linear regression structures for the d' (delta) and c (gamma) parameters
 
 ### Prerequisites
 
