@@ -163,3 +163,5 @@ or combined response distribution plots:
 ```
 plot_sdt_fit(fit, adata, c('order', 'duration'), type = 'response')
 ```
+
+![Combined response distributions](inst/preprint/response_fit.png)
