@@ -11,14 +11,30 @@ predictors within the same model via intermediate unconstrained
 parameters, and the model can be extended by using automatically
 generated human-readable Stan code as a template.
 
-The SDT model is supplemented with a general hierarchical linear
-regression structure thanks to a novel parametrization which is
-described in this non peer-reviewed [preliminary
-paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf).
+The equal-variance SDT with one criterion is equivalent to probit
+regression (see [this](http://www.columbia.edu/~ld208/psymeth98.pdf)
+paper by DeCarlo) which means that any software capable of fitting
+hierarhical generalized linear models can be used to fit the
+hierarchical version of equal-variance SDT **with one
+criterion**. However, the single-criterion SDT model is untestable,
+because the data and the model have the same dimensionality (=2). The
+SDT model becomes testable (e.g., by comparing the theoretical and the
+observed ROC curves) when it is generalized to the version that
+accomodates ratings by introducing additional criteria.
+
+In the bhsdtr package the SDT model with one or more criterion is
+supplemented with a general hierarchical linear regression structure
+thanks to a novel parametrization which is described in this non
+peer-reviewed [preliminary
+paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf). This
+reparametrization requires some getting used to but it is the
+necessary price to pay for the correctness of the implementation of
+the general hierarchical regression structure.
 
 ### Prerequisites
 
-All you need is a fairly up-to-date version of R.
+All you need is a fairly up-to-date version of
+[R](https://www.r-project.org/).
 
 ## Installing
 
