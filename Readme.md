@@ -2,7 +2,7 @@
 
 The bhsdtr R package implements a novel method of Bayesian inference
 for hierarchical or non-hierarchical equal variance normal Signal
-Detection Theory models with one or more criteria. It the
+Detection Theory models with one or more criteria. It uses the
 state-of-the-art platform Stan for sampling from posterior
 distributions. Our method can accommodate binary responses as well as
 additional ratings and an arbitrary number of nested or crossed random
