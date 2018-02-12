@@ -49,7 +49,7 @@ paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.
 and (more concisely) in the package
 documentation. [Here](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/analysis_script.R)
 is the R script that was used to perform all the analyses and produce
-all the figures and tables in the paper.
+all the tables and some of the figures in the paper.
 
 ## Features
 
@@ -148,3 +148,18 @@ are two delta (d') parameters in the meta-d' model and so the
 regression coefficients form a two-column matrix: the first column
 represents the fixed effects for the d' parameter and the second
 column represents the fixed effects for the meta-d' parameter.
+
+The model fit can be assessed using the plot_sdt_fit function, which produces ROC curve plots:
+
+
+```
+plot_sdt_fit(fit, adata, c('order', 'duration')))
+```
+
+![ROC curve plot](inst/preprint/roc_fit.pdf?raw=true "ROC curve plot")
+
+or combined response distribution plots:
+
+```
+plot_sdt_fit(fit, adata, c('order', 'duration'), type = 'response')
+```
