@@ -60,7 +60,9 @@ The bhsdtr package can be used to:
 ### Prerequisites
 
 All you need is a fairly up-to-date version of
-[R](https://www.r-project.org/).
+[R](https://www.r-project.org/) with [the devtools
+package](https://cran.r-project.org/web/packages/devtools/index.html)
+already installed.
 
 ## Installing
 
