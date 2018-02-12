@@ -22,15 +22,29 @@ which means that any software capable of fitting hierarhical
 generalized linear models can be used to fit the hierarchical version
 of equal-variance SDT *with one criterion*. However, the
 single-criterion SDT model is untestable, because the data and the
-model have the same dimensionality (=2). The SDT model becomes
-testable (e.g., by comparing the theoretical and the observed ROC
-curves) when it is generalized - by introducing additional criteria -
-to the version that accomodates ratings.
+model have the same dimensionality (=2). The main reason for using SDT
+is to deconfound sensitivity and bias. This can only be achieved if
+the SDT model is approximately true, but there is no way to test if it
+is approximately true in the single-criterion case. The SDT model
+becomes testable (e.g., by comparing the theoretical and the observed
+ROC curves) when it is generalized - by introducing additional
+criteria - to the version that accomodates ratings.
+
+SDT is a *non-linear* model. An immediate consequence of non-linearity
+is that inference based on data aggregated over random grouping
+factors (such as subjects, items, etc.) is *invalid* because the
+estimates of SDT parameters based on such overly-aggregated data are
+biased (see [this
+paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
+by Morey, Pratte, and Rouder for a demonstration of this problem). The
+only way to avoid this problem in the general case is by modelling the
+effects of all the relevant random grouping factors by supplementing
+the SDT model with a hierarchical structure.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
-general hierarchical linear regression structure thanks to a novel
-parametrization which is described in this non peer-reviewed
-[preliminary
+hierarchical linear regression structure (normally distributed
+correlated random effects) thanks to a novel parametrization described
+in this non peer-reviewed [preliminary
 paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
 and (more concisely) in the package documentation. This
 parametrization requires some getting used to but it is the necessary
