@@ -37,14 +37,14 @@ int fs = 8;
 for(int c = 1; c < 3; ++c){
   draw((crit_x(c),0) -- (crit_x(c), dist_top), dashed+gray);
   label(format("$c_%d$", c), (crit_x(c),0), S, fontsize(fs));
-  label(format("$y=%d$", c), ((crit_x(c-1) + crit_x(c)) / 2, 2), S, fontsize(fs));
+  label(rotate(-90) * format("$y=%d$", c), ((crit_x(c-1) + crit_x(c)) / 2, 3), S, fontsize(fs));
 }
 draw((crit_x(nof_c - 1),0) -- (crit_x(nof_c - 1), dist_top), dashed+gray);
 label("$c_{K-1}$", (crit_x(nof_c - 1),0), S, fontsize(fs));
-label("$y=K$", ((crit_x(nof_c - 1) + crit_x(nof_c)) / 2, 2), S, fontsize(fs));
+label(rotate(-90) * "$y=K$", ((crit_x(nof_c - 1) + crit_x(nof_c)) / 2, 3), S, fontsize(fs));
 draw((crit_x(nof_c - 2),0) -- (crit_x(nof_c - 2), dist_top), dashed+gray);
 label("$c_{K-2}$", (crit_x(nof_c - 2),0), S, fontsize(fs));
-label("$y=K-1$", ((crit_x(nof_c - 2) + crit_x(nof_c - 1)) / 2, 2), S, fontsize(fs));
+label(rotate(-90) * "$y=K-1$", ((crit_x(nof_c - 2) + crit_x(nof_c - 1)) / 2, 3), S, fontsize(fs));
 label("$\dots$", (crit_x(nof_c / 2),0), S, fontsize(fs));
 label("$\dots$", (crit_x(nof_c / 2), 1.9), S, fontsize(fs), filltype = Fill(white));
 draw(evidence, Arrow(TeXHead), L = Label("$s$", EndPoint, fontsize(fs)));
