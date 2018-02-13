@@ -73,7 +73,7 @@ installed directly from this github repository using the devtools
 package:
 
 ```
-devtools::install_git('boryspaulewicz/bhsdtr')
+devtools::install_git('git://github.com/boryspaulewicz/bhsdtr')
 ```
 
 The installed package can be loaded using:
