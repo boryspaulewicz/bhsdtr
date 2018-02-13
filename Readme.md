@@ -15,8 +15,8 @@ template.
 
 ## Some background
 
-The equal-variance SDT with one criterion is trivially equivalent to
-probit regression (see [this
+The equal-variance SDT with one criterion is equivalent to probit
+regression (see [this
 paper](http://www.columbia.edu/~ld208/psymeth98.pdf) by DeCarlo) which
 means that any software capable of fitting hierarchical generalized
 linear models can be used to fit the hierarchical version of
@@ -33,8 +33,8 @@ new").
 
 SDT is a *non-linear* model. An immediate consequence of non-linearity
 is that inference based on data aggregated over random grouping
-factors (such as subjects, items, etc.) is invalid, because the
-resulting estimates are biased (see [this
+factors (such as subjects or items) is invalid, because the resulting
+estimates are biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
 by Morey, Pratte, and Rouder for a demonstration). The only way to
 avoid this problem in the general case is by modelling the effects of
