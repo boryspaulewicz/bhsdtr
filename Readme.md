@@ -7,13 +7,13 @@ Detection Theory models with one or more criteria. It uses the
 state-of-the-art platform [Stan](http://mc-stan.org/) for sampling
 from posterior distributions. Our method can accommodate binary
 responses as well as additional ratings and an arbitrary number of
-nested or crossed random grouping factors. The SDT parameters can be
+nested or crossed random grouping factors. SDT parameters can be
 regressed on additional predictors within the same model via
 intermediate unconstrained parameters, and the model can be extended
 by using automatically generated human-readable Stan code as a
 template.
 
-## Some background
+## Background
 
 The equal-variance SDT with one criterion is equivalent to probit
 regression (see [this
@@ -37,18 +37,18 @@ factors (such as subjects or items) is invalid, because the resulting
 estimates are biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
 by Morey, Pratte, and Rouder for a demonstration). The only way to
-avoid this problem in the general case is by modelling the effects of
-all the relevant random grouping factors.
+avoid this problem in the general case is to model the effects of all
+the relevant random grouping factors.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
 hierarchical *linear* regression structure (normally distributed
-correlated random effects) thanks to the novel parametrization
-described in [this non peer-reviewed
+correlated random effects) thanks to a novel parametrization described
+in [this non peer-reviewed
 paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
 and (more concisely) in the package
 documentation. [Here](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/analysis_script.R)
-is the annotated R script that was used to perform all the analyses
-and produce all the tables and some of the figures in the paper.
+is the annotated R script that performs all the analyses and produces
+all the tables and some of the figures in the paper.
 
 ## Features
 
