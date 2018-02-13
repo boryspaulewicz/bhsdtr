@@ -41,7 +41,7 @@ avoid this problem in the general case is to model the effects of all
 the relevant random grouping factors.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
-hierarchical *linear* regression structure (normally distributed
+hierarchical linear regression structure (normally distributed
 correlated random effects) thanks to a novel parametrization described
 in [this non peer-reviewed
 paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
@@ -119,7 +119,10 @@ using lists of R model formulae. Here we assume that d' (= exp(delta))
 depends on duration (a within-subject variable) and order (a
 between-subject variable), but gamma (from which the criteria
 parameter vector is derived) depends only on order. There is only one
-random grouping factor - id - which represents the subjects.
+random grouping factor - id - which represents the subjects. Note that
+the random effects specification is a *list of lists* of model
+formulate. That's because there can be more than one random grouping
+factor.
 
 ```
 fixed = list(delta = ~ -1 + duration:order, gamma = ~ -1 + order)
