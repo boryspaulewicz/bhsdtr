@@ -108,7 +108,7 @@ requires the names of the stimulus and the combined response
 variables. If the data have a hierarchical structure, this structure
 has to be preserved by listing the variables that cannot be collapsed
 by the aggregation step. Here we list three variables that have to be
-preserved: duration, id and orded.
+preserved: duration, id and order.
 
 ```
 adata = aggregate_responses(gabor, 'stim', 'r', c('duration', 'id', 'order'))
