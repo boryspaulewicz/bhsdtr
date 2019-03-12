@@ -43,6 +43,8 @@ parameters {
 }
 
 transformed parameters {
+  vector[X_delta_ncol] dprim_fixed;
+  vector[X_delta_ncol] mratio_fixed;
   matrix[2, Z_delta_ncol_%] delta_random_%[G_%]; //delta
   matrix[K - 1, Z_gamma_ncol_%] gamma_random_%[G_%]; //gamma
   matrix[2 * Z_delta_ncol_%, 2 * Z_delta_ncol_%] Corr_delta_%; //delta
@@ -52,6 +54,10 @@ transformed parameters {
   vector[N] shift;
   vector[K] multinomial_p[N];
   vector[2] normalization[N];
+  for(i in 1:X_delta_ncol){
+    dprim_fixed[i] = exp(delta_fixed[1, i]);
+    mratio_fixed[i] = exp(delta_fixed[2, i]) / dprim_fixed[i];
+  }
   Corr_delta_% = L_corr_delta_% * L_corr_delta_%'; //delta
   Corr_gamma_% = L_corr_gamma_% * L_corr_gamma_%'; //gamma
   for(g in 1:G_%){ delta_random_%[g] = to_matrix(diag_pre_multiply(delta_sd_%, L_corr_delta_%) * delta_z_%[g], 2, Z_delta_ncol_%); } //delta
