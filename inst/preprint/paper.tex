@@ -73,34 +73,34 @@ Detection Theory provides a simple and popular solution to this common
 and important problem.
 
 However, because the SDT model is non-linear, variability in its
-parameters due to factors such as participants or items has to be
-accounted for, otherwise the estimates of SDT parameters are
-biased. As we explain later in this paper, neither of the two
-available methods of inference for hierarchical SDT models that we are
-aware of addresses this problem correctly. Hence, our main goal was to
-create a correct implementation of the general hierarchical linear
-regression structure defined on SDT parameters. We argue that the
-\code{bhsdtr} package for R \cite{rstatistical} provides exactly such
-an implementation and we have made it publicly available at
-\code{https://github.com/boryspaulewicz/bhsdtr}, together with the
-annotated source code that was used to perform all the analyses and
-produce all the figures presented in this paper.
+parameters due to factors which are usually study-specific and of no
+direct interest to the researcher such as participants or items has to
+be accounted for, otherwise the estimates of SDT parameters are
+biased. As we explain later in this paper, none of the available
+methods of inference for hierarchical SDT models that we are aware of
+addresses this problem correctly in it's generality. Hence, our main
+goal was to create a correct implementation of the general
+hierarchical linear regression structure defined on SDT parameters. We
+argue that the \code{bhsdtr} package for R \cite{rstatistical}
+provides exactly such an implementation and we have made it publicly
+available at \code{https://github.com/boryspaulewicz/bhsdtr}, together
+with the annotated source code that was used to perform all the
+analyses and produce all the figures presented in this paper.
 
 In what follows, after introducing the most common version of the SDT
 model, we describe its generalization, which can accommodate data from
 rating experiments. Next, we explain briefly why, if a method of
 inference for SDT models were to be of general use in psychology
 studies, it is essential that it is based on a model equipped with the
-general hierarchical linear regression structure. The \code{bhsdtr}
-package meets this requirement thanks to a novel parametrization. We
-describe this novel parametrization in great detail and explain how
-reliance on relatively standard parametrization leads to problems in
-the two other available implementations. We end the first part of this
-paper with a formal definition of the model as implemented in
-\code{bhsdtr}. The second part contains an overview of the package and
-a tutorial in which we demonstrate how to use our method in
-practice. Before we go any further, however, a note on terminology
-seems in order.
+hierarchical linear regression structure. The \code{bhsdtr} package
+meets this requirement thanks to a novel parametrization. We describe
+this novel parametrization and explain how reliance on some popular
+parametrizations leads to problems in the two other available
+implementations. We end the first part of this paper with a formal
+definition of the model as implemented in \code{bhsdtr}. The second
+part contains an overview of the package and a tutorial in which we
+demonstrate how to use our method in practice. Before we go any
+further, however, a note on terminology seems in order.
 
 In the context of hierarchical modelling, factors such as
 participants, items, or replications are often referred to as
@@ -110,7 +110,7 @@ at the same time the term "group" is perhaps most strongly associated
 with study conditions, as in "experimental group". In this paper we
 use the term "sampled factor" instead because, by virtue of being a
 new term, it is unambiguous and seems descriptively correct: the term
-"sampled factor" captures all the essential properties of such
+"sampled factor" seems to capture essential properties of such
 variables, i.e., a nominal scale, the fact that values are sampled
 from a larger population and are usually not of direct interest, as in
 "this is only a sample", and that conclusions of statistical analysis
@@ -171,16 +171,17 @@ order.
 
 Ratings are accommodated by introducing additional criteria and
 modelling a combined response $y$, which represents both the binary
-classification decision and rating. The value of $y$ increases with
-the strength of evidence in favor of the second stimulus class. For
-example, if confidence is rated on a four-point scale, then $y = 1$
-when a subject decides that a stimulus belongs to the first class with
-certainty $4$, and $y = 5$ when a subject decides that a stimulus
-belongs to the second class with certainty $1$. More formally, if $K$
-is the number of possible combined responses, then a subject is
-assumed to give response $k$ if $s \in (\bm{c}_{k-1},\bm{c}_k]$, where
-$\bm{c}$ are the decision criteria, with $\bm{c}_0$ and $\bm{c}_K$
-fixed at $-\infty$ and $+\infty$ respectively.
+classification decision and rating as a single number. The value of
+$y$ increases with the strength of evidence in favor of the second
+stimulus class. For example, if confidence is rated on a four-point
+scale, then $y = 1$ when a subject decides that a stimulus belongs to
+the first class with certainty $4$, and $y = 5$ when a subject decides
+that a stimulus belongs to the second class with certainty $1$. More
+formally, if $K$ is the number of possible combined responses, then a
+subject is assumed to give response $k$ if
+$s \in (\bm{c}_{k-1},\bm{c}_k]$, where $\bm{c}$ are the decision
+criteria, with $\bm{c}_0$ and $\bm{c}_K$ fixed at $-\infty$ and
+$+\infty$ respectively.
 
 There is a good reason to collect the ratings and use the generalized
 SDT model from Fig.~\ref{sdtr}, even when neither the ratings nor the
@@ -188,24 +189,24 @@ placement of criteria are relevant to the research problem. When
 $K = 2$ (no ratings), the SDT model fits perfectly, regardless of
 whether it is a reasonably good approximation to reality, because the
 data and the model have the same dimensionality. This makes the
-generalization to the case particularly important, as it is only when
-$K > 2$ that the formal assumptions of the model (e.g., equal or
-unequal variance) can be tested\footnote{In contrast to the formal
-  assumptions, a psychological interpretation of the SDT parameters
-  can be tested even when ratings are not available, e.g., by means of
-  selective influence \cite{sternberg2001separate}}, which is often
-done by comparing observed and predicted ROC curves.
+generalization to the $K > 2$ case particularly important, as it is
+only when $K > 2$ that the formal assumptions of the model (e.g.,
+equal or unequal variance) can be tested\footnote{In contrast to the
+  formal assumptions, a psychological interpretation of the SDT
+  parameters can be tested even when ratings are not available, e.g.,
+  by means of selective influence \cite{sternberg2001separate}}, which
+is often done by comparing observed and predicted ROC curves.
 
 When SDT models are used in psychology studies, researchers are
-usually interested in relationships between SDT parameters and
-additional measured or manipulated variables; a good example is the
-dependence of $d'$ on stimulus strength. Also, in a great majority of
-psychology studies in which classification tasks are used, the data
-have a hierarchical structure, i.e., there are repeated measures for
-each participant or item, and participants or items are only samples
-from the target population. It seems worthwhile to explain why a
-general-purpose method of inference for SDT models should accommodate
-both kinds of situations.
+usually interested not in the values of the SDT parameters themselves,
+but in relationships between these parameters and additional measured
+or manipulated variables; a good example is the dependence of $d'$ on
+stimulus strength. Also, in a great majority of psychology studies in
+which classification tasks are used, the data have a hierarchical
+structure, i.e., there are repeated measures for each participant or
+item, and participants or items are only samples from the target
+population. A general-purpose method of inference for SDT models
+should accommodate both kinds of situations.
 
 \section{The importance of hierarchical regression structure}
 
@@ -219,14 +220,16 @@ hierarchical data structure. The invalidity of this approach in the
 context of SDT was clearly illustrated with the results of
 simulational studies by \citeA{morey2008problematic}; however,
 strictly speaking, it requires such demonstrations only in order to
-make a point about a specific case. Because SDT is a non-linear model,
-by definition, when estimates of its parameters are based on data
-aggregated over sampled factors, the expected values of these
-estimates are not in general true population averages. Such estimates
-are biased and inference about a target population based on them is
-simply not valid. To give a concrete example, consider two unbiased
-participants, one with $d'_1 = 2$ and one with $d'_2 = 4$. Their
-expected average accuracy is given by
+illustrate a mathematical truth in a specific case. Because SDT is a
+non-linear model, by definition, when estimates of its parameters are
+based on data aggregated over sampled factors (e.g., $d'$ estimated
+for hits and false alarms averaged over subjects), the expected values
+of these estimates (e.g., what the calculated $d'$ actually estimates)
+are not in general true population averages (e.g., true $d'$ in some
+condition). Such estimates are biased and inference about a target
+population based on them is simply not valid. To give a concrete
+example, consider two unbiased participants, one with $d'_1 = 2$ and
+one with $d'_2 = 4$. Their expected average accuracy is given by
 $(\Phi(d'_1/2) + \Phi(d'_2/2)) / 2 = .91$, which corresponds to
 $d' = 2.68$, whereas their true average $d'$ is $3$.
 
@@ -244,8 +247,8 @@ Another common source of problems is the separation of estimation of
 non-linear model parameters from regression analyses which aim to
 relate these parameters to measured or manipulated variables. When the
 SDT parameters are estimated separately for each subject and
-condition, and only later regressed on predictors of interest, a
-number of additional issues may arise.
+condition, and only later are these estimates regressed on predictors
+of interest, a number of additional issues may arise.
 
 Firstly, the standard errors or credible intervals associated with the
 regression coefficients do not reflect the uncertainty in the SDT
@@ -260,9 +263,8 @@ assuming that random effects are samples from a common distribution
 may improve their estimates.
 
 The aforementioned problems can be dealt with by supplementing the SDT
-model with the general hierarchical linear regression structure. For
-reasons that we will now explain, this can only be achieved if the
-model is substantially reparametrized.
+model with the hierarchical linear regression structure. This can only
+be achieved if the model is substantially reparametrized.
 
 \section{Hierarchical Signal Detection Theory in a constrained
   parameter space}
@@ -271,17 +273,18 @@ Both $d'$ and $c$ have the virtue of being directly interpretable in
 terms of sensitivity and bias. However, both $d'$ and $c$ are
 constrained: $d'$ is non-negative and, when there is more than one
 criterion, the elements of the $\bm{c}$ vector are order restricted
-($\bm{c}_{i+1} > \bm{c}_i$). Because normal distribution is unbounded,
-the hierarchical linear regression structure in which random effects
-are normally distributed and fixed effects are represented by
-unconstrained parameters can only be defined on unconstrained
-parameters. We provide examples of the problems that may otherwise
-arise in the following summary of hierarchical SDT implementations.
+($\bm{c}_{i+1} > \bm{c}_i$). Hierarchical linear regression structure
+can only be defined on unconstrained parameters, because random
+effects are assumed to be normally distributed and normal distribution
+is unbounded and because fixed effects are represented by
+unconstrained parameters. We provide examples of the problems that may
+arise when the SDT model is not correctly reparametrized in the
+following summary of two hierarchical SDT implementations.
 
-We are aware of only two attempts at creating a general-purpose method
-of inference for hierarchical SDT models with ratings. One is the
-Gibbs sampler proposed by \citeA{morey2008problematic} and the other
-is the Hierarchical Meta-d' model (HMeta-d') proposed by
+We are aware of two failed attempts at creating a general-purpose
+method of inference for hierarchical SDT models with ratings. One is
+the Gibbs sampler proposed by \citeA{morey2008problematic} and the
+other is the Hierarchical Meta-d' model (HMeta-d') proposed by
 \citeA{hmetad}. The HMeta-d' model is a hierarchical version of the
 meta-d' model \cite{maniscalco2012signal}, which in turn is a
 generalization of the SDT model that allows for a separate
@@ -312,18 +315,21 @@ shifting both means by the same amount in the same direction is
 equivalent to keeping the sensitivity intact, while shifting the
 criteria relative to the evidence distributions. However, the elements
 of the criteria vector cannot be affected differently by the same
-sampled factor, which is an unrealistic restriction.
+sampled factor, which is an unrealistic restriction. Participants
+differ in how they place the criteria just as they differ in their
+sensitivity and it is quite impossible for all the participants to
+place the criteria in the same distance from each other.
 
 In HMeta-d' the hierarchical structure is restricted to normally
-distributed random intercepts of one sampled factor. Perhaps the most
-problematic aspect of the HMeta-d' model, apart from the fact that the
-$d'$ parameter is allowed to assume negative values in this model
-also, is the representation of the criteria. Each element of the
-criteria vector has an associated independent normal distribution,
-which does allow for criteria random effects, but does not enforce the
-necessary ordering restriction. The elements of this vector are sorted
-to obtain another criteria vector, and it is this sorted criteria
-vector that is used to model the conditional combined response
+distributed random intercepts of one sampled factor. In the HMeta-d'
+model the $d'$ parameter is allowed to assume negative values also,
+but the most problematic aspect of this implementation is again the
+representation of the criteria. Each element of the criteria vector
+has an associated independent normal distribution, which does allow
+for criteria random effects, but does not enforce the necessary
+ordering restriction. The elements of this vector are sorted to obtain
+another criteria vector, and it is this sorted criteria vector that is
+used to model the conditional combined response
 distributions. Consequently, the model does contain parameters
 representing the actual, order-restricted criteria, but, because
 sorting is not injective, the space of the actual criteria is only
@@ -388,10 +394,11 @@ It is often a good idea to multiply all the criteria by a value
 greater than $1$, which is equivalent to making the mapping
 distribution wider. This tends to even out values of $\bm{\gamma}$ by
 preventing the outermost areas under the mapping distribution curve
-from becoming very small, especially when the criteria are widely
-spread, as can happen for moderate to large $d'$ values. This feature
-is implemented in the \code{bhsdtr} package by introducing a scaling
-factor.
+from becoming very small relative to ares delineated by adjacent pairs
+of non-outermost criteria. This is especially important when the
+criteria are widely spread, as can happen for moderate to large $d'$
+values. This feature is implemented in the \code{bhsdtr} package by
+introducing a criteria scaling factor.
 
 Once $d'$ and $c$ are derived from the unconstrained $\delta$ and
 $\gamma$ parameters, the SDT model can be supplemented with a
@@ -502,34 +509,34 @@ correlations to be near-zero by choosing a large $\nu$ value.
 
 \section{Overview of the software implementation}
 
-The \code{bhsdtr} package implements the model described in the
-previous section in the Stan modelling language because it uses a
-state-of-the-art adaptive Hamiltonian Monte Carlo sampling algorithm
-which often handles high-dimensional correlated posteriors better than
-a Gibbs sampler. Our package is essentially a collection of documented
-functions: The \code{aggregate\_responses} function aggregates data as
-much as possible for efficiency, but without distorting the
-hierarchical structure. The \code{make\_stan\_model} function creates a
-model definition in the Stan language. The Stan code produced by the
-\code{make\_stan\_model} function can be fitted as is or modified by the
-user if needed, e.g., to change the prior distributions or to drop the
-equal variance assumption. The \code{make\_stan\_data} function creates
-regression model matrices and other data structures required by the
-model created using the \code{make\_stan\_model} function. Finally, the
-\code{plot\_sdt\_fit} function can be used to visually assess the fit of
-the model by creating publication-ready ROC curve plots or response
-distribution plots with posterior predictive intervals calculated for
-the chosen $\alpha$ level.
+The \code{bhsdtr} package implements the model in the Stan modelling
+language because it uses a state-of-the-art adaptive Hamiltonian Monte
+Carlo sampling algorithm which often handles high-dimensional
+correlated posteriors better than a Gibbs sampler. Our package is
+essentially a collection of documented functions: The
+\code{aggregate\_responses} function aggregates data as much as
+possible for efficiency, but without distorting the hierarchical
+structure. The \code{make\_stan\_model} function creates a model
+definition in the Stan language. The Stan code produced by the
+\code{make\_stan\_model} function can be fitted as is or modified by
+the user if needed, e.g., to change the prior distributions or to drop
+the equal variance assumption. The \code{make\_stan\_data} function
+creates regression model matrices and other data structures required
+by the model created using the \code{make\_stan\_model}
+function. Finally, the \code{plot\_sdt\_fit} function can be used to
+visually assess the fit of the model by creating publication-ready ROC
+curve plots or response distribution plots with posterior predictive
+intervals calculated for the chosen $\alpha$ level.
 
 \subsection{Usage example: installing the package and testing the
   model on real data}
 
-To make full use of the bhsdtr package functionality, three
+To make full use of the \code{bhsdtr} package functionality, three
 non-standard R packages are required, namely \code{rstan},
 \code{plyr}, and \code{ggplot2}. We recommend using the
 \code{devtools} package to install the \code{bhsdtr} package directly
-from the github repository. This will automatically install any
-missing required packages:
+from the github repository. This will automatically install the
+package and any missing required packages:
 
 \begin{lstlisting}{language = R}
   devtools::install_git('git://github.com/boryspaulewicz/bhsdtr')
@@ -605,15 +612,15 @@ in this way, the likelihood for each condition $\times$ participant
 combination has to be computed only once rather than as many times as
 there are trials per condition per participant. Note that if there are
 other sampled factors present in the data (e.g., items, replications,
-etc.), then these factors also have to be specified at this stage to
-preserve the hierarchical data structure. The
-\code{aggregate\_responses} function creates a list with three
-components. The \code{data} component is a data frame containing
-additional preserved variables, the \code{stimulus} component is the
-stimulus class variable, and the \code{counts} component is an
-$N\times K$ matrix of combined response counts, where $N$ is the
-number of data points and $K$ is the number of possible combined
-response values.
+etc.) and the user decided to model the effects of these factors, then
+these factors also have to be specified at this stage to preserve the
+hierarchical data structure. The \code{aggregate\_responses} function
+creates a list with three components. The \code{data} component is a
+data frame containing additional preserved variables, the
+\code{stimulus} component is the stimulus class variable, and the
+\code{counts} component is an $N\times K$ matrix of combined response
+counts, where $N$ is the number of data points and $K$ is the number
+of possible combined response values.
 
 \subsubsection{Creating the model code}
 
