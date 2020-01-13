@@ -132,7 +132,7 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, met
   K = ncol(adata$counts)
   if(length(random) > 0){
     for(l in 1:length(random)){
-      group.mm = stats::model.matrix(random[[l]]$group, adata$data)
+        group.mm = stats::model.matrix(random[[l]]$group, adata$data)
       if(ncol(group.mm) == 2){
         ## Probably a numeric variable
         random[[l]]$group = as.numeric(as.factor(as.character(group.mm[,2])))

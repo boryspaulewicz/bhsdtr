@@ -39,7 +39,8 @@ aggregate_responses = function(data, stimulus, response, variables = NULL){
     res = plyr::ddply(data, unique(c(variables, stimulus[1])),
                       function(df)table(c(df[[response[1]]], 1:K)) - 1)
     counts = res[, c((ncol(res)-K+1):ncol(res))]
-    list(data = res[, setdiff(variables, c(stimulus[1], response[1]))],
+    ## drop = F is important for the single column data frame case
+    list(data = res[, setdiff(variables, c(stimulus[1], response[1])), drop = F],
          stimulus = res[[stimulus[1]]],
          counts = counts)
 }

@@ -22,15 +22,16 @@
   state-of-the-art platform, Stan, for sampling from posterior
   distributions. Our method can accommodate binary responses as well
   as additional ratings and an arbitrary number of nested or crossed
-  random grouping factors. The SDT parameters can be regressed on
-  additional predictors within the same model via intermediate
-  unconstrained parameters, and the model can be extended by using
-  automatically generated human-readable Stan code as a template. In
-  the paper we explain how our method improves on other similar
-  available methods, we give an overview of the package, demonstrate
-  its ease of use by providing a real-study data analysis
-  walk-through, and show that the model successfully recovers known
-  parameter values when fitted to simulated data.}
+  random grouping factors associated with sensitivity or criteria
+  effects. The SDT parameters can be regressed on additional
+  predictors within the same model via intermediate unconstrained
+  parameters, and the model can be extended by using automatically
+  generated human-readable Stan code as a template. In the paper we
+  explain how our method improves on other similar available methods,
+  we give an overview of the package, demonstrate its ease of use by
+  providing a real-study data analysis walk-through, and show that the
+  model successfully recovers known parameter values when fitted to
+  simulated data.}
 
 \keywords{Signal Detection Theory, rating experiments, Bayesian
   inference, hierarchical models}
@@ -57,35 +58,37 @@ Contact: bpaulewicz@swps.edu.pl}
 \newcommand{\code}[1]{\texttt{#1}}
 
 \begin{document}
-\maketitle
-Many tasks used in psychology studies are essentially classification
-tasks. For example, in a memory study participants may be required to
-decide if a given test item is old or new, or, in a perceptual study,
-an object may be either a letter or a digit. If a task requires
-classification, it is always possible that conclusions based on
-accuracy or percent correct are invalid because the ability to
-discriminate between stimulus classes (i.e., sensitivity) is
+\maketitle Many tasks used in psychology studies are essentially
+classification tasks. For example, in a memory study participants may
+be required to decide if a given test item is old or new, or, in a
+perceptual study, an object may be either a letter or a digit. If a
+task requires classification, it is always possible that conclusions
+based on accuracy or percent correct are invalid because the ability
+to discriminate between stimulus classes (i.e., sensitivity) is
 confounded with bias, which is a tendency to classify stimuli as
 belonging to a particular class \cite{GreenSwets66}. In principle, any
 effect that manifests itself in differences in classification accuracy
 may reflect differences in sensitivity, bias, or both. Signal
-Detection Theory provides a simple and popular solution to this common
-and important problem.
+Detection Theory provides a popular solution to this common problem.
 
 However, because the SDT model is non-linear, variability in its
 parameters due to factors which are usually study-specific and of no
 direct interest to the researcher such as participants or items has to
-be accounted for, otherwise the estimates of SDT parameters are
-biased. As we explain later in this paper, none of the available
-methods of inference for hierarchical SDT models that we are aware of
-addresses this problem correctly in it's generality. Hence, our main
-goal was to create a correct implementation of the general
-hierarchical linear regression structure defined on SDT parameters. We
-argue that the \code{bhsdtr} package for R \cite{rstatistical}
-provides exactly such an implementation and we have made it publicly
-available at \code{https://github.com/boryspaulewicz/bhsdtr}, together
-with the annotated source code that was used to perform all the
-analyses and produce all the figures presented in this paper.
+be accounted for. When they are not accounted for, e.g., by
+aggregating the data accros participants or stimuli, the estimates of
+SDT parameters are biased. As we explain later in this paper, none of
+the available methods of inference for hierarchical SDT models that we
+are aware of addresses this problem correctly in it's full generality,
+meaning that none of the available methods allows for fixed and random
+effects in both the sensitivity and the criteria parameters while
+restricting the parameters in accordance with SDT assumptions. Later
+in the paper we explain why the \code{bhsdtr} package for R
+\cite{rstatistical}, which we have made publicly available at
+\code{https://github.com/boryspaulewicz/bhsdtr}, provides a correct
+implementation of the general hierarchical linear regression structure
+defined on SDT parameters. The package repository also contains the
+annotated source code that was used to perform all the analyses and
+produce all the figures presented in this paper.
 
 In what follows, after introducing the most common version of the SDT
 model, we describe its generalization, which can accommodate data from
@@ -128,7 +131,7 @@ alarms, but this terminology is appropriate only when the model is
 applied to tasks that require detection, which is far from always
 being the case. In the most widely used version of the model, shown in
 Fig.~\ref{basicsdt}, the two evidence distributions are normal with
-the same variance, which is usually fixed at unity to make the model
+the same variance, often fixed at unity to make the model
 identifiable. The distance $d'$ between the means of the evidence
 distributions represents sensitivity. Because normal distributions are
 unbounded, $s$ is always ambiguous, and so a criterion $c$ placed on
@@ -136,7 +139,7 @@ the evidence axis has to be used to reach a binary decision. A
 participant is assumed to decide that a stimulus belongs to the first
 class (e.g., an old item) if $s < c$, or that it belongs to the second
 class (e.g., a new item) if $s \geq c$. The location of the decision
-criterion represents bias.
+criterion may be interpreted in terms of bias.
 
 \begin{figure}[H]
   \centering
@@ -148,9 +151,9 @@ criterion represents bias.
 Perhaps the simplest way of using this model is to fit it to observed
 response counts and use the estimated $d'$ values in place of the
 percent correct scores; if the model is correct, the resulting
-performance measure is not contaminated by bias. Obviously, the model
-may not be correct, which is one of the reasons why we focus more on
-the generalized version shown in Fig.~\ref{sdtr} below.
+performance measure is not contaminated by bias. The model may not be
+correct, which in our view is the most important reason to focus more
+on the generalized version shown in Fig.~\ref{sdtr} below.
 
 % Model K >= 2
 
@@ -169,7 +172,7 @@ and the binary classification decisions can be provided together
 (e.g., "I am almost certain that it was a digit"), or in an arbitrary
 order.
 
-Ratings are accommodated by introducing additional criteria and
+Ratings are accommodated by introducing additional criteria and by
 modelling a combined response $y$, which represents both the binary
 classification decision and rating as a single number. The value of
 $y$ increases with the strength of evidence in favor of the second
@@ -178,24 +181,25 @@ scale, then $y = 1$ when a subject decides that a stimulus belongs to
 the first class with certainty $4$, and $y = 5$ when a subject decides
 that a stimulus belongs to the second class with certainty $1$. More
 formally, if $K$ is the number of possible combined responses, then a
-subject is assumed to give response $k$ if
-$s \in (\bm{c}_{k-1},\bm{c}_k]$, where $\bm{c}$ are the decision
-criteria, with $\bm{c}_0$ and $\bm{c}_K$ fixed at $-\infty$ and
-$+\infty$ respectively.
+subject is assumed to give response $k$ if $s \in
+(\bm{c}_{k-1},\bm{c}_k]$, where $\bm{c}$ are the decision criteria,
+  with $\bm{c}_0$ and $\bm{c}_K$ fixed at $-\infty$ and $+\infty$
+  respectively.
 
 There is a good reason to collect the ratings and use the generalized
 SDT model from Fig.~\ref{sdtr}, even when neither the ratings nor the
-placement of criteria are relevant to the research problem. When
-$K = 2$ (no ratings), the SDT model fits perfectly, regardless of
-whether it is a reasonably good approximation to reality, because the
-data and the model have the same dimensionality. This makes the
-generalization to the $K > 2$ case particularly important, as it is
-only when $K > 2$ that the formal assumptions of the model (e.g.,
-equal or unequal variance) can be tested\footnote{In contrast to the
-  formal assumptions, a psychological interpretation of the SDT
-  parameters can be tested even when ratings are not available, e.g.,
-  by means of selective influence \cite{sternberg2001separate}}, which
-is often done by comparing observed and predicted ROC curves.
+placement of criteria are relevant to the research problem. When $K =
+2$ (no ratings), the SDT model fits perfectly, regardless of whether
+it is a reasonably good approximation to reality, because the data and
+the model have the same dimensionality. This makes the generalization
+to the $K > 2$ case (i.e., decision with ratings) particularly
+important, as it is only when $K > 2$ that the formal assumptions of
+the model (e.g., equal or unequal variance) can be tested\footnote{In
+  contrast to the formal assumptions, a psychological interpretation
+  of the SDT parameters can be tested even when ratings are not
+  available, e.g., by means of selective influence
+  \cite{sternberg2001separate}}, which is often done by comparing
+observed and predicted ROC curves.
 
 When SDT models are used in psychology studies, researchers are
 usually interested not in the values of the SDT parameters themselves,
@@ -219,19 +223,19 @@ over sampled factors represents an extreme case of ignoring
 hierarchical data structure. The invalidity of this approach in the
 context of SDT was clearly illustrated with the results of
 simulational studies by \citeA{morey2008problematic}; however,
-strictly speaking, it requires such demonstrations only in order to
-illustrate a mathematical truth in a specific case. Because SDT is a
-non-linear model, by definition, when estimates of its parameters are
-based on data aggregated over sampled factors (e.g., $d'$ estimated
-for hits and false alarms averaged over subjects), the expected values
-of these estimates (e.g., what the calculated $d'$ actually estimates)
+strictly speaking, such demonstrations are irrelevant to prooving the
+invalidity in question. Because SDT is a non-linear model, by
+definition, when estimates of its parameters are based on data
+aggregated over sampled factors (e.g., $d'$ estimated for hits and
+false alarms averaged or summed over subjects), the expected values of
+these estimates (e.g., what the calculated $d'$ actually estimates)
 are not in general true population averages (e.g., true $d'$ in some
 condition). Such estimates are biased and inference about a target
-population based on them is simply not valid. To give a concrete
-example, consider two unbiased participants, one with $d'_1 = 2$ and
-one with $d'_2 = 4$. Their expected average accuracy is given by
-$(\Phi(d'_1/2) + \Phi(d'_2/2)) / 2 = .91$, which corresponds to
-$d' = 2.68$, whereas their true average $d'$ is $3$.
+population based on them is not valid. To give a concrete example,
+consider two unbiased participants, one with $d'_1 = 2$ and one with
+$d'_2 = 4$. Their expected average accuracy is given by $(\Phi(d'_1/2)
++ \Phi(d'_2/2)) / 2 = .91$, which corresponds to $d' = 2.68$, whereas
+their true average $d'$ is $3$.
 
 Aggregation is not the only way of ignoring a hierarchical data
 structure. Sometimes non-aggregated data are analyzed by using
@@ -260,14 +264,13 @@ regressing parameters on numeric predictors makes their estimates
 dependent on the common regression structure, and so also on each
 other, which can improve the quality of the estimates, just as
 assuming that random effects are samples from a common distribution
-may improve their estimates.
+may improve their estimates. The aforementioned problems can be dealt
+with by supplementing the SDT model with the hierarchical linear
+regression structure.
 
-The aforementioned problems can be dealt with by supplementing the SDT
-model with the hierarchical linear regression structure. This can only
-be achieved if the model is substantially reparametrized.
-
-\section{Hierarchical Signal Detection Theory in a constrained
-  parameter space}
+\section{Comparison with other software implementations}
+% \section{Hierarchical Signal Detection Theory in a constrained
+%   parameter space}
 
 Both $d'$ and $c$ have the virtue of being directly interpretable in
 terms of sensitivity and bias. However, both $d'$ and $c$ are
@@ -279,13 +282,15 @@ effects are assumed to be normally distributed and normal distribution
 is unbounded and because fixed effects are represented by
 unconstrained parameters. We provide examples of the problems that may
 arise when the SDT model is not correctly reparametrized in the
-following summary of two hierarchical SDT implementations.
+following summary of two hierarchical SDT implementations. One is the
+Gibbs sampler proposed by \citeA{morey2008problematic} and the other
+is the Hierarchical Meta-d' model (HMeta-d') proposed by
+\citeA{hmetad}. After describing the problems associated with those
+two software implementations we will briefly explain how our method
+compares to what the otherwise excellent \code{brms} package has to
+offer.
 
-We are aware of two failed attempts at creating a general-purpose
-method of inference for hierarchical SDT models with ratings. One is
-the Gibbs sampler proposed by \citeA{morey2008problematic} and the
-other is the Hierarchical Meta-d' model (HMeta-d') proposed by
-\citeA{hmetad}. The HMeta-d' model is a hierarchical version of the
+The HMeta-d' model is a hierarchical version of the
 meta-d' model \cite{maniscalco2012signal}, which in turn is a
 generalization of the SDT model that allows for a separate
 "meta-sensitivity" to account for possible discrepancies between a
@@ -301,24 +306,23 @@ evidence distribution mean considered in isolation is an unconstrained
 parameter, but the mean of the second evidence distribution is by
 definition greater than ($d' > 0$) or equal to ($d' = 0$) the mean of
 the first. The authors explicitly admit that their algorithm does not
-enforce this restriction because, as they claim in the paper, it would
-greatly complicate analysis. At the same time the authors fail to
-mention that an immediate consequence of allowing for negative $d'$
-values is that the resulting posterior distribution loses its intended
-interpretation since it can have a non-zero mass when $d' < 0$. The
-outermost criteria are fixed at $0$ and $1$, and the ordering
-restriction is enforced by assuming that the likelihood is $0$
-whenever $\bm{c}_{i+1} \leq \bm{c}_i$. As the authors explain, because
-a sampled factor can have independent random effects on the evidence
-distribution means, it can have an effect on all the criteria:
-shifting both means by the same amount in the same direction is
-equivalent to keeping the sensitivity intact, while shifting the
-criteria relative to the evidence distributions. However, the elements
-of the criteria vector cannot be affected differently by the same
-sampled factor, which is an unrealistic restriction. Participants
-differ in how they place the criteria just as they differ in their
-sensitivity and it is quite impossible for all the participants to
-place the criteria in the same distance from each other.
+enforce this restriction because, as they say in the paper, it would
+greatly complicate analysis, although nothing more is said about these
+complications. At the same time the authors fail to mention that an
+immediate consequence of allowing for negative $d'$ values is that the
+resulting posterior distribution loses its intended interpretation
+since it can have a non-zero mass when $d' < 0$. The outermost
+criteria are fixed at $0$ and $1$, and the ordering restriction is
+enforced by assuming that the likelihood is $0$ whenever $\bm{c}_{i+1}
+\leq \bm{c}_i$. As the authors explain, because a sampled factor can
+have independent random effects on the evidence distribution means, it
+can have an effect on all the criteria: shifting both means by the
+same amount in the same direction is equivalent to keeping the
+sensitivity intact, while shifting the criteria relative to the
+evidence distributions. However, the elements of the criteria vector
+cannot be affected differently by the same sampled factor, which is an
+unrealistic restriction: participants differ in how they place the
+criteria just as they differ in their sensitivity.
 
 In HMeta-d' the hierarchical structure is restricted to normally
 distributed random intercepts of one sampled factor. In the HMeta-d'
@@ -335,7 +339,48 @@ representing the actual, order-restricted criteria, but, because
 sorting is not injective, the space of the actual criteria is only
 loosely related (i.e., not isomorphic) to the space of the
 unrestricted criteria vectors that are associated with the
-hierarchical structure.
+hierarchical structure. This makes posterior distributions of random
+criteria effects uninterpretable.
+
+% PORÓWNANIE Z brms
+Some extensions of the SDT model can be fitted correctly using the
+excellent brms package, as described in \citeA{burkner2017brms}. The
+brms package is a flexible tool that shares some deep design
+similarities with our method. Both our package and the brms belong to
+a growing family of software tools that aim to provide a somewhat
+simplified and domain or application specific interface to one of the
+general purpose bayesian inference engines, in this case the stan
+modelling language \cite{carpenter2016stan}. The \code{brms} is a
+highly flexible, well documented package that offers an elegant
+interface for fitting a large class of mixed models. Among the models
+that can be fitted using this package are the ordinal regression
+models. The hierarchical SDT model with ratings is essentially a
+generalization of mixed ordinal regression, since ratings are an
+ordinal-scale variable. However, that does not mean that a general
+hierarchical SDT model with ratings can be fitted using the
+\code{brms} package. There are three categorical distributions
+available at present in brms, i.e., the cumulative model, the adjacent
+category model and the sequential model, each with it's own set of
+link functions. As the author of the package explains
+\cite{burkner2017brms}, the only model that respects the ordering of
+the thresholds is the cumulative model. The thresholds in the
+cumulative model cannot be regressed on additional variables,
+consequently they cannot be associated with random effects.
+
+Another important difference between our method and the \code{brms}
+package is that \code{brms} does not utilize the fact that for ordinal
+regression models the data can often be significantly aggregated
+without loosing any information. For example, if a basic SDT model
+with ratings was to be fitted to an arbitrary large dataset using our
+method the aggregated dataset would consist of a matrix of dimension
+$2\times K$. In that case each iteration of the sampling algorithm
+implemented in stan will consist of essentially 2 computations of the
+likelihood function, whereas without any aggregation step the number
+of such computations will be a linear function of the sample
+size. This is especially problematic for high-dimensional non-linear
+models such as hierarchical SDT with ratings, because they require
+relatively large datasets (i.e., many data points per participant
+$\times$ condition).
 
 \section{Hierarchical Signal Detection Theory in an unconstrained
   parameter space}
@@ -371,8 +416,8 @@ identifiability. The idea is illustrated in Fig.~\ref{fig:2} below:
 
 Note that the normal distribution centered at the midpoint is merely a
 mapping device, not a third evidence distribution, and that, for the
-reasons that will soon become clear, it is wider than the two evidence
-distributions. The mapping expressed by Eq.~\ref{eq:1} is an
+reasons that will be explained later, it is wider than the two
+evidence distributions. The mapping expressed by Eq.~\ref{eq:1} is an
 isomorphism between the $R^{K-1}$ space and the space of
 order-restricted criteria vectors. It's inverse is given by
 $\gamma_i =\ln{(\int_{c_{i-1}}^{c_i} f(s) \,ds /
@@ -472,20 +517,22 @@ prior:
 
 \section{Specifying the prior distributions}
 
-The formal definition of a Bayesian model is not complete without
-providing fixed values of all the parameters that define prior
-distributions. Specifying the priors on sensitivity effects does not
-pose any special difficulties. The sensitivity of an unbiased
-classifier given percent correct (pc) is given by
-$2 \Phi^{-1}(\text{pc})$. When $p(stim = 1) = 0.5$, the greater the
-bias, the lower the accuracy, meaning that an unbiased sensitivity is
-a lower bound on sensitivity given percent correct. Let us assume that
-the majority of subjects are expected to achieve percent correct
-within the $.51$ to $.99$ range, with negligible bias. Since
-$\ln(2\Phi^{-1}(.51)) = -2.99$ and $\ln(2 \Phi^{-1}(.99)) = 1.54$, a
-reasonable weakly informative prior on $\delta$ is normal with mean
-$(1.54 - 2.99) / 2$ and standard deviation $(1.54 + 2.99) / 2$, which
-is the default prior on delta effects in the \code{bhsdtr} package.
+% BOOTSTRAPOWANIE PRIORÓW NA PODST VARIACYJNEGO BAYESA
+
+A Bayesian model is not complete without providing fixed values of all
+the parameters that define prior distributions. Specifying the priors
+on sensitivity effects does not pose any special difficulties. The
+sensitivity of an unbiased classifier given percent correct (pc) is
+given by $2 \Phi^{-1}(\text{pc})$. When $p(stim = 1) = 0.5$, the
+greater the bias, the lower the accuracy, meaning that an unbiased
+sensitivity is a lower bound on sensitivity given percent correct. Let
+us assume that the majority of subjects are expected to achieve
+percent correct within the $.51$ to $.99$ range, with negligible
+bias. Since $\ln(2\Phi^{-1}(.51)) = -2.99$ and
+$\ln(2 \Phi^{-1}(.99)) = 1.54$, a reasonable weakly informative prior
+on $\delta$ is normal with mean $(1.54 - 2.99) / 2$ and standard
+deviation $(1.54 + 2.99) / 2$, which is the default prior on delta
+effects in the \code{bhsdtr} package.
 
 Specifying the priors on criteria effects can be challenging because
 the criteria are order-restricted and the complexity of the mapping
@@ -510,10 +557,11 @@ correlations to be near-zero by choosing a large $\nu$ value.
 \section{Overview of the software implementation}
 
 The \code{bhsdtr} package implements the model in the Stan modelling
-language because it uses a state-of-the-art adaptive Hamiltonian Monte
-Carlo sampling algorithm which often handles high-dimensional
-correlated posteriors better than a Gibbs sampler. Our package is
-essentially a collection of documented functions: The
+language because the stan sampler uses a state-of-the-art adaptive
+Hamiltonian Monte Carlo algorithm which often handles high-dimensional
+correlated posteriors better than a Gibbs sampler.
+
+Our package is essentially a collection of documented functions: The
 \code{aggregate\_responses} function aggregates data as much as
 possible for efficiency, but without distorting the hierarchical
 structure. The \code{make\_stan\_model} function creates a model
@@ -543,8 +591,7 @@ package and any missing required packages:
   library(bhsdtr)
 \end{lstlisting}
 
-We will now explain how to perform some of the essential steps of a
-typical data analysis process, which at the very least will usually
+The essential steps of a typical data analysis process will usually
 involve preparing the data, creating the model code, fitting the
 model, assessing the fit, and possibly converting the unconstrained
 $\delta$ and $\gamma$ parameters to $d'$ and $c$.
@@ -627,19 +674,21 @@ of possible combined response values.
 A model is fitted using the \code{stan} function from the \code{rstan}
 package. This function requires a special list of data structures used
 by the model as well as a model specification expressed in the Stan
-language. Every model has some fixed effects structure since, even
-when there are no predictors, the model parameters can be expressed as
-regressed on a vector of ones (i.e., an intercept). However, many
-models also have a hierarchical structure and, if that is the case,
-this hierarchical structure has to be specified when using the
+language.
+
+Every model has some fixed effects structure since, even when there
+are no predictors, the model parameters can be expressed as regressed
+on a vector of ones (i.e., an intercept). However, many models also
+have a hierarchical structure and, if that is the case, this
+hierarchical structure has to be specified when using the
 \code{make\_stan\_model} function. This is done by providing a list of
 lists of R model formulae. Each list of model formulae is composed of
 at least three elements and specifies the correlated random effects of
 one sampled factor. The \code{group} element specifies the sampled
 factor; the \code{delta} and \code{gamma} elements specify which
 effects are assumed to vary between the levels of this sampled
-factor. When \code{make\_stan\_model} is used without any arguments, it
-specifies a model without any random effects. Fixed effects model
+factor. When \code{make\_stan\_model} is used without any arguments,
+it specifies a model without any random effects. Fixed effects model
 matrices are specified by providing a list with at least two model
 formulae, named \code{delta} and \code{gamma}, to the
 \code{make\_stan\_data} function that is described later in this
@@ -651,12 +700,12 @@ In the study in question there was only one sampled factor, i.e., the
 participants. Because duration was a within-participant variable, in
 principle its effect could vary between the participants for all the
 SDT parameters. However, a preliminary data analysis indicated that
-the barely noticeable 32 ms difference in duration seemed to affect
-only the sensitivity. Thus, it was assumed that $\delta$ may depend on
-duration and order, but $\gamma$ may only be affected by
-order. Because duration was a within-subjects variable, its effect on
-$\delta$ was assumed to vary between the participants, but the only
-random effect associated with $\gamma$ was the intercept:
+the 32 ms difference in duration seemed to affect only the
+sensitivity. Thus, it was assumed that $\delta$ may depend on duration
+and order, but $\gamma$ may only be affected by order. Because
+duration was a within-subjects variable, its effect on $\delta$ was
+assumed to vary between the participants, but the only random effect
+associated with $\gamma$ was the intercept.
 
 \begin{lstlisting}{language=R}
 fixed = list(delta = ~ -1 + duration:order, 
@@ -669,16 +718,17 @@ model = make_stan_model(random)
 
 The \code{make\_stan\_data} function creates fixed and random effect
 model matrices based on the respective model formulae using dummy
-contrast coding. Note that the implicit intercept was suppressed for
-the $\delta$ model matrix. In this way, $\delta$ was estimated for
-every duration $\times$ order condition. The resulting separate
-intercepts and slopes parametrization makes it easier to calculate
-arbitrary contrasts on posterior samples. A more standard
-parametrization was used for the $\gamma$ parameter because it was
-initially assumed that the criteria depend only on order, and so there
-was only one contrast of interest for every element of the $\gamma$
-vector. On the other hand, in such cases nested parametrization (with
-separate intercepts and slopes for every condition) may be more
+contrast coding. Note that the implicit intercept was removed for the
+$\delta$ model matrix (the $-1$ term on the right hand side of the
+model formula). In this way, $\delta$ was estimated for every duration
+$\times$ order condition. The resulting separate intercepts and slopes
+parametrization makes it easier to calculate arbitrary contrasts on
+posterior samples. A more standard parametrization was used for the
+$\gamma$ parameter because it was initially assumed that the criteria
+depend only on order, which is a two-level factor, and so there was
+only one contrast of interest for every element of the $\gamma$
+vector. On the other hand, even in such cases the parametrization with
+separate intercepts and slopes for every condition may be more
 convenient if a researcher is interested in the actual criteria, as we
 will later explain when introducing the \code{gamma\_to\_crit}
 function. This example also illustrates how the separation of the
@@ -716,20 +766,20 @@ fit = stan(model_code = model,
 \end{lstlisting}
 
 Note that since more than one sampled factor is allowed, the names of
-all the hierarchical parameters are indexed (e.g., \code{delta\_sd\_1},
-\code{delta\_random\_1}, \code{Corr\_delta\_1}). The name
-\code{counts\_new} refers to posterior predictive samples that are
-required by the \code{plot\_sdt\_fit} function. Names starting with
-\code{Corr} refer to random effects correlation matrices, which are
-computed from Cholesky decompositions.
+all the hierarchical parameters are indexed (e.g.,
+\code{delta\_sd\_1}, \code{delta\_random\_1},
+\code{Corr\_delta\_1}). The name \code{counts\_new} refers to
+posterior predictive samples that are required by the
+\code{plot\_sdt\_fit} function. Names starting with \code{Corr} refer
+to random effects correlation matrices.
 
 \subsubsection{Assessing the model fit}
 
-Four chains of 8,000 iterations each were run simultaneously; the
-first half of the posterior samples, which served as a warm-up period
-for tuning the parameters of the sampling algorithm, was
-discarded. Part of the resulting Stan output is presented in
-Table~\ref{fitsum} below.
+As can be seen in the previous code fragment four chains of 8,000
+iterations each were run simultaneously; the first half of the
+posterior samples, which served as a warm-up period for tuning the
+parameters of the sampling algorithm, was discarded. Part of the
+resulting Stan output is presented in Table~\ref{fitsum} below.
 
 \begin{table}[H]
 \caption{Model fit summary statistics}
@@ -768,19 +818,20 @@ Table~\ref{fitsum} below.
 \label{fitsum}
 \end{table}
 
-As can be seen, given the complexity of the model, the chains
-exhibited good mixing and seemed to have converged; there were enough
-effective samples of the fixed effect parameters to estimate $95\%$
-credible intervals well and none of the Gelman-Rubin $\hat{R}$
-statistics crossed the conventional $1.01$ threshold, suggesting
-negligible sensitivity to the initial values.
+Given the complexity of the model the chains exhibited good mixing and
+seemed to have converged; there were enough effective posterior
+samples for the fixed effect parameters to estimate $95\%$ credible
+intervals well and none of the Gelman-Rubin $\hat{R}$ statistics
+crossed the conventional $1.01$ threshold, suggesting negligible
+sensitivity to the initial values.
 
 Figs.~\ref{fig:6} and \ref{fig:7} below contain normal
 quantile-quantile plots of random effects. The plots indicate that the
-normally distributions of random $\delta$ and $\gamma$ effects can be
-approximated by normal distributions and that these parameters seem to
-be good candidates for representing variability in the sensitivity and
-criteria parameters due to the sampled factors.
+distributions of random $\delta$ and $\gamma$ effects can be
+approximated by normal distributions and that -- at least in this
+particular example -- these parameters seem to be good candidates for
+representing variability in the sensitivity and criteria parameters
+due to the sampled factors.
 
 \begin{figure}[H]
   \centering
@@ -798,12 +849,12 @@ criteria parameters due to the sampled factors.
 
 Once enough good quality posterior samples are obtained for the
 parameters of interest, the inference process can be carried out by
-calculating credible intervals, HPD intervals, or Bayes factors for
-any function of the parameters. However, even when the stan output
-summary does not indicate sampler convergence issues, before drawing
-any further conclusions the researcher should first check if the model
-fits the data. The \code{plot\_sdt\_fit} function can be used for this
-purpose:
+calculating credible intervals or HPD intervals for any function of
+the parameters or Bayes factors for each parameter
+separately. However, even when the stan output summary does not
+indicate sampler convergence issues, before drawing any further
+conclusions the researcher should first check if the model fits the
+data. The \code{plot\_sdt\_fit} function can be used for this purpose:
 
 \begin{lstlisting}{language = R}
 plot_sdt_fit(fit, adata, c('order', 'duration')))
@@ -814,9 +865,10 @@ object, an aggregated data list produced by the
 \code{aggregate\_responses} function that was used to produce the
 stanfit object, and a vector of names of variables that will determine
 how the data will be partitioned before plotting. We recommend
-assessing the fit at the individual level, but we did not include the
-participant identification number in the list of conditioning
-variables because the resulting plot would take up too much space.
+assessing the fit at the individual level by including the participant
+identification number in the list of conditioning variables, but we
+did not do it here because the resulting plot would take up too much
+space.
 
 As can be seen in Fig.~\ref{fig:3}, which shows the ROC curves
 produced by the code above, the model seemed to fit the data well in
@@ -845,15 +897,15 @@ in Fig.~\ref{fig:4}, which was also created using the
   \label{fig:4}
 \end{figure}
 
-This kind of plot can be informative about the reasons why a model
-does not fit the data. In this particular case, the plot seems to
-suggest that it may be a good idea to inspect the fit at the
-individual level and see if there are some participants with unusual
-$p(y|stim=1)$ distributions in the RD $\times$ 64 ms condition. On the
-other hand, it is also possible that the lack of fit is mainly a
-consequence of the assumption that duration had zero effect on
-$\bm{\gamma}$, or that more substantial modifications are necessary,
-such as dropping the equal variance assumption.
+Both plots can be informative about the reasons why a model does not
+fit the data. In this particular case, the plot seems to suggest that
+it may be a good idea to inspect the fit at the individual level and
+see if there are some participants with unusual $p(y|stim=1)$
+distributions in the RD $\times$ 64 ms condition. On the other hand,
+it is also possible that the lack of fit is mainly a consequence of
+the assumption that duration had zero effect on $\bm{\gamma}$, or that
+more substantial modifications are necessary, such as dropping the
+equal variance assumption.
 
 \subsubsection{Converting unconstrained $\delta$ and $\gamma$
   parameters to sensitivities and criteria}
@@ -861,17 +913,18 @@ such as dropping the equal variance assumption.
 Posterior $\delta$ and $\gamma$ samples have to be transformed in
 order to work with the $d'$ and $c$ parameters. This is
 straightforward only when fixed effects represent average parameter
-values in separate conditions, not differences between conditions or
-regression slopes. In our example, because nested parametrization was
-used for the $\delta$ fixed effects model matrix, all four
-\code{delta\_fixed} parameters can easily be transformed to
-sensitivities by applying the exponential function. It is important to
-remember that because this is a non-linear transformation, the
+values in separate conditions, not when they represent differences
+between conditions or regression slopes. In our example, because
+separate intercepts and slopes parametrization was used for the
+$\delta$ fixed effects model matrix, all four \code{delta\_fixed}
+parameters represent condition averages and can easily be transformed
+to sensitivities by applying the exponential function. It is important
+to remember that because this is a non-linear transformation, the
 $\delta$ to $d'$ conversion step should be done first before applying
 any other transformations to the posterior samples; for example, the
-exponential of a point and interval estimate is not equal to the point
-and interval estimate calculated after transforming the $\delta$
-posterior samples to the $d'$ samples.
+exponential of a point and interval estimate of $\delta$ is not equal
+to the point and interval estimate calculated after first transforming
+the $\delta$ posterior samples to the $d'$ samples.
 
 In this case the first column of the \code{gamma\_fixed} parameter
 matrix (the intercept) corresponds to the values of the $\bm{\gamma}$
@@ -879,32 +932,41 @@ vector in the DR condition, but the second column corresponds to the
 \emph{effect} of order on $\bm{\gamma}$. For this reason, in this
 particular case the posterior criteria samples can be obtained using
 the \code{gamma\_to\_crit} function only for the first column of the
-\code{gamma\_fixed} matrix.
+\code{gamma\_fixed} matrix. That's because the second column
+represents the \emph{difference} in $\bm{\gamma}$ between conditions
+and a nonlinear transformation from $\bm{\gamma}$ to $\bm{c}$ will not
+give a correct difference in $\bm{c}$.
 
 \subsection{Testing the model on simulated data}
 
-To test if the model correctly recovers known parameter values, we
-simulated the data from a hypothetical exact replication of the
+We simulated the data from a hypothetical exact replication of the
 previously described experiment using the point estimates from the
 previous fit as known realistic parameter values. Mixing performance
 was similar to the real data case. All the model parameters were
 correctly recovered in a sense that the true values were outside the
 $95\%$ credible intervals no more than $5\%$ of the time.
 
-For illustration purposes, an SDT model that differed from the true
-model only in that it did not have any hierarchical structure was
-fitted to the same simulated dataset. Since the non-hierarchical model
-was much simpler and the data consisted of only eight vectors of
-response counts, the mixing of the chains was excellent.
+As we have repeatedly stressed the models that lack the necessary
+hierarchical structure may easily show reliable effects where none
+exist or fail to detect true differences. To illustrate this problem,
+an SDT model that differed from the true model only in that it did not
+have any hierarchical structure was fitted to the same simulated
+dataset. Tring to obtain general theoretical results on the typical
+extent of bias in models that ignore the hierarchical structure would
+be a serious undertaking, but even this simple simulational example
+shows how misleading can the results of such analyses be. Since the
+non-hierarchical model was much simpler and the data consisted of only
+eight vectors of response counts, the mixing of the chains was
+excellent.
 
 The $95\%$ credible intervals calculated for the fixed effects based
 on each model are compared in Fig.~\ref{fig:5} below. The estimates
 were centered on the true values to simplify the presentation. As can
 be seen, the true model correctly recovered the known parameter
 values, but the estimates based on the simplified, non-hierarchical
-model were biased; the credible intervals were not only about three
-times shorter on average, but also failed to contain most of the true
-values.
+model were severely biased; the credible intervals were not only about
+three times shorter on average, but also failed to contain most of the
+true values.
 
 \begin{figure}[H]
   \centering
@@ -915,9 +977,15 @@ values.
   \label{fig:5}
 \end{figure}
 
-However, as can be seen in Fig.~\ref{fig:8} below, in this case the
-observed ROC curves seemed to fit the simplified model's predictions
-quite well, giving a false impression of model validity.
+To avoid bias, the hierarchical structure present in the data can be
+reduced or ignored only if the fit of the full hierarchical model
+indicates that the random effect variances or correlations are likely
+to be equal to zero. Importantly, this rule is valid regardless of the
+apparent fit of the model, as illustrated by the contents of
+Fig.~\ref{fig:8} below; even though the simplified model provided
+strongly biased results the observed ROC curves seemed to fit the
+model's predictions quite well, giving a false impression of model
+validity.
 
 \begin{figure}[H]
   \centering
@@ -928,10 +996,11 @@ quite well, giving a false impression of model validity.
 
 \section{Concluding remarks}
 
-The great importance of SDT to psychology stems from the fact that
-given weak assumptions about an underlying decision process, it
-promises to deconfound sensitivity from bias in arbitrary binary
-classification tasks. To the best of our knowledge, at present the
+The importance of SDT to psychology stems from the fact that given
+weak assumptions about an underlying decision process, it promises to
+deconfound sensitivity from bias in arbitrary binary classification
+tasks - a problem almost as common in psychology studies as the usage
+of classification tasks. To the best of our knowledge, at present the
 \code{bhsdtr} package provides the only method of Bayesian inference
 for SDT models with or without ratings that can be recommended as a
 default choice in typical applications. Our parametrization forces the
@@ -948,11 +1017,17 @@ parameters estimable within the levels of the sampled factors can have
 associated random effects. If the need arises to relax a built-in
 restriction, experienced users can extend the model in arbitrary ways
 by using automatically generated human-readable Stan code as a
-template. We hope that researchers with a basic understanding of
-Signal Detection Theory, Bayesian inference, and hierarchical
-modelling will find our package useful and adopt it as a method of
-analysis of binary classification performance in future studies.
+template.
+% We hope that researchers with a basic understanding of Signal
+% Detection Theory, Bayesian inference, and hierarchical modelling will
+% find our package useful and adopt it as a method of analysis of binary
+% classification performance in future studies.
 
 \bibliography{/home/borys/cs/literatura}
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "paper.toc"
+%%% End:
