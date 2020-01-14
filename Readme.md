@@ -50,13 +50,13 @@ non-negative by definition and ignoring this assumption may lead to
 problems if a bayesian SDT model is used. Without substantial
 modifications hierarchical ordinal regression models do not restrict
 the d' to be non-negative, becaues in such models d' is just the
-unconstrained linear regression slope representing the effect of
-stimulus class (''noise'' or ''signal''). Moreover, in typical
+unconstrained linear regression slope that represents the effect of
+the stimulus class (''noise'' or ''signal''). Moreover, in typical
 situations it does not make much sense to assume that the d' random
 effects are even approximately normal. Finally, in the cumulative
 model the parameters that correspond to criteria in the SDT model
 cannot be affected differently by the same grouping factor (i.e., the
-effects are constant accross categories), because the criteria in this
+effects are constant across categories), because the criteria in this
 model are simply additional effects in the linear part. This means
 that the model assumes that the pattern of the criteria is the same
 for every subject (or item, etc.). Subjects differ in their criteria
