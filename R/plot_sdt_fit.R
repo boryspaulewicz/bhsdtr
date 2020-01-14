@@ -85,7 +85,7 @@ plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05,
             geom_errorbar(aes(ymin = stim2$cumfr.lo, ymax = stim2$cumfr.hi, x = cumfr.fit), width = 0.02) +
             geom_errorbarh(aes(xmin = cumfr.lo, xmax = cumfr.hi, y = stim2$cumfr.fit), height = 0.02) +
             geom_point() +
-            labs(x = 'p(Hit)', y = 'p(FA)') +
+            labs(x = 'p(F)', y = 'p(H)') +
             coord_fixed() +
             facet_wrap(~f)
         if(bw){

@@ -1,5 +1,8 @@
 ## -*- coding: utf-8 -*-
 
+## TODO Include the analysis for the nested model (comparing the true
+## hierarchical and non-hierarchical estimates)
+
 ######################################################################
 ## IMPORTANT GLOBAL VARIABLES
 ##
@@ -19,6 +22,7 @@ library(ggplot2)
 library(Hmisc) # rMultinom for simulations
 library(bhsdtr)
 library(plyr)
+library(gridExtra)
 ## Standard Stan optimizations
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
@@ -64,6 +68,26 @@ if(fresh_start){
     load(paste(temp_path, 'fit', sep = '/'))
 }
 
+## if(fresh_start){
+##     fixed = list(delta = ~ -1 + duration:order, gamma = ~ -1 + order)
+##     random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
+##     model = make_stan_model(random)
+##     sdata = make_stan_data(adata, fixed, random)
+##     fit_nested = stan(model_code = model,
+##                       data = sdata,
+##                       pars = c('delta_fixed', 'gamma_fixed',
+##                                'delta_sd_1', 'gamma_sd_1',
+##                                'delta_random_1', 'gamma_random_1',
+##                                'Corr_delta_1', 'Corr_gamma_1',
+##                                ## we need counts_new for plotting
+##                                'counts_new'),
+##                       iter = 8000,
+##                       chains = 4)
+##     save(fit_nested, file = paste(temp_path, 'fit_nested', sep = '/'))
+## }else{
+##     load(paste(temp_path, 'fit_nested', sep = '/'))
+## }
+
 ## Model fit summary does not indicate any convergence issues
 print(fit, probs = c(.025, .957),
       pars = c('delta_fixed', 'gamma_fixed',
@@ -87,13 +111,13 @@ ggsave(p2, file = 'response_fit.pdf')
 ggsave(p2, file = 'response_fit.png')
 
 ## The criteria are placed fairly symmetrically
-crit = gamma_to_c(as.data.frame(fit))
+crit = gamma_to_crit(as.data.frame(fit))
 round(apply(crit, 2, mean), 2)
 
 ######################################################################
 ## Fitting the single criterion hierarchical SDT model
 
-xfixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
+fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
 random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 ## this time we ignore the ratings
 gabor$r = combined_response(gabor$stim, accuracy = gabor$acc)
@@ -212,6 +236,15 @@ if(fresh_start){
     load(paste(temp_path, 'data_sim', sep = '/'))
 }
 
+## if(fresh_start){
+##     fixed = list(delta = ~ -1 + duration:order, gamma = ~ -1 + order)
+##     random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
+##     adata_sim_nested = simulate_from_fit(fit_nested, adata, fixed, random)
+##     save(adata_sim, file = paste(temp_path, 'adata_sim_nested', sep = '/'))
+## }else{
+##     load(paste(temp_path, 'adata_sim_nested', sep = '/'))
+## }
+
 if(fresh_start){
     fit.sim = stan(model_code = make_stan_model(random),
                    pars = c('delta_fixed', 'gamma_fixed',
@@ -227,13 +260,28 @@ if(fresh_start){
     load(paste(temp_path, 'fit.sim', sep = '/'))
 }
 
+## if(fresh_start){
+##     fit.sim_nested = stan(model_code = make_stan_model(random),
+##                           pars = c('delta_fixed', 'gamma_fixed',
+##                                    'delta_sd_1', 'gamma_sd_1',
+##                                    'delta_random_1', 'gamma_random_1',
+##                                    'counts_new'),
+##                           data = make_stan_data(adata_sim_nested, list(delta = ~ -1 + duration:order, gamma = ~ -1 + order),
+##                                                 list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))),
+##                           chains = 4,
+##                           iter = 8000)
+##     save(fit.sim_nested, file = paste(temp_path, 'fit.sim', sep = '/'))
+## }else{
+##     load(paste(temp_path, 'fit.sim_nested', sep = '/'))
+## }
+
 print(fit.sim, probs = c(.025, .957),
       pars = c('delta_fixed', 'gamma_fixed', 'delta_sd_1', 'gamma_sd_1'))
 ## All is fine
 
 (p1 = plot_sdt_fit(fit.sim, adata_sim, c('duration', 'order')))
 ggsave('roc_sim_fit.pdf', p1)
-(p2 = plot_sdt_fit(fit.sim, adata_sim, c('duration', 'order'), type = ''))
+(p2 = plot_sdt_fit(fit.sim, adata_sim, c('duration', 'order'), type = 'response'))
 ggsave('response_sim_fit.pdf', p2)
 
 ######################################################################
@@ -294,8 +342,8 @@ c(sum(!res$in_ci), nrow(res))
 
 ######################################################################
 ## Fitting the simplified model to simulated data aggregated over
-## subjects. This is how SDT models with additional criteria are often
-## (mis)used.
+## participants. This is how SDT models with additional criteria are
+## often (mis)used.
 
 load(paste(temp_path, 'data_sim', sep = '/'))
 df = adata_sim$data
@@ -307,13 +355,24 @@ data_sim_2 = list(data = df[,c('order', 'duration')], stimulus = df$stimulus, co
 if(fresh_start){
     fit.aggr = stan(model_code = make_stan_model(),
                     pars = c('delta_fixed', 'gamma_fixed', 'counts_new'),
-                    data = make_stan_data(data_sim_2, list(delta = ~ -1 + duration:order, gamma = ~ 1 + order)),
+                    data = make_stan_data(data_sim_2, list(delta = ~ -1 + duration:order, gamma = ~ order)),
                     chains = 4,
                     iter = 8000)
     save(fit.aggr, file = paste(temp_path, 'fit_aggr', sep = '/'))
 }else{
     load(paste(temp_path, 'fit_aggr', sep = '/'))
 }
+
+## if(fresh_start){
+##     fit.aggr_nested = stan(model_code = make_stan_model(),
+##                     pars = c('delta_fixed', 'gamma_fixed', 'counts_new'),
+##                     data = make_stan_data(data_sim_2, list(delta = ~ -1 + duration:order, gamma = ~ -1 + order)),
+##                     chains = 4,
+##                     iter = 8000)
+##     save(fit.aggr_nested, file = paste(temp_path, 'fit_aggr_nested', sep = '/'))
+## }else{
+##     load(paste(temp_path, 'fit_aggr_nested', sep = '/'))
+## }
 
 ## Excellent sampling
 print(fit.aggr, pars = c('delta_fixed', 'gamma_fixed'),
@@ -322,7 +381,7 @@ print(fit.aggr, pars = c('delta_fixed', 'gamma_fixed'),
 ## The simplified model seems to fit the data very well, but...
 (p1 = plot_sdt_fit(fit.aggr, data_sim_2, c('order', 'duration')))
 ggsave('roc_sim_aggr_fit.pdf', p1)
-(p2 = plot_sdt_fit(fit.aggr, data_sim_2, c('order', 'duration'), type = ''))
+(p2 = plot_sdt_fit(fit.aggr, data_sim_2, c('order', 'duration'), type = 'response'))
 ggsave('response_sim_aggr_fit.pdf', p2)
 
 ######################################################################
@@ -350,6 +409,23 @@ print(fit.fixed, pars = c('delta_fixed', 'gamma_fixed'),
 
 ss = list('True hierarchical model' = as.data.frame(fit.sim),
           'Non-hierarchical model' = as.data.frame(fit.aggr))
+## Here we are calculating the posterior samples for gamma for the
+## second condition by adding the effect of the condition on gamma and
+## than using the appropriate transformation.
+ss_ = ss
+for(i in 1:2){
+    ss_[[i]][grep('delta_fixed', names(ss_[[i]]))] = apply(ss_[[i]][grep('delta_fixed', names(ss_[[i]]))], 2, exp)
+    ss_[[i]][grep('gamma_fixed', names(ss_[[i]]))][,8:14] = ss_[[i]][grep('gamma_fixed', names(ss_[[i]]))][,1:7] +
+        ss_[[i]][grep('gamma_fixed', names(ss_[[i]]))][,8:14]
+    ss_[[i]][grep('gamma_fixed', names(ss_[[i]]))][,1:7] = gamma_to_crit(ss_[[i]])
+    ss_[[i]][grep('gamma_fixed', names(ss_[[i]]))][,8:14] = gamma_to_crit(ss_[[i]], 2)
+    names(ss_[[i]])= gsub('delta_fixed', 'dprim_fixed', names(ss_[[i]]))
+    names(ss_[[i]])= gsub('gamma_fixed', 'criteria_fixed', names(ss_[[i]]))
+}
+round(apply(ss_[[1]][, grep('criteria_fixed', names(ss_[[1]]))], 2, mean), 2)
+round(apply(ss_[[2]][, grep('criteria_fixed', names(ss_[[2]]))], 2, mean), 2)
+## Ok
+
 ## ## This will add the fixed effects averaged over the participants
 ## sf = as.data.frame(fit.fixed)
 ## ss[['Fixed participants effects model']] = ss[[2]]
@@ -369,32 +445,59 @@ ss = list('True hierarchical model' = as.data.frame(fit.sim),
 ##                          ']', sep = '')], 1, mean)
 ## }
 
-s = as.data.frame(fit)
-
-df = data.frame(model = rep(names(ss), each = length(grep('fixed', names(ss[[1]])))),
-                par = c(names(ss[[1]])[grep('fixed', names(ss[[1]]))],
-                        names(ss[[2]])[grep('fixed', names(ss[[2]]))]))
-for(m in levels(df$model)){
-    df$point.est[df$model == m] = apply(ss[[m]][,as.character(df$par[df$model == m])], 2, mean)
-    df$ci.lo[df$model == m] = apply(ss[[m]][,as.character(df$par[df$model == m])], 2, function(x)quantile(x, .025))
-    df$ci.hi[df$model == m] = apply(ss[[m]][,as.character(df$par[df$model == m])], 2, function(x)quantile(x, .975))
+bias_plot = function(true_values, ss){
+    df = data.frame(model = rep(names(ss), each = length(grep('fixed', names(ss[[1]])))),
+                    par = c(names(ss[[1]])[grep('fixed', names(ss[[1]]))],
+                            names(ss[[2]])[grep('fixed', names(ss[[2]]))]))
+    if(length(grep('delta', levels(df$par))) > 0){
+        df$par = factor(df$par, c(grep('delta', levels(df$par), value = T),
+                                  grep('gamma', levels(df$par), value = T)))
+    }else{
+        df$par = factor(df$par, c(grep('dprim', levels(df$par), value = T),
+                                  grep('criteria', levels(df$par), value = T)))
+    }
+    for(m in levels(df$model)){
+        df$point.est[df$model == m] = apply(ss[[m]][,as.character(df$par[df$model == m])], 2, mean)
+        df$ci.lo[df$model == m] = apply(ss[[m]][,as.character(df$par[df$model == m])], 2, function(x)quantile(x, .025))
+        df$ci.hi[df$model == m] = apply(ss[[m]][,as.character(df$par[df$model == m])], 2, function(x)quantile(x, .975))
+    }
+    df$true = true_values[as.character(df$par)]
+##    df$par.type = NA
+##    df$par.type[grep('delta', as.character(df$par))] = 'delta'
+##    df$par.type[grep('gamma', as.character(df$par))] = 'gamma'
+    ggplot(df, aes(par, point.est - true)) +
+        geom_abline(intercept = 0, slope = 0, lty = 2, alpha = .5) +
+        geom_point() +
+        geom_errorbar(aes(ymin = ci.lo - true, ymax = ci.hi - true)) +
+        facet_grid(~ model) +
+        theme(axis.text.x = element_text(angle = 90)) +
+        labs(y = 'Point and interval estimates centered on true values',
+             x = 'Model parameter') +
+        theme_minimalist()
 }
+
+s = as.data.frame(fit)
 true_values = apply(s[, grep('fixed', names(s))], 2, mean)
-df$true = true_values[as.character(df$par)]
-df$par.type = NA
-df$par.type[grep('delta', as.character(df$par))] = 'delta'
-df$par.type[grep('gamma', as.character(df$par))] = 'gamma'
-ggplot(df, aes(par, point.est - true)) +
-    geom_abline(intercept = 0, slope = 0, lty = 2, alpha = .5) +
-    geom_point() +
-    geom_errorbar(aes(ymin = ci.lo - true, ymax = ci.hi - true)) +
-    facet_grid(~ model) +
-    theme(axis.text.x = element_text(angle = 90)) +
-    labs(color = 'Parameter type', y = 'Point and interval estimates centered on true values',
-         x = 'Model parameter') +
-    theme_minimalist()
+(p1 = bias_plot(true_values, ss))
 ggsave('true_vs_nonhier.pdf')
 ## The estimates based on overly aggregated data are useless
+
+true_values_ = apply(apply(s[, grep('delta_fixed', names(s))], 2, exp), 2, mean)
+names(true_values_) = gsub('delta', 'dprim', names(true_values_))
+## Translating between the posterior gamma and the criteria for the
+## true model that was used to simulate the data
+s_ = s
+s_[grep('gamma_fixed', names(s_))][,8:14] = s_[grep('gamma_fixed', names(s_))][,1:7] +
+    s_[grep('gamma_fixed', names(s_))][,8:14]
+true_values_ = c(true_values_, apply(gamma_to_crit(s_), 2, mean))
+true_values_ = c(true_values_, apply(gamma_to_crit(s_, 2), 2, mean))
+(p2 = bias_plot(true_values_, ss_))
+ggsave('true_vs_nonhier_sdt.pdf')
+
+p3 = grid.arrange(p1, p2, ncol = 2)
+ggsave('true_vs_nonhier_both.pdf', p3, width = 13, height = 7)
+ggsave('true_vs_nonhier_both.png')
+ggsave('true_vs_nonhier_both.tiff')
 
 res = as.data.frame(cbind(t(apply(ss[[2]][,grep('delta_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])), delta_fixed))
 names(res) = c('lo', 'fit', 'hi', 'true')
@@ -428,7 +531,7 @@ mean(sd.ratios)
 ######################################################################
 ## Approximate normality of random effects distributions
 
-(p = ggplot(data.frame(delta = as.vector(t(delta_random)), i = c('32ms', '64ms')), aes(sample = delta)) +
+(p = ggplot(data.frame(delta = as.vector(t(delta_random)), i = c('32 ms', '64 ms')), aes(sample = delta)) +
      stat_qq() +
      facet_wrap(~i) +
      ylab('delta sample quantile') +
