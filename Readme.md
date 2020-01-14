@@ -43,9 +43,8 @@ the relevant random grouping factors.
 In the bhsdtr package the generalized SDT model is supplemented with a
 hierarchical linear regression structure (normally distributed
 correlated random effects) thanks to a novel parametrization described
-in [this non peer-reviewed
-paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
-and (more concisely) in the package
+in [this paper](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/paper.pdf)
+(which is now under review), and (more concisely) in the package
 documentation. [Here](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/analysis_script.R)
 is the annotated R script that performs all the analyses and produces
 all the tables and some of the figures in the paper.
