@@ -31,12 +31,28 @@ generalized - by introducing additional criteria - to the version that
 accomodates ratings (e.g., "I am almost certain that this item is
 new").
 
-SDT is a *non-linear* model. An immediate consequence of non-linearity
-is that inference based on data aggregated over random grouping
-factors (such as subjects or items) is invalid, because the resulting
-estimates are biased (see [this
+A subset of hierarchical SDT models with ratings can be fitted using
+hierarchical ordered regression models, such as the cumulative model
+in the excellent
+[brms](https://cran.r-project.org/web/packages/brms/index.html)
+package. However, without substantial modifications such models do not
+restrict the d' to be non-negative, which it is by definition (as we
+explain in the paper linked below). Moreover, in the cumulative model
+the parameters that correspond to criteria in the SDT model cannot be
+affected differently by the same grouping factor, which means that the
+model assumes that the pattern of the criteria is the same for every
+subject (or item, etc.). Subjects differ in their criteria placement
+patterns and so the data from a typical rating experiment cannot be
+independent given the SDT model with ratings represented as a
+cumulative model.
+
+Crucially, SDT is a *non-linear* model. An immediate consequence of
+non-linearity is that inference based on data aggregated over random
+grouping factors (such as subjects or items) is invalid, because the
+resulting estimates are biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
-by Morey, Pratte, and Rouder for a demonstration). The only way to
+by Morey, Pratte, and Rouder for a demonstration, or see our paper
+linked below for an even more striking demonstration). The only way to
 avoid this problem in the general case is to model the effects of all
 the relevant random grouping factors.
 
