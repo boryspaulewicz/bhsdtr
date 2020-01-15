@@ -53,7 +53,7 @@ the d' to be non-negative, becaues in such models d' is just the
 unconstrained linear regression slope that represents the effect of
 the stimulus class (''noise'' or ''signal''). Moreover, in typical
 situations it does not make much sense to assume that the d' random
-effects are even approximately normal. Finally, in the cumulative
+effects normally distributed. Finally, in the cumulative
 model the parameters that correspond to criteria in the SDT model
 cannot be affected differently by the same grouping factor (i.e., the
 effects are constant across categories), because the criteria in this
