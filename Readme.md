@@ -15,12 +15,12 @@ template.
 
 ## Background
 
-The equal-variance SDT with one criterion is equivalent to probit
+The equal-variance SDT with one criterion is almost (d' is not constrained to be non-negative) quivalent to probit
 regression (see [this
 paper](http://www.columbia.edu/~ld208/psymeth98.pdf) by DeCarlo) which
 means that any software capable of fitting hierarchical generalized
 linear models can be used to fit the hierarchical version of
-equal-variance SDT *with one criterion*. However, the single-criterion
+equal-variance SDT *with one criterion and possibly negative d'*. However, the single-criterion
 SDT model is untestable, because the data and the model have the same
 dimensionality (=2). The main reason for using SDT is to deconfound
 sensitivity and bias. This can only be achieved if the SDT model is
