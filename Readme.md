@@ -45,7 +45,7 @@ A subset of hierarchical SDT models with ratings can be fitted using
 hierarchical ordered regression models, such as the cumulative model
 in the excellent
 [brms](https://cran.r-project.org/web/packages/brms/index.html)
-package. As we explain in [here](http://dx.doi.org/10.23668/psycharchives.2725), the d' parameter is
+package. As we explain [in the paper](http://dx.doi.org/10.23668/psycharchives.2725), the d' parameter is
 non-negative by definition and ignoring this assumption may lead to
 problems if a bayesian SDT model is used. Without substantial
 modifications hierarchical ordinal regression models do not restrict
