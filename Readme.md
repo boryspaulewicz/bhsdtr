@@ -36,8 +36,8 @@ is that inference based on data aggregated over ''random'' grouping
 factors (such as subjects or items) is invalid, because the resulting
 estimates are biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
-by Morey, Pratte, and Rouder for a demonstration, or see our paper
-linked below for an even more striking demonstration). The only way to
+by Morey, Pratte, and Rouder for a demonstration, or see our [paper](http://dx.doi.org/10.23668/psycharchives.2725)
+for an even more striking demonstration). The only way to
 avoid this problem in the general case is to model the (possibly
 correlated) effects of all the relevant random grouping factors.
 
@@ -45,7 +45,7 @@ A subset of hierarchical SDT models with ratings can be fitted using
 hierarchical ordered regression models, such as the cumulative model
 in the excellent
 [brms](https://cran.r-project.org/web/packages/brms/index.html)
-package. As we explain in our paper linked below, the d' parameter is
+package. As we explain in [here](http://dx.doi.org/10.23668/psycharchives.2725), the d' parameter is
 non-negative by definition and ignoring this assumption may lead to
 problems if a bayesian SDT model is used. Without substantial
 modifications hierarchical ordinal regression models do not restrict
