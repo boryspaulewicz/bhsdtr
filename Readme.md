@@ -1,6 +1,6 @@
 # Coming soon...
 
-Here is another (much simpler) idea for a link function that allows for unconstrained effects in individual SDT criteria (SDT with ratings): the main criterion (i.e., the one in the middle) is unconstrained, the rest of the criteria are represented as log of distances between the adjacent criteria. The vector consisting of the main criterion and the log-distances can be used instead of the gamma vector in the parametrization described in [this preprint](http://dx.doi.org/10.23668/psycharchives.2725). Ordering can be preserved and individual criteria (random / fixed) effects are possible. This will be implemented in the next version of this package.
+Here is another (much simpler) idea for a link function that allows for unconstrained effects in individual SDT criteria (SDT with ratings): the main criterion (i.e., the one in the middle) is unconstrained, the rest of the criteria are represented as log-distances between the adjacent criteria. The vector consisting of the main criterion and the log-distances can be used instead of the gamma vector in the parametrization described in [this preprint](http://dx.doi.org/10.23668/psycharchives.2725). Ordering can be preserved and individual criteria (random / fixed) effects are possible. This will be implemented in the next version of this package.
 
 # bhsdtr
 
@@ -26,10 +26,10 @@ means that any software capable of fitting hierarchical generalized
 linear models can be used to fit the hierarchical version of
 equal-variance SDT *with one criterion and possibly negative d'*. However, the single-criterion
 SDT model is untestable, because the data and the model have the same
-dimensionality (=2). The main reason for using SDT is to deconfound
-sensitivity and bias. This can only be achieved if the SDT model is
+dimensionality. The main reason for using SDT is to deconfound
+sensitivity and bias. This can only be achieved if an SDT model is
 approximately true, but there is no way to test it in the
-single-criterion case. The SDT model becomes testable (e.g., by
+single-criterion case. An SDT model becomes testable (e.g., by
 comparing the theoretical and the observed ROC curves) when it is
 generalized - by introducing additional criteria - to the version that
 accomodates ratings (e.g., "I am almost certain that this item is
@@ -40,38 +40,37 @@ is that inference based on data aggregated over ''random'' grouping
 factors (such as subjects or items) is invalid, because the resulting
 estimates are biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
-by Morey, Pratte, and Rouder for a demonstration, or see our [paper](http://dx.doi.org/10.23668/psycharchives.2725)
+by Morey, Pratte, and Rouder for a demonstration, or see our [preprint](http://dx.doi.org/10.23668/psycharchives.2725)
 for an even more striking demonstration). The only way to
-avoid this problem in the general case is to model the (possibly
+avoid this problem is to model the (possibly
 correlated) effects of all the relevant random grouping factors.
 
 A subset of hierarchical SDT models with ratings can be fitted using
 hierarchical ordered regression models, such as the cumulative model
 in the excellent
 [brms](https://cran.r-project.org/web/packages/brms/index.html)
-package. As we explain [in the paper](http://dx.doi.org/10.23668/psycharchives.2725), the d' parameter is
+package. As we explain [in the preprint](http://dx.doi.org/10.23668/psycharchives.2725), the d' parameter is
 non-negative by definition and ignoring this assumption may lead to
-problems if a bayesian SDT model is used. Without substantial
-modifications hierarchical ordinal regression models do not restrict
+problems if a bayesian SDT model is used. Without some modifications (which can be done in the brms package) hierarchical ordinal regression models do not restrict
 the d' to be non-negative, becaues in such models d' is just the
 unconstrained linear regression slope that represents the effect of
 the stimulus class (''noise'' or ''signal''). Moreover, in typical
 situations it does not make much sense to assume that the d' random
 effects normally distributed. Finally, in the cumulative
-model the parameters that correspond to criteria in the SDT model
+model the parameters that correspond to the criteria in an SDT model
 cannot be affected differently by the same grouping factor (i.e., the
 effects are constant across categories), because the criteria in this
 model are simply additional effects in the linear part. This means
 that the model assumes that the pattern of the criteria is the same
-for every subject (or item, etc.). Subjects differ in their criteria
+for every participant (or item, etc.). Participants differ in their criteria
 placement patterns and so the data from a typical rating experiment
-cannot be independent given the SDT model with ratings represented as
+cannot be independent given an SDT model with ratings represented as
 a cumulative model.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
 hierarchical linear regression structure (normally distributed
 correlated random effects) thanks to a novel parametrization described
-in [this paper](http://dx.doi.org/10.23668/psycharchives.2725)
+in [this preprint](http://dx.doi.org/10.23668/psycharchives.2725)
 (which is now under review), and (more concisely) in the package
 documentation. [Here](https://github.com/boryspaulewicz/bhsdtr/tree/master/inst/preprint/analysis_script.R)
 is the annotated R script that performs all the analyses and produces
@@ -82,7 +81,7 @@ all the tables and some of the figures in the paper.
 The bhsdtr package can be used to:
 
 - fit generalized (more than one criterion), [meta-d'](http://www.columbia.edu/~bsm2105/type2sdt/), or basic (one criterion) equal variance SDT models
-- fit hierarchical or non-hierarchical (e.g., single subject) models
+- fit hierarchical or non-hierarchical (e.g., single participant) models
 - assess the fit using publication-ready ROC curve and combined response distribution plots with predictive intervals calculated for the chosen alpha level
 - model the dependence of the SDT parameters on additional variables (e.g., task difficulty) using separate linear regression structures for the delta (d', meta-d') and gamma (criteria) parameters
 
