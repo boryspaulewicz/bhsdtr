@@ -1,6 +1,6 @@
 # Coming soon...
 
-Here is another (much simpler) idea for a link function that allows for unconstrained effects in individual SDT criteria (SDT with ratings): the main criterion (i.e., the one in the middle) is unconstrained, the rest of the criteria are represented as log of distances between the adjacent criteria. The vector consisting of the main criterion and the log-distances can be used instead of the gamma vector in the parametrization described in [this prepring](http://dx.doi.org/10.23668/psycharchives.2725). Ordering can be preserved and individual criteria (random / fixed) effects are possible. This will be implemented in the next version of this package.
+Here is another (much simpler) idea for a link function that allows for unconstrained effects in individual SDT criteria (SDT with ratings): the main criterion (i.e., the one in the middle) is unconstrained, the rest of the criteria are represented as log of distances between the adjacent criteria. The vector consisting of the main criterion and the log-distances can be used instead of the gamma vector in the parametrization described in [this preprint](http://dx.doi.org/10.23668/psycharchives.2725). Ordering can be preserved and individual criteria (random / fixed) effects are possible. This will be implemented in the next version of this package.
 
 # bhsdtr
 
