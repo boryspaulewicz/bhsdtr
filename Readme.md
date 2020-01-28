@@ -1,6 +1,10 @@
 # Coming soon...
 
-Here is another (much simpler) idea for a link function that allows for unconstrained effects in individual SDT criteria (SDT with ratings): the main criterion (i.e., the one in the middle) is unconstrained, the rest of the criteria are represented as log-distances between the adjacent criteria. The vector consisting of the main criterion and the log-distances can be used instead of the gamma vector in the parametrization described in [this preprint](http://dx.doi.org/10.23668/psycharchives.2725). Ordering can be preserved and individual criteria (random / fixed) effects are possible. This will be implemented in the next version of this package.
+Here is another (much more simple) idea for a link function that allows for unconstrained effects in individual SDT criteria (SDT with ratings): the main criterion (i.e., the one in the middle) is unconstrained, the rest of the criteria are represented as log-distances or log-ratios of distances between the adjacent criteria. The vector consisting of the main criterion and the log-distances/ratios can be used instead of the gamma vector in the parametrization described in [the preprint](http://dx.doi.org/10.23668/psycharchives.2725). Ordering can be preserved and individual criteria (random / fixed) effects are possible. This will be implemented in the next version of this package. Here is one parametrization that I really like:
+
+![tau](inst/preprint/IMG_20200128_193103%7E2.jpg)
+
+A range of meaningfully simmplfied models can be obtained just by fixing or otherwise constraining (priors) the elements of the tau vector. For example, the parsimonious SDT model described in this great [paper](https://link.springer.com/article/10.3758/s13428-019-01231-3) can be obtained just by fixing tau_2 ... tau_K-1 at 0.
 
 # bhsdtr
 
