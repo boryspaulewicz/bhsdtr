@@ -72,12 +72,17 @@ effects of *numerical* predictors (e.g., presentation time, stimulus
 intensity) on the &gamma; parameters may have a reasonably intuitive
 interpretation.
 
-The two new simple link functions are *experimental*, in particular
-the default priors are not well calibrated yet, meaning that some
-tweaking may be necessary to achieve efficient sampling. The default
-values of the gamma_sd (fixed effects specification) and the
-gamma_scale (random effects specification) are now set to 2, but this
-is based on a small number of test with real datasets.
+The two new simple link functions *preserve the ordering of the
+criteria and at the same time allow for individual criteria effects*,
+which was arguably the main contribution of the bhsdtr package in its
+previous version. However, the new functions are *experimental* - the
+default priors are not well calibrated yet, meaning that some tweaking
+may be necessary to achieve efficient sampling. The default values of
+the gamma_sd (fixed effects specification) and the gamma_scale (random
+effects specification) are now set to 2, but this is based on a small
+number of test with real datasets and does not lead to consistently
+good performance (at present the softmax link function is much more
+well-behaved).
 
 In order to use the new link functions the appropriate name has to be
 specified when calling the *make_stan_data*, *make_stan_model*, and
