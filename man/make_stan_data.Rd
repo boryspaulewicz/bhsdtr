@@ -9,6 +9,7 @@ make_stan_data(
   fixed,
   random = list(),
   criteria_scale = 2,
+  gamma_link = "softmax",
   metad = FALSE
 )
 }
@@ -24,8 +25,12 @@ effects and priors. The default is list(), which corresponds to
 a non-hierarchical SDT model. See also 'Details'.}
 
 \item{criteria_scale}{a scaling factor corresponding to mapping
-distribution's standard deviation. The default is 2. See also
-'Details'.}
+distribution's standard deviation, applies only to the softmax
+gamma link function. The default is 2. See also 'Details'.}
+
+\item{gamma_link}{is either 'softmax' (described in the paper),
+'log_distance' or 'log_ratio' (See the Readme file in the
+github repository)}
 
 \item{metad}{when TRUE additional data required by the meta-d'
 model are created, the default if FALSE.}

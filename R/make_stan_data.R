@@ -112,8 +112,11 @@
 #'     effects and priors. The default is list(), which corresponds to
 #'     a non-hierarchical SDT model. See also 'Details'.
 #' @param criteria_scale a scaling factor corresponding to mapping
-#'     distribution's standard deviation. The default is 2. See also
-#'     'Details'.
+#'     distribution's standard deviation, applies only to the softmax
+#'     gamma link function. The default is 2. See also 'Details'.
+#' @param gamma_link is either 'softmax' (described in the paper),
+#'     'log_distance' or 'log_ratio' (See the Readme file in the
+#'     github repository)
 #' @param metad when TRUE additional data required by the meta-d'
 #'     model are created, the default if FALSE.
 #' @return a list with response and stimulus data, model matrices,
@@ -128,91 +131,98 @@
 #' sdata = make_stan_data(adata, fixed, random)
 #' sdata
 #' @export
-make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, metad = FALSE){
-  K = ncol(adata$counts)
-  if(length(random) > 0){
-    for(l in 1:length(random)){
-        group.mm = stats::model.matrix(random[[l]]$group, adata$data)
-      if(ncol(group.mm) == 2){
-        ## Probably a numeric variable
-        random[[l]]$group = as.numeric(as.factor(as.character(group.mm[,2])))
-      }else{
-        ## Probably a factor
-        group.mm = remove.zero.cols(group.mm)
-        random[[l]]$group = (group.mm %*% 1:(ncol(group.mm)))[,1]
-      }
+make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gamma_link = 'softmax', metad = FALSE){
+    if(!(gamma_link %in% c('softmax', 'log_ratio', 'log_distance')))
+        stop("The link function must be one of the following: 'softmax', 'log_ratio', 'log_distance'")
+    if(gamma_link != 'softmax'){
+        default_gamma_scale = default_gamma_sd = 2
+    }else{
+        default_gamma_scale = default_gamma_sd = log(100)
     }
-  }
-  X_delta = remove.zero.cols(stats::model.matrix(fixed$delta, adata$data))
-  X_gamma = remove.zero.cols(stats::model.matrix(fixed$gamma, adata$data))
-  data = list(N = nrow(X_delta),
-              K = K,
-              X_delta_ncol = ncol(X_delta),
-              X_delta = X_delta,
-              X_gamma_ncol = ncol(X_gamma),
-              X_gamma = X_gamma,
-              criteria_scale = criteria_scale,
-              ## stim_sign = -1, 1
-              stim_sign = 2 * as.numeric(as.factor(as.character(adata$stimulus))) - 3,
-              counts = adata$counts)
-  ## Priors
-  if(!metad){
-      data$delta_fixed_mu = parse_prior(fixed$delta_mu, acc_to_delta(.75), ncol(X_delta), 'delta_mu')
-      data$delta_fixed_sd = parse_prior(fixed$delta_sd, .5 * (acc_to_delta(.99) - acc_to_delta(.51)), ncol(X_delta), 'delta_sd')
-  }else{
-      data$delta_fixed_mu = parse_prior(fixed$delta_mu, acc_to_delta(.75), c(2, ncol(X_delta)), 'delta_mu')
-      data$delta_fixed_sd = parse_prior(fixed$delta_sd, .5 * (acc_to_delta(.99) - acc_to_delta(.51)), c(2, ncol(X_delta)), 'delta_sd')
-  }
-  data$gamma_fixed_mu = parse_prior(fixed$gamma_mu, 0, c(K - 1, ncol(X_gamma)), 'gamma_mu')
-  data$gamma_fixed_sd = parse_prior(fixed$gamma_sd, log(100), c(K - 1, ncol(X_gamma)), 'gamma_sd')
-  ## Random effects
-  if(length(random) > 0){
-    for(l in 1:length(random)){
-      data[[sprintf('G_%d', l)]] = max(random[[l]]$group)
-      data[[sprintf('group_%d', l)]] = random[[l]]$group
-      if(!is.null(random[[l]]$delta)){
-        mm = remove.zero.cols(stats::model.matrix(random[[l]]$delta, adata$data))
-        data[[sprintf('Z_delta_ncol_%d', l)]] = ncol(mm)
-        data[[sprintf('Z_delta_%d', l)]] = mm
-        data[[sprintf('lkj_delta_nu_%d', l)]] = if(is.null(random[[l]]$delta_nu)){ 1 }else{ random[[l]]$delta_nu }
-        if(is.null(random[[l]]$delta_scale)){
-            if(!metad){
-                delta_sd_scale = rep(.5 * (acc_to_delta(.99) - acc_to_delta(.51)), ncol(mm))
+    K = ncol(adata$counts)
+    if(length(random) > 0){
+        for(l in 1:length(random)){
+            group.mm = stats::model.matrix(random[[l]]$group, adata$data)
+            if(ncol(group.mm) == 2){
+                ## Probably a numeric variable
+                random[[l]]$group = as.numeric(as.factor(as.character(group.mm[,2])))
             }else{
-                delta_sd_scale = rep(.5 * (acc_to_delta(.99) - acc_to_delta(.51)), 2 * ncol(mm))
+                ## Probably a factor
+                group.mm = remove.zero.cols(group.mm)
+                random[[l]]$group = (group.mm %*% 1:(ncol(group.mm)))[,1]
             }
-        }else{
-          if(length(random[[l]]$delta_scale) == 1){
-              if(!metad){
-                  delta_sd_scale = rep(random[[l]]$delta_scale[1], ncol(mm))
-              }else{
-                  delta_sd_scale = rep(random[[l]]$delta_scale[1], 2 * ncol(mm))
-              }
-          }else{
-              delta_sd_scale = random[[l]]$delta_scale
-          }
         }
-        data[[sprintf('delta_sd_scale_%d', l)]] = fix_stan_dim(delta_sd_scale)
-      }
-      if(!is.null(random[[l]]$gamma)){
-        mm = remove.zero.cols(stats::model.matrix(random[[l]]$gamma, adata$data))
-        data[[sprintf('Z_gamma_ncol_%d', l)]] = ncol(mm)
-        data[[sprintf('Z_gamma_%d', l)]] = mm
-        data[[sprintf('lkj_gamma_nu_%d', l)]] = if(is.null(random[[l]]$gamma_nu)){ 1 }else{ random[[l]]$gamma_nu }
-        if(is.null(random[[l]]$gamma_scale)){
-          gamma_sd_scale = rep(log(100), (K - 1) * ncol(mm))
-        }else{
-          if(length(random[[l]]$gamma_scale) == 1){
-            gamma_sd_scale = rep(random[[l]]$gamma_scale[1], (K - 1) * ncol(mm))
-          }else{
-            gamma_sd_scale = random[[l]]$gamma_scale
-          }
-        }
-        data[[sprintf('gamma_sd_scale_%d', l)]] = fix_stan_dim(gamma_sd_scale)
-      }
     }
-  }
-  data
+    X_delta = remove.zero.cols(stats::model.matrix(fixed$delta, adata$data))
+    X_gamma = remove.zero.cols(stats::model.matrix(fixed$gamma, adata$data))
+    data = list(N = nrow(X_delta),
+                K = K,
+                X_delta_ncol = ncol(X_delta),
+                X_delta = X_delta,
+                X_gamma_ncol = ncol(X_gamma),
+                X_gamma = X_gamma,
+                criteria_scale = criteria_scale,
+                ## stim_sign = -1, 1
+                stim_sign = 2 * as.numeric(as.factor(as.character(adata$stimulus))) - 3,
+                counts = adata$counts)
+    ## Priors
+    if(!metad){
+        data$delta_fixed_mu = parse_prior(fixed$delta_mu, acc_to_delta(.75), ncol(X_delta), 'delta_mu')
+        data$delta_fixed_sd = parse_prior(fixed$delta_sd, .5 * (acc_to_delta(.99) - acc_to_delta(.51)), ncol(X_delta), 'delta_sd')
+    }else{
+        data$delta_fixed_mu = parse_prior(fixed$delta_mu, acc_to_delta(.75), c(2, ncol(X_delta)), 'delta_mu')
+        data$delta_fixed_sd = parse_prior(fixed$delta_sd, .5 * (acc_to_delta(.99) - acc_to_delta(.51)), c(2, ncol(X_delta)), 'delta_sd')
+    }
+    data$gamma_fixed_mu = parse_prior(fixed$gamma_mu, 0, c(K - 1, ncol(X_gamma)), 'gamma_mu')
+    data$gamma_fixed_sd = parse_prior(fixed$gamma_sd, default_gamma_sd, c(K - 1, ncol(X_gamma)), 'gamma_sd')
+    ## Random effects
+    if(length(random) > 0){
+        for(l in 1:length(random)){
+            data[[sprintf('G_%d', l)]] = max(random[[l]]$group)
+            data[[sprintf('group_%d', l)]] = random[[l]]$group
+            if(!is.null(random[[l]]$delta)){
+                mm = remove.zero.cols(stats::model.matrix(random[[l]]$delta, adata$data))
+                data[[sprintf('Z_delta_ncol_%d', l)]] = ncol(mm)
+                data[[sprintf('Z_delta_%d', l)]] = mm
+                data[[sprintf('lkj_delta_nu_%d', l)]] = if(is.null(random[[l]]$delta_nu)){ 1 }else{ random[[l]]$delta_nu }
+                if(is.null(random[[l]]$delta_scale)){
+                    if(!metad){
+                        delta_sd_scale = rep(.5 * (acc_to_delta(.99) - acc_to_delta(.51)), ncol(mm))
+                    }else{
+                        delta_sd_scale = rep(.5 * (acc_to_delta(.99) - acc_to_delta(.51)), 2 * ncol(mm))
+                    }
+                }else{
+                    if(length(random[[l]]$delta_scale) == 1){
+                        if(!metad){
+                            delta_sd_scale = rep(random[[l]]$delta_scale[1], ncol(mm))
+                        }else{
+                            delta_sd_scale = rep(random[[l]]$delta_scale[1], 2 * ncol(mm))
+                        }
+                    }else{
+                        delta_sd_scale = random[[l]]$delta_scale
+                    }
+                }
+                data[[sprintf('delta_sd_scale_%d', l)]] = fix_stan_dim(delta_sd_scale)
+            }
+            if(!is.null(random[[l]]$gamma)){
+                mm = remove.zero.cols(stats::model.matrix(random[[l]]$gamma, adata$data))
+                data[[sprintf('Z_gamma_ncol_%d', l)]] = ncol(mm)
+                data[[sprintf('Z_gamma_%d', l)]] = mm
+                data[[sprintf('lkj_gamma_nu_%d', l)]] = if(is.null(random[[l]]$gamma_nu)){ 1 }else{ random[[l]]$gamma_nu }
+                if(is.null(random[[l]]$gamma_scale)){
+                    gamma_sd_scale = rep(default_gamma_scale, (K - 1) * ncol(mm))
+                }else{
+                    if(length(random[[l]]$gamma_scale) == 1){
+                        gamma_sd_scale = rep(random[[l]]$gamma_scale[1], (K - 1) * ncol(mm))
+                    }else{
+                        gamma_sd_scale = random[[l]]$gamma_scale
+                    }
+                }
+                data[[sprintf('gamma_sd_scale_%d', l)]] = fix_stan_dim(gamma_sd_scale)
+            }
+        }
+    }
+    data
 }
 
 fix_stan_dim = function(x)if(length(x) == 1){ array(x, dim = 1) }else{ x }

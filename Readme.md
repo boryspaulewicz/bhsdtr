@@ -1,4 +1,4 @@
-# NEWS ALERT! Two new additional link functions for the criteria (experimental)
+# NEWS: Two new additional link functions for the criteria (experimental)
 
 In the current version of the package there are three link functions
 for the SDT criteria to choose from. One is the link function

@@ -36,6 +36,8 @@
 #'   \code{gamma_fixed} matrix column. See also 'Details' for which columns of
 #'   the \code{gamma_fixed} matrix can and which cannot be converted to criteria
 #'   using this function.
+#' @param gamma_link is either 'softmax' (described in the paper), 'log_distance' or 'log_ratio'
+#' (See the Readme file in the github repository)
 #' @param s a criteria scaling factor (a scalar). Warning: must be equal to the
 #'   value used when fitting the model.
 #' @return a data frame containing posterior samples of midpoint centered
@@ -55,13 +57,49 @@
 #' ## so that we can see that all is well...
 #' rbind(g_to_c(gamma), criteria)
 #' @export
-gamma_to_crit = function(samples, beta_index = 1, s = 2){
-    if(length(beta_index) != 1)
+gamma_to_crit = function(samples, beta_index = 1, gamma_link = 'softmax', s = 2){
+    if(!(gamma_link %in% c('softmax', 'log_ratio', 'log_distance')))
+        stop("The gamma_link function must be one of the following: 'softmax', 'log_ratio', 'log_distance'")
+    link = gamma_link[1]
+    if (length(beta_index) != 1) 
         warning("Using only the first element of the beta_index vector")
-    nms = grep(sprintf('gamma_fixed\\[[0-9]+,%d]', beta_index[1]), names(samples))
-    if(length(nms) == 0)
-        stop(sprintf("Could not find gamma_fixed[.,%d] samples", beta_index))
-    crit = t(apply(exp(cbind(samples[, nms], 0)), 1, function(x)s * stats::qnorm(cumsum(x / sum(x))[-length(x)])))
-    colnames(crit) = gsub('gamma', 'criteria', colnames(crit))
-    crit
+    nms = grep(sprintf("gamma_fixed\\[[0-9]+,%d]", beta_index[1]), 
+               names(samples))
+    if (length(nms) == 0) 
+        stop(sprintf("Could not find gamma_fixed[.,%d] samples", 
+                     beta_index[1]))
+    criteria = samples = samples[, nms]
+    K = ncol(criteria) + 1
+    if(link == 'log_ratio'){
+        criteria[, K / 2] = samples[, K / 2];
+        if(K > 2){
+            ## spread
+            criteria[, K / 2 + 1] = criteria[, K / 2] + exp(samples[, K / 2 + 1]);
+            ## symmetry
+            criteria[, K / 2 - 1] = criteria[, K / 2] - exp(samples[, K / 2 - 1]) * (criteria[, K / 2 + 1] - criteria[, K / 2]);
+            if(K > 4){
+                for(k in 1:(K / 2 - 2)){
+                    ## upper consistency
+                    criteria[, K / 2 + k + 1] = criteria[, K / 2 + k] + exp(samples[, K / 2 + k + 1]) * (criteria[, K / 2 + 1] - criteria[, K / 2]);
+                    ## lower consistency
+                    criteria[, K / 2 - k - 1] = criteria[, K / 2 - k] - exp(samples[, K / 2 - k - 1]) * (criteria[, K / 2] - criteria[, K / 2 - 1]);
+                }
+            }
+        }
+    }
+    if(link == 'log_distance'){
+        criteria[, K / 2] = samples[, K / 2];
+        if(K > 2){
+            for(k in 1:(K / 2 - 1)){
+                criteria[, K / 2 + k] = criteria[, K / 2 + k - 1] + exp(samples[, K / 2 + k]);
+                criteria[, K / 2 - k] = criteria[, K / 2 - k + 1] - exp(samples[, K / 2 - k]);
+            }
+        }
+    }
+    if(link == 'softmax'){
+        criteria = t(apply(exp(cbind(samples, 0)), 1,
+                           function(x) s * stats::qnorm(cumsum(x/sum(x))[-length(x)])))
+    }
+    colnames(criteria) = gsub("gamma", "criteria", colnames(criteria))
+    criteria
 }
