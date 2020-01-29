@@ -11,71 +11,77 @@ The unconstrained gamma vector can be mapped to the ordered criteria
 vector in other ways. Note that the main criterion (the K / 2
 threshold) considered in isolation is an uncostrained parameter. The
 rest of the criteria can be represented as log-distances between
-adjacent criteria or log-ratios of distances between adjacent
+adjacent criteria or as log-ratios of distances between adjacent
 criteria. For example, the K/2 + 1 criterion can be represented as
-log(c_<sub>K+1</sub> - c<sub>K/2</sub>). This general idea leads
-to several simple solutions. One is:
+log(c_<sub>K+1</sub> - c<sub>K/2</sub>). This general idea leads to
+several simple solutions. One is:
 
 the main criterion is unconstrained:
 
-c_<sub>K/2</sub> = &gamma<sub>K/2</sub>
+c_<sub>K/2</sub> = &gamma;<sub>K/2</sub>
 
 the criteria above the main criterion are represented as
 log-distances, e.g.:
 
-c_<sub>K/2+3</sub> = c_<sub>K/2+2</sub> + exp(&gamma<sub>K/2+3</sub>)
+c<sub>K/2+3</sub> = c<sub>K/2+2</sub> + exp(&gamma;<sub>K/2+3</sub>)
 
 and similarly for the criteria below the main criterion, e.g.:
 
-c_<sub>K/2-3</sub> = c_<sub>K/2-2</sub> - exp(&gamma<sub>K/2-3</sub>)
+c<sub>K/2-3</sub> = c<sub>K/2-2</sub> - exp(&gamma;<sub>K/2-3</sub>)
 
-This is now the 'log-distance' gamma link function. The prior for
-&&gamma<sub>K/2</sub> is now easy to specify, because this element of
-the &gamma vector represents the position of the main criterion
+This is the 'log_distance' gamma link function. The prior for
+&gamma;<sub>K/2</sub> is now easy to specify, because this element of
+the &gamma; vector represents the position of the main criterion
 relative to the midpoint between the evidence distribution means,
 i.e., the value of 0 corresponds to no bias and the positive
 (negative) values correspond to the tendency to respond 'noise'
-(signal). The priors for all the other elements of the &gamma vector
+(signal). The priors for all the other elements of the &gamma; vector
 are almost as easy to specify. For example, the assumption that the
 average distance between the criteria is probably .5 can be
-represented by setting the means of the priors for the &gamma vector
-(except for &gamma<sub>K/2</sub>) at log(.5).
+represented by setting the means of the priors for the &gamma; vector
+(except for &gamma;<sub>K/2</sub>) at log(.5).
 
-The other link function is now called 'log-ratio'. The K/2 element
-again represents the main criterion, the &gamma<sub>K/2+1</sub>
-element represents log(c<sub>K/2+1</sub> - c<sub>K/2</sub>), which I
-like to call the 'spread' parameter. The &gamma<sub>K/2-1</sub>
-element represents the log-ratio of distances (hence the name of the
-link function), i.e., log((c<sub>K/2</sub> - c<sub>K/2-1</sub>) /
+The other link function is called 'log_ratio'. The K/2 element again
+represents the main criterion, the &gamma;<sub>K/2+1</sub> element
+represents log(c<sub>K/2+1</sub> - c<sub>K/2</sub>), which I like to
+call the 'spread' parameter. The &gamma;<sub>K/2-1</sub> element
+represents the log-ratio of distances (hence the name of the link
+function), i.e., log((c<sub>K/2</sub> - c<sub>K/2-1</sub>) /
 (c<sub>K/2+1</sub> - c<sub>K/2</sub>)) - this is the assymetry between
 the lower and the upper spread of the criteria which are next to the
-main criterion. The &gamma<sub>K/2+i</sub> where i > 1 represent the
-ratios of distances, i.e., &gamma<sub>K/2+i</sub> =
+main criterion. The &gamma;<sub>K/2+i</sub> where i > 1 elements
+represent the ratios of distances, i.e., &gamma;<sub>K/2+i</sub> =
 log((c<sub>K/2+i</sub> - c<sub>K/2+i-1</sub>) / (c<sub>K/2+1</sub> -
 c<sub>K/2</sub>)), and I like to call them 'upper consistency'
-parameters. The &gamma<sub>K/2-i</sub> elements, where i > 1 are
-'lower consistency' parameters, i.e., &gamma<sub>K/2-i</sub> =
-log((c<sub>K/2-i+1</sub> - c<sub>K/2-1</sub>) / (c<sub>K/2</sub> -
+parameters. The &gamma;<sub>K/2-i</sub> elements, where i > 1 are
+'lower consistency' parameters, i.e., &gamma;<sub>K/2-i</sub> =
+log((c<sub>K/2-i+1</sub> - c<sub>K/2-i</sub>) / (c<sub>K/2</sub> -
 c<sub>K/2-1</sub>)). The reasonable prior for the log-ratio parameters
 has mean = log(1) = 0.
 
 A broad class of meaningfully simplified models can be obtained just
-by restricting the values of the elements of the &gamma vector. For
+by restricting the values of the elements of the &gamma; vector. For
 example, by fixing all the ratios at log(1) = 0 we get, as a special
 case, the parsimonious SDT model as described in this great
 [paper](https://link.springer.com/article/10.3758/s13428-019-01231-3)
-by Selker, van den Bergh, Criss, and Wagenmakers. The gamma vector can
-be constrained in other ways and the constrains can be soft (i.e.,
-priors with small SDs) which means that a continuum of more and more
-simplified models can be obtained.
+by Selker, van den Bergh, Criss, and Wagenmakers. The &gamma; vector
+can also be constrained in other ways and the constraints can be soft
+(i.e., priors with small SDs) which means that a continuum of more and
+more (meaningfully) simplified models can be obtained. Moreover, the
+effects of *numerical* predictors (e.g., presentation time, stimulus
+intensity) on the &gamma; parameters may have a reasonably intuitive
+interpretation.
 
 The two new simple link functions are *experimental*, in particular
-the default priors are not well calibrated, meaning that some tweaking
-may be necessary to achieve efficient sampling.
+the default priors are not well calibrated yet, meaning that some
+tweaking may be necessary to achieve efficient sampling. The default
+values of the gamma_sd (fixed effects specification) and the
+gamma_scale (random effects specification) are now set to 2, but this
+is based on a small number of test with real datasets.
 
 In order to use the new link functions the appropriate name has to be
-specified when calling the make_stan_data, make_stan_model, and
-gamma_to_crit functions, as described in the documentation.
+specified when calling the *make_stan_data*, *make_stan_model*, and
+*gamma_to_crit* functions, as described in the documentation.
 
 # bhsdtr
 
