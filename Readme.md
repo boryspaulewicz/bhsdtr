@@ -1,10 +1,81 @@
-# Coming soon...
+# NEWS ALERT! Two new additional link functions for the criteria (experimental)
 
-Here is another (much more simple) idea for a link function that allows for unconstrained effects in individual SDT criteria (SDT with ratings): the main criterion (i.e., the one in the middle) is unconstrained, the rest of the criteria are represented as log-distances or log-ratios of distances between the adjacent criteria. The vector consisting of the main criterion and the log-distances/ratios can be used instead of the gamma vector in the parametrization described in [the preprint](http://dx.doi.org/10.23668/psycharchives.2725). Ordering can be preserved and individual criteria (random / fixed) effects are possible. This will be implemented in the next version of this package. Here is one parametrization that I really like:
+In the current version of the package there are three link functions
+for the SDT criteria to choose from. One is the link function
+described in the preprint - this is now called 'softmax'. This link
+function (softmax followed by inverse normal CDF) is computationally
+intensive and makes the task of specifying the priors for the gamma
+vector difficult.
 
-![tau](inst/preprint/IMG_20200128_193103%7E2.jpg)
+The unconstrained gamma vector can be mapped to the ordered criteria
+vector in other ways. Note that the main criterion (the K / 2
+threshold) considered in isolation is an uncostrained parameter. The
+rest of the criteria can be represented as log-distances between
+adjacent criteria or log-ratios of distances between adjacent
+criteria. For example, the K/2 + 1 criterion can be represented as
+log(c_<sub>K+1</sub> - c<sub>K/2</sub>). This general idea leads
+to several simple solutions. One is:
 
-A range of meaningfully simmplfied models can be obtained just by fixing or otherwise constraining (priors) the elements of the tau vector. For example, the parsimonious SDT model described in this great [paper](https://link.springer.com/article/10.3758/s13428-019-01231-3) can be obtained just by fixing tau_2 ... tau_K-1 at 0.
+the main criterion is unconstrained:
+
+c_<sub>K/2</sub> = &gamma<sub>K/2</sub>
+
+the criteria above the main criterion are represented as
+log-distances, e.g.:
+
+c_<sub>K/2+3</sub> = c_<sub>K/2+2</sub> + exp(&gamma<sub>K/2+3</sub>)
+
+and similarly for the criteria below the main criterion, e.g.:
+
+c_<sub>K/2-3</sub> = c_<sub>K/2-2</sub> - exp(&gamma<sub>K/2-3</sub>)
+
+This is now the 'log-distance' gamma link function. The prior for
+&&gamma<sub>K/2</sub> is now easy to specify, because this element of
+the &gamma vector represents the position of the main criterion
+relative to the midpoint between the evidence distribution means,
+i.e., the value of 0 corresponds to no bias and the positive
+(negative) values correspond to the tendency to respond 'noise'
+(signal). The priors for all the other elements of the &gamma vector
+are almost as easy to specify. For example, the assumption that the
+average distance between the criteria is probably .5 can be
+represented by setting the means of the priors for the &gamma vector
+(except for &gamma<sub>K/2</sub>) at log(.5).
+
+The other link function is now called 'log-ratio'. The K/2 element
+again represents the main criterion, the &gamma<sub>K/2+1</sub>
+element represents log(c<sub>K/2+1</sub> - c<sub>K/2</sub>), which I
+like to call the 'spread' parameter. The &gamma<sub>K/2-1</sub>
+element represents the log-ratio of distances (hence the name of the
+link function), i.e., log((c<sub>K/2</sub> - c<sub>K/2-1</sub>) /
+(c<sub>K/2+1</sub> - c<sub>K/2</sub>)) - this is the assymetry between
+the lower and the upper spread of the criteria which are next to the
+main criterion. The &gamma<sub>K/2+i</sub> where i > 1 represent the
+ratios of distances, i.e., &gamma<sub>K/2+i</sub> =
+log((c<sub>K/2+i</sub> - c<sub>K/2+i-1</sub>) / (c<sub>K/2+1</sub> -
+c<sub>K/2</sub>)), and I like to call them 'upper consistency'
+parameters. The &gamma<sub>K/2-i</sub> elements, where i > 1 are
+'lower consistency' parameters, i.e., &gamma<sub>K/2-i</sub> =
+log((c<sub>K/2-i+1</sub> - c<sub>K/2-1</sub>) / (c<sub>K/2</sub> -
+c<sub>K/2-1</sub>)). The reasonable prior for the log-ratio parameters
+has mean = log(1) = 0.
+
+A broad class of meaningfully simplified models can be obtained just
+by restricting the values of the elements of the &gamma vector. For
+example, by fixing all the ratios at log(1) = 0 we get, as a special
+case, the parsimonious SDT model as described in this great
+[paper](https://link.springer.com/article/10.3758/s13428-019-01231-3)
+by Selker, van den Bergh, Criss, and Wagenmakers. The gamma vector can
+be constrained in other ways and the constrains can be soft (i.e.,
+priors with small SDs) which means that a continuum of more and more
+simplified models can be obtained.
+
+The two new simple link functions are *experimental*, in particular
+the default priors are not well calibrated, meaning that some tweaking
+may be necessary to achieve efficient sampling.
+
+In order to use the new link functions the appropriate name has to be
+specified when calling the make_stan_data, make_stan_model, and
+gamma_to_crit functions, as described in the documentation.
 
 # bhsdtr
 
