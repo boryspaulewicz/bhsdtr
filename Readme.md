@@ -13,7 +13,7 @@ which was arguably the main contribution of the bhsdtr package in its
 previous version. The default values of the *gamma_sd* (fixed effects
 specification) and the *gamma_scale* parameters (random effects
 specification) for the new link functions are now set to 2, but this
-is based on a small number of test with real datasets.
+is based on a small number of tests with real datasets.
 
 Note also that adding the *init_r = l* where l < 2 argument to the
 *stan* function call limits the range of initial values to (-l, l)
