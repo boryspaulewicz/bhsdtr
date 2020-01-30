@@ -1,4 +1,4 @@
-# NEWS: Two new additional link functions for the criteria (experimental)
+# NEWS: Two new additional link functions for the criteria
 
 In the current version of the package there are three link functions
 for the SDT criteria to choose from. One is the link function
@@ -10,11 +10,9 @@ vector difficult.
 The two new simple link functions *preserve the ordering of the
 criteria and at the same time allow for individual criteria effects*,
 which was arguably the main contribution of the bhsdtr package in its
-previous version. However, the new functions are *experimental* - the
-default priors are not well calibrated yet, meaning that some tweaking
-may be necessary to achieve efficient sampling. The default values of
-the *gamma_sd* (fixed effects specification) and the *gamma_scale*
-parameters (random effects specification) are now set to 2, but this
+previous version. The default values of the *gamma_sd* (fixed effects
+specification) and the *gamma_scale* parameters (random effects
+specification) for the new link functions are now set to 2, but this
 is based on a small number of test with real datasets. Adding the
 *init_r = .5* argument to the *stan* function limits the range of
 initial values to -.5, .5 instead of the default range -2, 2. This
