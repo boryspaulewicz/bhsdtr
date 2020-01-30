@@ -13,18 +13,21 @@ which was arguably the main contribution of the bhsdtr package in its
 previous version. The default values of the *gamma_sd* (fixed effects
 specification) and the *gamma_scale* parameters (random effects
 specification) for the new link functions are now set to 2, but this
-is based on a small number of test with real datasets. Adding the
-*init_r = .5* argument to the *stan* function limits the range of
-initial values to -.5, .5 instead of the default range -2, 2. This
-really helps because the elements of the gamma vector tend to be much
-closer to 0 than 2.
+is based on a small number of test with real datasets.
 
-The unconstrained gamma vector can be mapped to the ordered criteria
-vector in many ways. Note that the main criterion (the K/2 threshold)
-considered in isolation is an uncostrained parameter. The rest of the
-criteria can be represented as log-distances between criteria or as
-log-ratios of distances between criteria. For example, the K/2+1
-criterion can be represented as log(c_<sub>K+1</sub> -
+Note also that adding the *init_r = l* where l < 2 argument to the
+*stan* function call limits the range of initial values to (-l, l)
+instead of the default range (-2, 2). This really helps with all the
+link functions, because a value close to 2 (or -2) is often well
+outside the range of reasonable values for some of the gamma/delta
+parameters.
+
+Anyway, the unconstrained gamma vector can be mapped to the ordered
+criteria vector in many ways. Note that the main criterion (the K/2
+threshold) considered in isolation is an uncostrained parameter. The
+rest of the criteria can be represented as log-distances between
+criteria or as log-ratios of distances between criteria. For example,
+the K/2+1 criterion can be represented as log(c_<sub>K+1</sub> -
 c<sub>K/2</sub>). This general idea leads to some intuitive
 solutions. One is:
 
@@ -271,7 +274,8 @@ random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 ```
 
 Now we can start sampling (note that the 'log_distance' link function
-is used for the criteria instead of the detault 'softmax'):
+is used for the criteria instead of the detault 'softmax' and that the
+*init_r* argument is added):
 
 ```
 fit = stan(model_code = make_stan_model(random, gamma_link = 'log_distance'),
@@ -282,6 +286,7 @@ fit = stan(model_code = make_stan_model(random, gamma_link = 'log_distance'),
         'Corr_delta_1', 'Corr_gamma_1',
         ## we need counts_new for plotting
         'counts_new'),
+    init_r = .5,
     iter = 8000,
     chains = 4)
 ```

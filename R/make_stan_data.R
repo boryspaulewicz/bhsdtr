@@ -134,12 +134,10 @@
 make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gamma_link = 'softmax', metad = FALSE){
     if(!(gamma_link %in% c('softmax', 'log_ratio', 'log_distance')))
         stop("The link function must be one of the following: 'softmax', 'log_ratio', 'log_distance'")
+    warning(init_r.warning)
     if(gamma_link != 'softmax'){
         default_gamma_scale = default_gamma_sd = 2
     }else{
-        warning("When using the log_distance or the log_ratio link functions it may be necessary
-to set the init_r argument of the stan function to a value lower than 2 (the default), e.g., .5.
-This limits the range of initial values.")
         default_gamma_scale = default_gamma_sd = log(100)
     }
     K = ncol(adata$counts)
@@ -227,6 +225,9 @@ This limits the range of initial values.")
     }
     data
 }
+
+init_r.warning =
+"It may be necessary to call stan with the init_r argument set to a value lower than 2 (the default), e.g., 1 or .5.  This limits the range of initial values. The dafault range [-2, 2] often results in rejected initial values (sometimes the chains won't even start) because e.g., 2 (or -2) may be well outside the range of reasonable values for some of the delta/gamma parameters."
 
 fix_stan_dim = function(x)if(length(x) == 1){ array(x, dim = 1) }else{ x }
 

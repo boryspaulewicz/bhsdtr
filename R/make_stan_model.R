@@ -25,10 +25,7 @@
 make_stan_model = function(random = NULL, gamma_link = 'softmax', metad = FALSE){
     if(!(gamma_link %in% c('softmax', 'log_ratio', 'log_distance')))
         stop("The gamma_link function must be one of the following: 'softmax', 'log_ratio', 'log_distance'")
-    if(gamma_link != 'softmax')
-        warning("When using the log_distance or the log_ratio link functions it may be necessary
-to set the init_r argument of the stan function to a value lower than 2 (the default), e.g., .5.
-This limits the range of initial values.")
+    warning(init_r.warning)
     model = ''
     if(!metad){
         f = file(paste(path.package('bhsdtr'), sprintf('/stan_templates/sdt_template_%s.stan', gamma_link), sep = ''))
