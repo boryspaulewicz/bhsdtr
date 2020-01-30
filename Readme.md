@@ -270,11 +270,12 @@ fixed = list(delta = ~ -1 + duration:order, gamma = ~ -1 + order)
 random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 ```
 
-Now we can start sampling:
+Now we can start sampling (note that the 'log_distance' link function
+is used for the criteria instead of the detault 'softmax'):
 
 ```
-fit = stan(model_code = make_stan_model(random),
-    data = make_stan_data(adata, fixed, random),
+fit = stan(model_code = make_stan_model(random, gamma_link = 'log_distance'),
+    data = make_stan_data(adata, fixed, random, gamma_link = 'log_distance'),
     pars = c('delta_fixed', 'gamma_fixed',
         'delta_sd_1', 'gamma_sd_1',
         'delta_random_1', 'gamma_random_1',
