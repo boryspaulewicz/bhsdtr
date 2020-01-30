@@ -15,9 +15,11 @@ default priors are not well calibrated yet, meaning that some tweaking
 may be necessary to achieve efficient sampling. The default values of
 the *gamma_sd* (fixed effects specification) and the *gamma_scale*
 parameters (random effects specification) are now set to 2, but this
-is based on a small number of test with real datasets and does not
-lead to consistently good performance (at present the softmax link
-function is more well-behaved).
+is based on a small number of test with real datasets. Adding the
+*init_r = .5* argument to the *stan* function limits the range of
+initial values to -.5, .5 instead of the default range -2, 2. This
+really helps because the elements of the gamma vector tend to be much
+closer to 0 than 2.
 
 The unconstrained gamma vector can be mapped to the ordered criteria
 vector in many ways. Note that the main criterion (the K / 2
