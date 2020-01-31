@@ -158,10 +158,11 @@ is that inference based on data aggregated over ''random'' grouping
 factors (such as subjects or items) is invalid, because the resulting
 estimates are biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
-by Morey, Pratte, and Rouder for a demonstration, or see our [preprint](http://dx.doi.org/10.23668/psycharchives.2725)
-for an even more striking demonstration). The only way to
-avoid this problem is to model the (possibly
-correlated) effects of all the relevant random grouping factors.
+by Morey, Pratte, and Rouder for a demonstration, or see our
+[preprint](http://dx.doi.org/10.23668/psycharchives.2725) for an even
+more striking demonstration). The only way to avoid this problem is to
+model the (possibly correlated) effects of all the relevant random
+grouping factors.
 
 A subset of hierarchical SDT models with ratings can be fitted using
 hierarchical ordered regression models, such as the cumulative model
@@ -335,13 +336,12 @@ discrete outcome values may differ between participants, items,
 conditions, etc., or may covary with numerical predictors.
 
 Whenever such variables are used, there is a possibility of
-confounding response bias, which in this case correspond to the way
+confounding response bias, which in this case corresponds to the way
 the response categories are used to label e.g., some internal
-experience (this corresponds to the criterion in an SDT model), and
-the internal experience itself, which corresponds to *d'* or *s* in an
-SDT model. This problem is seen as important in the context of binary
-classification tasks and SDT theory, but it seems to be often ignored
-in most other contexts.
+experience (e.g., response bias in an SDT model), and the internal
+experience itself (e.g., *d'* or *s* in an SDT model). This problem is
+seen as important in the context of binary classification tasks and
+SDT theory, but it seems to be often ignored in most other contexts.
 
 Let's use the term *Flexible Order-Preserving* (FOP) to denote an
 isomorphic threshold link function that maps the space of ordered
