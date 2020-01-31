@@ -1,125 +1,3 @@
-# NEWS: Two additional link functions for the criteria
-
-In the current version of the package there are three link functions
-for the SDT criteria to choose from. One is the link function
-described in the preprint - this is now called 'softmax'. This link
-function (softmax followed by inverse normal CDF) is computationally
-intensive and makes the task of specifying the priors for the gamma
-vector difficult.
-
-The two new simple link functions *preserve the ordering of the
-criteria and at the same time allow for individual criteria effects*,
-which was arguably the main contribution of the bhsdtr package in its
-previous version. The default values of the *gamma_sd* (fixed effects
-specification) and the *gamma_scale* parameters (random effects
-specification) for the new link functions are now set to 2, but this
-is based on a small number of tests with real datasets.
-
-Note also that adding the *init_r = l* where l < 2 argument to the
-*stan* function call limits the range of initial values to (-l, l)
-instead of the default range (-2, 2). This really helps with all the
-link functions, because a value close to 2 (or -2) is often well
-outside the range of reasonable values for some of the gamma/delta
-parameters.
-
-Anyway, the unconstrained gamma vector can be mapped to the ordered
-criteria vector in many ways. Note that the main criterion (the K/2
-threshold) considered in isolation is an uncostrained parameter. The
-rest of the criteria can be represented as log-distances between
-criteria or as log-ratios of distances between criteria. For example,
-the K/2+1 criterion can be represented as log(c_<sub>K+1</sub> -
-c<sub>K/2</sub>). This general idea leads to some intuitive
-solutions. One is:
-
-the main criterion is unconstrained:
-
-c_<sub>K/2</sub> = &gamma;<sub>K/2</sub>
-
-the criteria above the main criterion are represented as
-log-distances, e.g.:
-
-c<sub>K/2+3</sub> = c<sub>K/2+2</sub> + exp(&gamma;<sub>K/2+3</sub>)
-
-and similarly for the criteria below the main criterion, e.g.:
-
-c<sub>K/2-3</sub> = c<sub>K/2-2</sub> - exp(&gamma;<sub>K/2-3</sub>)
-
-This is the 'log_distance' gamma link function. The prior for
-&gamma;<sub>K/2</sub> is now easy to specify, because this element of
-the &gamma; vector represents the position of the main criterion
-relative to the midpoint between the evidence distribution means,
-i.e., the value of 0 corresponds to no bias and the positive
-(negative) values correspond to the tendency to respond 'noise'
-('signal'). The priors for all the other elements of the &gamma;
-vector are almost as easy to specify. For example, the assumption that
-the average distance between the criteria is probably .5 can be
-represented by setting the means of the priors for the &gamma; vector
-(except for &gamma;<sub>K/2</sub>) at log(.5).
-
-The other link function is called 'log_ratio'. The K/2th element again
-represents the main criterion, the &gamma;<sub>K/2+1</sub> element
-represents log(c<sub>K/2+1</sub> - c<sub>K/2</sub>), which I like to
-call the 'spread' parameter, because all the other distances are
-represented in terms of this one. The &gamma;<sub>K/2-1</sub> element
-represents the assymetry between the lower and the upper spread of the
-criteria which are next to the main criterion, i.e., the following
-log-ratio of distances (hence the name of the link function):
-log((c<sub>K/2</sub> - c<sub>K/2-1</sub>) / (c<sub>K/2+1</sub> -
-c<sub>K/2</sub>)). The elements &gamma;<sub>K/2+i</sub> where i > 1
-also represent ratios of distances, i.e., &gamma;<sub>K/2+i</sub> =
-log((c<sub>K/2+i</sub> - c<sub>K/2+i-1</sub>) / (c<sub>K/2+1</sub> -
-c<sub>K/2</sub>)), and I like to call them 'upper consistency'
-parameters. The elements &gamma;<sub>K/2-i</sub> where i > 1 are
-'lower consistency' parameters, i.e., &gamma;<sub>K/2-i</sub> =
-log((c<sub>K/2-i+1</sub> - c<sub>K/2-i</sub>) / (c<sub>K/2</sub> -
-c<sub>K/2-1</sub>)). In SDT models the reasonable prior for the
-log-ratio parameters has mean = log(1) = 0.
-
-For those who enjoy this kind of thing, here is the *generalized link
-function for ordered criteria*:
-
-1) choose an index i between 1 and K-1, this will be your
-unconstrained parameter
-
-2) represent c<sub>i</sub> as &gamma;<sub>i</sub>
-
-3) choose an index j from the remaining K-2 indices
-
-4) represent c<sub>j</sub> as log of distance, i.e., c<sub>j</sub> +
-exp(&gamma;<sub>i</sub>) or c<sub>j</sub> - exp(&gamma;<sub>i</sub>),
-depending on which threshold is supposed to be to the right of the
-other
-
-5) choose an index k from the remaining K-3 indices
-
-6) represent c<sub>k</sub> as log of distance between c<sub>k</sub>
-and c<sub>i</sub> or between c<sub>k</sub> and c<sub>j</sub> or as log
-of distance between c<sub>k</sub> and c<sub>i</sub> (or c<sub>k</sub>
-and c<sub>j</sub>) divided by the distance between c<sub>j</sub> and
-c<sub>i</sub>
-
-7) etc.
-
-A broad class of models, some of which can be thought of as simplified
-in a meaningful way, can be obtained just by restricting the values of
-the elements of the &gamma; vector when using the two new link
-functions. For example, by using the 'log_ratio' link function and
-fixing all the ratios at log(1) = 0 we get, as a special case, the
-parsimonious SDT model as described in this great
-[paper](https://link.springer.com/article/10.3758/s13428-019-01231-3)
-by Selker, van den Bergh, Criss, and Wagenmakers. The &gamma; vector
-can also be constrained in other ways, in particular the constraints
-can be soft (i.e., priors with small SDs) which means that a continuum
-of more and more simplified models can be obtained. Moreover, the
-effects of *numerical* predictors (e.g., presentation time, stimulus
-intensity) on the &gamma; parameters may have a reasonably intuitive
-interpretation or may not require a highly flexible polynomial to
-approximate the relationship well.
-
-In order to use the new link functions the appropriate name has to be
-specified when calling the *make_stan_data*, *make_stan_model*, and
-*gamma_to_crit* functions, as described in the documentation.
-
 # bhsdtr
 
 The bhsdtr (short for Bayesian Hierarchical Signal Detection Theory
@@ -315,3 +193,177 @@ plot_sdt_fit(fit, adata, c('order', 'duration'), type = 'response')
 ```
 
 ![Combined response distributions](inst/preprint/response_fit.png)
+
+# The importance of Flexible Order-Preserving link functions
+
+Consider a typical ordinal variable in psychology, such as a PAS
+rating, confidence rating, or a Likert scale item in a
+questionnaire. Typically it is natural to assume two things about such
+variables:
+
+1. *Order invariance*, i.e., whatever latent value X this outcome is
+supposed to represent, higher observed values correspond to higher
+values of X, e.g., higher confidence ratings correspond to higher
+value (more ''signal-like'') of internal evidence in an SDT model, or
+higher values in a questionnaire item correspond to higher values of
+the property X measured by the questionnaire.
+
+2. *Scale instability*, i.e., the thresholds that correspond to the
+discrete outcome values may differ between participants, items,
+conditions, etc., or may covary with numerical predictors.
+
+Whenever such variables are used, there is a possibility of
+confounding response bias, which in this case correspond to the way
+the response categories are used to label e.g., some internal
+experience (this corresponds to the criterion in an SDT model), and
+the internal experience itself, which corresponds to *d'* or *s* in an
+SDT model. This problem is seen as important in the context of binary
+classification tasks and SDT theory, but it seems to be often ignored
+in most other contexts.
+
+Let's use the term *Flexible Order-Preserving* (FOP) to denote an
+isomorphic threshold link function that maps the space of ordered
+vectors (i.e., *v<sub>j</sub> > v<sub>i</sub>* if *j > i*) to the
+space of unresctricted vectors *&gamma;* in such a way that 1. the
+order is preserved in a sense that *v<sub>i</sub>* is mapped to
+*&gamma;<sub>i</sub>* and 2. *individual* thresholds/criteria are
+"free", i.e., each element of *&gamma;* is unbounded and can be
+related in an arbitrary way to nominal (participants, items,
+conditions) or to numerical predictors. Any model which represents an
+ordinal variable in terms of ordered thresholds can be supplemented
+with a hierarchical linear regression structure using a FOP link
+function.
+
+When the thresholds can be related in a different way to various
+predictors deconfounding of internal values from scale bias becomes
+possible. A model that assumes that the pattern of thresholds'
+placement is constant cannot account for the possibility of scale
+bias; If all the thresholds are shifted by the same amount in one
+direction the effects are the same as if the thresholds stayed the
+same but the internal value chenged. Once we assume something about
+the distribution of internal values it may be possible to estimate
+*non-uniform* changes in the thresholds, but only if the model can
+account for such effects. FOP link functions make such models
+possible.
+
+# NEWS: Two additional link functions for the criteria
+
+In the current version of the package there are three link functions
+for the SDT criteria to choose from. One is the link function
+described in the preprint - this is now called 'softmax'. This link
+function (softmax followed by inverse normal CDF) is computationally
+intensive and makes the task of specifying the priors for the gamma
+vector difficult.
+
+The two new simple link functions *preserve the ordering of the
+criteria and at the same time allow for individual criteria effects*,
+which was arguably the main contribution of the bhsdtr package in its
+previous version. The default values of the *gamma_sd* (fixed effects
+specification) and the *gamma_scale* parameters (random effects
+specification) for the new link functions are now set to 2, but this
+is based on a small number of tests with real datasets.
+
+Note also that adding the *init_r = l* where l < 2 argument to the
+*stan* function call limits the range of initial values to (-l, l)
+instead of the default range (-2, 2). This really helps with all the
+link functions, because a value close to 2 (or -2) is often well
+outside the range of reasonable values for some of the gamma/delta
+parameters.
+
+Anyway, the unconstrained gamma vector can be mapped to the ordered
+criteria vector in many ways. Note that the main criterion (the K/2
+threshold) considered in isolation is an uncostrained parameter. The
+rest of the criteria can be represented as log-distances between
+criteria or as log-ratios of distances between criteria. For example,
+the K/2+1 criterion can be represented as log(c_<sub>K+1</sub> -
+c<sub>K/2</sub>). This general idea leads to some intuitive
+solutions. One is:
+
+the main criterion is unconstrained:
+
+c_<sub>K/2</sub> = &gamma;<sub>K/2</sub>
+
+the criteria above the main criterion are represented as
+log-distances, e.g.:
+
+c<sub>K/2+3</sub> = c<sub>K/2+2</sub> + exp(&gamma;<sub>K/2+3</sub>)
+
+and similarly for the criteria below the main criterion, e.g.:
+
+c<sub>K/2-3</sub> = c<sub>K/2-2</sub> - exp(&gamma;<sub>K/2-3</sub>)
+
+This is the 'log_distance' gamma link function. The prior for
+&gamma;<sub>K/2</sub> is now easy to specify, because this element of
+the &gamma; vector represents the position of the main criterion
+relative to the midpoint between the evidence distribution means,
+i.e., the value of 0 corresponds to no bias and the positive
+(negative) values correspond to the tendency to respond 'noise'
+('signal'). The priors for all the other elements of the &gamma;
+vector are almost as easy to specify. For example, the assumption that
+the average distance between the criteria is probably .5 can be
+represented by setting the means of the priors for the &gamma; vector
+(except for &gamma;<sub>K/2</sub>) at log(.5).
+
+The other link function is called 'log_ratio'. The K/2th element again
+represents the main criterion, the &gamma;<sub>K/2+1</sub> element
+represents log(c<sub>K/2+1</sub> - c<sub>K/2</sub>), which I like to
+call the 'spread' parameter, because all the other distances are
+represented in terms of this one. The &gamma;<sub>K/2-1</sub> element
+represents the assymetry between the lower and the upper spread of the
+criteria which are next to the main criterion, i.e., the following
+log-ratio of distances (hence the name of the link function):
+log((c<sub>K/2</sub> - c<sub>K/2-1</sub>) / (c<sub>K/2+1</sub> -
+c<sub>K/2</sub>)). The elements &gamma;<sub>K/2+i</sub> where i > 1
+also represent ratios of distances, i.e., &gamma;<sub>K/2+i</sub> =
+log((c<sub>K/2+i</sub> - c<sub>K/2+i-1</sub>) / (c<sub>K/2+1</sub> -
+c<sub>K/2</sub>)), and I like to call them 'upper consistency'
+parameters. The elements &gamma;<sub>K/2-i</sub> where i > 1 are
+'lower consistency' parameters, i.e., &gamma;<sub>K/2-i</sub> =
+log((c<sub>K/2-i+1</sub> - c<sub>K/2-i</sub>) / (c<sub>K/2</sub> -
+c<sub>K/2-1</sub>)). In SDT models the reasonable prior for the
+log-ratio parameters has mean = log(1) = 0.
+
+For those who enjoy this kind of thing, here is the *generalized link
+function for ordered criteria*:
+
+1) choose an index i between 1 and K-1, this will be your
+unconstrained parameter
+
+2) represent c<sub>i</sub> as &gamma;<sub>i</sub>
+
+3) choose an index j from the remaining K-2 indices
+
+4) represent c<sub>j</sub> as log of distance, i.e., c<sub>j</sub> +
+exp(&gamma;<sub>i</sub>) or c<sub>j</sub> - exp(&gamma;<sub>i</sub>),
+depending on which threshold is supposed to be to the right of the
+other
+
+5) choose an index k from the remaining K-3 indices
+
+6) represent c<sub>k</sub> as log of distance between c<sub>k</sub>
+and c<sub>i</sub> or between c<sub>k</sub> and c<sub>j</sub> or as log
+of distance between c<sub>k</sub> and c<sub>i</sub> (or c<sub>k</sub>
+and c<sub>j</sub>) divided by the distance between c<sub>j</sub> and
+c<sub>i</sub>
+
+7) etc.
+
+A broad class of models, some of which can be thought of as simplified
+in a meaningful way, can be obtained just by restricting the values of
+the elements of the &gamma; vector when using the two new link
+functions. For example, by using the 'log_ratio' link function and
+fixing all the ratios at log(1) = 0 we get, as a special case, the
+parsimonious SDT model as described in this great
+[paper](https://link.springer.com/article/10.3758/s13428-019-01231-3)
+by Selker, van den Bergh, Criss, and Wagenmakers. The &gamma; vector
+can also be constrained in other ways, in particular the constraints
+can be soft (i.e., priors with small SDs) which means that a continuum
+of more and more simplified models can be obtained. Moreover, the
+effects of *numerical* predictors (e.g., presentation time, stimulus
+intensity) on the &gamma; parameters may have a reasonably intuitive
+interpretation or may not require a highly flexible polynomial to
+approximate the relationship well.
+
+In order to use the new link functions the appropriate name has to be
+specified when calling the *make_stan_data*, *make_stan_model*, and
+*gamma_to_crit* functions, as described in the documentation.
