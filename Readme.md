@@ -364,6 +364,6 @@ bias; If all the thresholds are shifted by the same amount in one
 direction the effects are the same as if the thresholds stayed the
 same but the latent value chenged. Once we assume something about the
 distribution of latent values it may be possible to estimate
-*non-uniform* changes in the thresholds, but only if a model can
-account for such effects. FOP link functions make such models
+*non-uniform* changes in the thresholds, but only if the model can
+account for such effects. FOP link functions make many such models
 possible.
