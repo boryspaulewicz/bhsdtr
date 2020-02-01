@@ -1,4 +1,4 @@
-# NEWS: Two additional link functions for the criteria
+# NEWS: Two additional link functions for the criteria + a definition of a generalized link function
 
 In the current version of the package there are three link functions
 for the SDT criteria to choose from. One is the link function
