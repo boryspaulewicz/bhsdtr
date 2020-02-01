@@ -382,8 +382,8 @@ space of unresctricted real vectors *&gamma;* in such a way that:
 1. the order is preserved in a sense that *v<sub>i</sub>* is mapped to
 *&gamma;<sub>i</sub>*
 
-2. *individual* thresholds/criteria are "free", i.e., each element of
-*&gamma;* is unbounded and can be related in an arbitrary way to
+2. *individual* thresholds/criteria become "free", i.e., each element
+of *&gamma;* is unbounded and can be related in an arbitrary way to
 nominal (e.g., participants, items, conditions) or to numerical
 predictors.
 
