@@ -353,8 +353,8 @@ does not hold, it indicates that the proces of generating the
 responses changed in a *qualitative* way, e.g., the responses in a
 binary classification task were reversed because task instructions
 were misunderstood, or some of the possible responses in a
-Likert-scale item were interpreted in a way that not intended by the
-authors of the questionnaire.
+Likert-scale item were interpreted in a way that was not intended by
+the authors of the questionnaire.
 
 2. *Scale instability*, i.e., the thresholds that correspond to the
 discrete outcome values or labels may differ between participants,
