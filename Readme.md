@@ -2,7 +2,7 @@
 
 In the current version of the package there are three link functions
 for the SDT criteria to choose from. One is the link function
-described in the preprint - this is now called 'softmax'. This link
+described in the preprint - this is now called "softmax". This link
 function (softmax followed by inverse normal CDF) is computationally
 intensive and makes the task of specifying the priors for the gamma
 vector difficult.
@@ -44,22 +44,22 @@ and similarly for the criteria below the main criterion, e.g.:
 
 c<sub>K/2-3</sub> = c<sub>K/2-2</sub> - exp(&gamma;<sub>K/2-3</sub>)
 
-This is the 'log_distance' gamma link function. The prior for
+This is the "log_distance" gamma link function. The prior for
 &gamma;<sub>K/2</sub> is now easy to specify, because this element of
 the &gamma; vector represents the position of the main criterion
 relative to the midpoint between the evidence distribution means,
 i.e., the value of 0 corresponds to no bias and the positive
-(negative) values correspond to the tendency to respond 'noise'
-('signal'). The priors for all the other elements of the &gamma;
+(negative) values correspond to the tendency to respond "noise"
+("signal"). The priors for all the other elements of the &gamma;
 vector are almost as easy to specify. For example, the assumption that
 the average distance between the criteria is probably .5 can be
 represented by setting the means of the priors for the &gamma; vector
 (except for &gamma;<sub>K/2</sub>) at log(.5).
 
-The other link function is called 'log_ratio'. The K/2th element again
+The other link function is called "log_ratio". The K/2th element again
 represents the main criterion, the &gamma;<sub>K/2+1</sub> element
 represents log(c<sub>K/2+1</sub> - c<sub>K/2</sub>), which I like to
-call the 'spread' parameter, because all the other distances are
+call the "spread" parameter, because all the other distances are
 represented in terms of this one. The &gamma;<sub>K/2-1</sub> element
 represents the assymetry between the lower and the upper spread of the
 criteria which are next to the main criterion, i.e., the following
@@ -68,9 +68,9 @@ log((c<sub>K/2</sub> - c<sub>K/2-1</sub>) / (c<sub>K/2+1</sub> -
 c<sub>K/2</sub>)). The elements &gamma;<sub>K/2+i</sub> where i > 1
 also represent ratios of distances, i.e., &gamma;<sub>K/2+i</sub> =
 log((c<sub>K/2+i</sub> - c<sub>K/2+i-1</sub>) / (c<sub>K/2+1</sub> -
-c<sub>K/2</sub>)), and I like to call them 'upper consistency'
+c<sub>K/2</sub>)), and I like to call them "upper consistency"
 parameters. The elements &gamma;<sub>K/2-i</sub> where i > 1 are
-'lower consistency' parameters, i.e., &gamma;<sub>K/2-i</sub> =
+"lower consistency" parameters, i.e., &gamma;<sub>K/2-i</sub> =
 log((c<sub>K/2-i+1</sub> - c<sub>K/2-i</sub>) / (c<sub>K/2</sub> -
 c<sub>K/2-1</sub>)). In SDT models the reasonable prior for the
 log-ratio parameters has mean = log(1) = 0.
@@ -103,7 +103,7 @@ c<sub>i</sub>
 A broad class of models, some of which can be thought of as simplified
 in a meaningful way, can be obtained just by restricting the values of
 the elements of the &gamma; vector when using the two new link
-functions. For example, by using the 'log_ratio' link function and
+functions. For example, by using the "log_ratio" link function and
 fixing all the ratios at log(1) = 0 we get, as a special case, the
 parsimonious SDT model as described in this great
 [paper](https://link.springer.com/article/10.3758/s13428-019-01231-3)
@@ -154,7 +154,7 @@ accomodates ratings (e.g., "I am almost certain that this item is
 new").
 
 SDT is a *non-linear* model. An immediate consequence of non-linearity
-is that inference based on data aggregated over ''random'' grouping
+is that inference based on data aggregated over "random" grouping
 factors (such as subjects or items) is invalid, because the resulting
 estimates are biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
@@ -168,23 +168,25 @@ A subset of hierarchical SDT models with ratings can be fitted using
 hierarchical ordered regression models, such as the cumulative model
 in the excellent
 [brms](https://cran.r-project.org/web/packages/brms/index.html)
-package. As we explain [in the preprint](http://dx.doi.org/10.23668/psycharchives.2725), the d' parameter is
-non-negative by definition and ignoring this assumption may lead to
-problems if a bayesian SDT model is used. Without some modifications (which can be done in the brms package) hierarchical ordinal regression models do not restrict
-the d' to be non-negative, becaues in such models d' is just the
-unconstrained linear regression slope that represents the effect of
-the stimulus class (''noise'' or ''signal''). Moreover, in typical
-situations it does not make much sense to assume that the d' random
-effects normally distributed. Finally, in the cumulative
-model the parameters that correspond to the criteria in an SDT model
-cannot be affected differently by the same grouping factor (i.e., the
-effects are constant across categories), because the criteria in this
-model are simply additional effects in the linear part. This means
-that the model assumes that the pattern of the criteria is the same
-for every participant (or item, etc.). Participants differ in their criteria
-placement patterns and so the data from a typical rating experiment
-cannot be independent given an SDT model with ratings represented as
-a cumulative model.
+package. As we explain [in the
+preprint](http://dx.doi.org/10.23668/psycharchives.2725), the d'
+parameter is non-negative by definition and ignoring this assumption
+may lead to problems if a bayesian SDT model is used. Without some
+modifications (which can be done in the brms package) hierarchical
+ordinal regression models do not restrict the d' to be non-negative,
+becaues in such models d' is just the unconstrained linear regression
+slope that represents the effect of the stimulus class ("noise" or
+"signal"). Moreover, in typical situations it does not make much sense
+to assume that the d' random effects normally distributed. Finally, in
+the cumulative model the parameters that correspond to the criteria in
+an SDT model cannot be affected differently by the same grouping
+factor (i.e., the effects are constant across categories), because the
+criteria in this model are simply additional effects in the linear
+part. This means that the model assumes that the pattern of the
+criteria is the same for every participant (or item,
+etc.). Participants differ in their criteria placement patterns and so
+the data from a typical rating experiment cannot be independent given
+an SDT model with ratings represented as a cumulative model.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
 hierarchical linear regression structure (normally distributed
@@ -317,53 +319,92 @@ plot_sdt_fit(fit, adata, c('order', 'duration'), type = 'response')
 
 ![Combined response distributions](inst/preprint/response_fit.png)
 
-# The importance of Flexible Order-Preserving link functions
+# The importance of Flexible Order-Preserving link functions for
+  ordinal models
 
-Consider a typical ordinal variable in psychology, such as a PAS
-rating, confidence rating, or a Likert scale item in a
-questionnaire. Typically it is natural to assume two things about such
+Response labels such as "noise" and "signal" can be viewed as values
+of a nominal scale variable, however, from the point of view of Signal
+Detection Theory such variables are in fact *ordinal*. That's because
+in an SDT model the response "signal" corresponds to *higher* values
+of internal evidence. Moreover, once the ratings (an ordinal variable)
+are introduced the problem of confounding sensitivity and bias still
+exists even if we consider only one kind of responses (e.g.,
+"signal"); A participant may respond "high confidence" not because the
+internal evidence is high, but because, for some reason, the labels
+are used differently. It is just as unrealistic to assume that the
+rating scale is invariant accros participants, items, or conditions as
+it is to assume that the SDT decision criterion is constant. It leads
+to exactly the same kind of problem when interpreting the results -
+observed differences may indicate that what is supposed to be captured
+by the ratings is different, or that the way the ratings are used is
+different.
+
+Consider a typical ordinal-scale variable in psychology, such as PAS
+ratings, confidence ratings, or a Likert-scale item in a
+questionnaire. It is natural to assume two things about such
 variables:
 
 1. *Order invariance*, i.e., whatever latent value X this outcome is
 supposed to represent, higher observed values correspond to higher
 values of X, e.g., higher confidence ratings correspond to higher
-value (more ''signal-like'') of internal evidence in an SDT model, or
+value (more "signal-like") of internal evidence in an SDT model, or
 higher values in a questionnaire item correspond to higher values of
-the property X measured by the questionnaire.
+the property X measured by the questionnaire. When order invariance
+does not hold, it indicates that the proces of generating the
+responses changed in a *qualitative* way, e.g., the responses in a
+binary classification task were reversed because task instructions
+were misunderstood, or some of the possible responses in a
+Likert-scale item were interpreted in a way that not intended by the
+authors of the questionnaire.
 
-2. *Scale instability*, i.e., the thresholds that corresponds to the
-discrete outcome values may differ between participants, items,
-conditions, etc., or may covary with numerical predictors.
+2. *Scale instability*, i.e., the thresholds that correspond to the
+discrete outcome values or labels may differ between participants,
+items, or conditions, or may covary with numerical predictors. In
+fact, it would be more than just surprising if evidence was found that
+the mapping between the values of ordinal responses and the latent
+values captured by these responses is constant between participants,
+conditions or items, since the thresholds that correspond to such
+responses are parts of the psychological mechanism which is almost
+certain to be more or less unique to each participant and cannot be
+assumed to be stable accross changing conditions.
 
-Whenever such variables are used, there is a possibility of
-confounding response bias, which in this case corresponds to the way
+Whenever ordinal variables are used, there is a possibility of
+confounding "response bias", which in this case corresponds to the way
 the response categories are used to label e.g., some internal
-experience (e.g., response bias in an SDT model), and the internal
-experience itself (e.g., *d'* or *s* in an SDT model). This problem is
-seen as important in the context of binary classification tasks and
-SDT theory, but it seems to be often ignored in most other contexts.
+experience, and the internal experience itself. This problem is seen
+as important in the context of binary classification tasks and SDT
+theory, but it often seems to be ignored in other contexts.
 
-Let's use the term *Flexible Order-Preserving* (FOP) to denote an
-isomorphic threshold link function that maps the space of ordered
+Let's use the term *Flexible Order-Preserving link function* (FOP) to
+denote an isomorphic function that maps the space of ordered real
 vectors (i.e., *v<sub>j</sub> > v<sub>i</sub>* if *j > i*) to the
-space of unresctricted vectors *&gamma;* in such a way that 1. the
-order is preserved in a sense that *v<sub>i</sub>* is mapped to
+space of unresctricted real vectors *&gamma;* in such a way that
+1. the order is preserved in a sense that *v<sub>i</sub>* is mapped to
 *&gamma;<sub>i</sub>* and 2. *individual* thresholds/criteria are
 "free", i.e., each element of *&gamma;* is unbounded and can be
 related in an arbitrary way to nominal (participants, items,
-conditions) or to numerical predictors. Any model which represents an
-ordinal variable in terms of ordered thresholds can be supplemented
-with a hierarchical linear regression structure using a FOP link
-function.
+conditions) or to numerical predictors.
 
-When the thresholds can be related in a different way to various
-predictors deconfounding of latent values from scale bias becomes
-possible. A model that assumes that the pattern of thresholds'
+*Any model which represents an ordinal variable in terms of ordered
+thresholds can be supplemented with a hierarchical linear regression
+structure using a FOP link function.*
+
+A model that (unrealistically) assumes that the pattern of thresholds'
 placement is constant cannot account for the possibility of scale
 bias; If all the thresholds are shifted by the same amount in one
 direction the effects are the same as if the thresholds stayed the
-same but the latent value chenged. Once we assume something about the
-distribution of latent values it may be possible to estimate
+same but the latent value chenged. When the thresholds can be related
+in a different way to various predictors deconfounding of latent
+values from scale bias becomes possible. Once we assume something
+about the distribution of latent values it may be possible to estimate
 *non-uniform* changes in the thresholds, but only if the model can
 account for such effects. FOP link functions make many such models
-possible.
+possible. In particular, FOP link functions make it possible to
+supplement ordinal models with a hierarchical linear regression
+structure in a way that accounts for the effects in latent values as
+well as for the effects in the thresholds. Because ordinal models are
+non-linear, supplementing them with a hierarchical linear regression
+structure may solve the problem of interval and point estimate bias
+introduced by aggregating the data or by otherwise ignoring
+hierarchical data structure. The bayesian hierarchical SDT model as
+implemented in the bhsdtr package is only one example.
