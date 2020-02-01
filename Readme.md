@@ -23,13 +23,13 @@ outside the range of reasonable values for some of the gamma/delta
 parameters.
 
 Anyway, the unconstrained gamma vector can be mapped to the ordered
-criteria vector in many ways. Note that the main criterion (the K/2
-threshold) considered in isolation is an uncostrained parameter. The
-rest of the criteria can be represented as log-distances between
-criteria or as log-ratios of distances between criteria. For example,
-the K/2+1 criterion can be represented as log(c_<sub>K+1</sub> -
-c<sub>K/2</sub>). This general idea leads to some intuitive
-solutions. One is:
+criteria vector in many useful ways. Note that the main criterion (the
+K/2 threshold) considered in isolation is an uncostrained
+parameter. The rest of the criteria can be represented as
+log-distances between criteria or as log-ratios of distances between
+criteria. For example, the K/2+1 criterion can be represented as
+log(c_<sub>K+1</sub> - c<sub>K/2</sub>). This general idea leads to
+some intuitive solutions. One is:
 
 the main criterion is unconstrained:
 
