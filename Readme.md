@@ -396,7 +396,7 @@ A model that (unrealistically) assumes that the pattern of thresholds'
 placement is constant cannot account for the possibility of
 response/scale bias; If all the thresholds are shifted by the same
 amount in one direction the observed effects are the same as if the
-thresholds stayed the same but the latent value chenged. When the
+thresholds stayed the same but the latent value changed. When the
 thresholds can be related in a different way to various predictors
 deconfounding of latent values from scale bias becomes possible. Once
 we assume something about the distribution of latent values it may be
