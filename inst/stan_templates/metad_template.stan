@@ -7,6 +7,7 @@
 data {
   int<lower=1> N;
   int<lower=2> K;
+  int<lower=1> Kb2;
   real criteria_scale;
   int<lower=1> X_delta_ncol;
   row_vector[X_delta_ncol] X_delta[N];
@@ -49,11 +50,13 @@ transformed parameters {
   matrix[K - 1, Z_gamma_ncol_%] gamma_random_%[G_%]; //gamma
   matrix[2 * Z_delta_ncol_%, 2 * Z_delta_ncol_%] Corr_delta_%; //delta
   matrix[(K - 1) * Z_gamma_ncol_%, (K - 1) * Z_gamma_ncol_%] Corr_gamma_%; //gamma
-  vector[K-1] criteria[N];
-  vector[2] dprim[N];
-  vector[N] shift;
+  vector[K-1] gamma;
+  vector[K-1] criteria;
+  vector[2] delta;
+  vector[2] dprim;
+  real shift;
   vector[K] multinomial_p[N];
-  vector[2] normalization[N];
+  vector[2] normalization;
   for(i in 1:X_delta_ncol){
     dprim_fixed[i] = exp(delta_fixed[1, i]);
     mratio_fixed[i] = exp(delta_fixed[2, i]) / dprim_fixed[i];
@@ -63,26 +66,25 @@ transformed parameters {
   for(g in 1:G_%){ delta_random_%[g] = to_matrix(diag_pre_multiply(delta_sd_%, L_corr_delta_%) * delta_z_%[g], 2, Z_delta_ncol_%); } //delta
   for(g in 1:G_%){ gamma_random_%[g] = to_matrix(diag_pre_multiply(gamma_sd_%, L_corr_gamma_%) * gamma_z_%[g], K - 1, Z_gamma_ncol_%); } //gamma
   for(n in 1:N){
-    dprim[n] = exp(delta_fixed * X_delta[n]'
+    delta = delta_fixed * X_delta[n]'
                    + delta_random_%[group_%[n]] * Z_delta_%[n]'  //delta
-                   );
-    criteria[n] = criteria_scale * inv_Phi(head(cumulative_sum(softmax(append_row(gamma_fixed * X_gamma[n]'
-                                                                   + gamma_random_%[group_%[n]] * Z_gamma_%[n]' //gamma
-                                                                   , 0))),
-                                 K - 1));
-  }
-  shift = 0.5 * stim_sign; // dla stim = 1 mamy shift = -0.5
-  for(n in 1:N){
-    normalization[n, 1] = Phi(criteria[n, K/2] - shift[n] * dprim[n, 1]) / Phi(criteria[n, K/2] - shift[n] * dprim[n, 2]);
-    normalization[n, 2] = Phi(-(criteria[n, K/2] - shift[n] * dprim[n, 1])) / Phi(-(criteria[n, K/2] - shift[n] * dprim[n, 2]));
-    multinomial_p[n, 1] = Phi(criteria[n, 1] - shift[n] * dprim[n, 2]) * normalization[n, 1];
+      ;
+    dprim = exp(delta); //link-delta
+    gamma = gamma_fixed * X_gamma[n]'
+      + gamma_random_%[group_%[n]] * Z_gamma_%[n]' //gamma
+      ;
+    criteria = criteria_scale * inv_Phi(head(cumulative_sum(softmax(append_row(gamma, 0))), K - 1)); //link-gamma
+    shift = 0.5 * stim_sign[n]; // when stim == 1 shift == -0.5
+    normalization[1] = Phi(criteria[Kb2] - shift * dprim[1]) / Phi(criteria[Kb2] - shift * dprim[2]);
+    normalization[2] = Phi(-(criteria[Kb2] - shift * dprim[1])) / Phi(-(criteria[Kb2] - shift * dprim[2]));
+    multinomial_p[n, 1] = Phi(criteria[1] - shift * dprim[2]) * normalization[1];
     for(k in 2:(K - 1))
-      if(k < (K / 2 + 1)){
-        multinomial_p[n, k] = (Phi(criteria[n, k] - shift[n] * dprim[n, 2]) - Phi(criteria[n, k - 1] - shift[n] * dprim[n, 2])) * normalization[n, 1];
+      if(k < (Kb2 + 1)){
+        multinomial_p[n, k] = (Phi(criteria[k] - shift * dprim[2]) - Phi(criteria[k - 1] - shift * dprim[2])) * normalization[1];
       }else{
-        multinomial_p[n, k] = (Phi(criteria[n, k] - shift[n] * dprim[n, 2]) - Phi(criteria[n, k - 1] - shift[n] * dprim[n, 2])) * normalization[n, 2];
+        multinomial_p[n, k] = (Phi(criteria[k] - shift * dprim[2]) - Phi(criteria[k - 1] - shift * dprim[2])) * normalization[2];
       }
-    multinomial_p[n, K] = Phi(-(criteria[n, K - 1] - shift[n] * dprim[n, 2])) * normalization[n, 2];
+    multinomial_p[n, K] = Phi(-(criteria[K - 1] - shift * dprim[2])) * normalization[2];
   }
 }
 

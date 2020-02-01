@@ -25,32 +25,38 @@
 make_stan_model = function(random = NULL, gamma_link = 'softmax', metad = FALSE){
     if(!(gamma_link %in% c('softmax', 'log_ratio', 'log_distance')))
         stop("The gamma_link function must be one of the following: 'softmax', 'log_ratio', 'log_distance'")
-    warning(init_r.warning)
     model = ''
     if(!metad){
-        f = file(paste(path.package('bhsdtr'), sprintf('/stan_templates/sdt_template_%s.stan', gamma_link), sep = ''))
+        f = file(paste(path.package('bhsdtr'), '/stan_templates/sdt_template.stan', sep = ''))
     }else{
         f = file(paste(path.package('bhsdtr'), '/stan_templates/metad_template.stan', sep = ''))
     }
+    ## We go line by line
     for(part in readLines(f)){
-        ## Jeżeli to jest fragment dotyczący efektów losowych ...
+        ## If this is part of the random effects' specification ...
         if(rmatch('//(common|delta|gamma)', part)){
-            ## ... i w ogóle modelujemy efekty losowe ...
+            ## ... and there are some random effects in the model ...
             if(length(random) > 0)
                 for(l in 1:length(random)){
-                    ## ... to indeksuj część wspólną ...
+                    ## ... then add the line read from the template with % replaced by the grouping factor number ...
                     if(rmatch('//common', part))
                         model[length(model)+1] = gsub('%', l, part)
-                    ## ... i części specyficzne dla parametrów delta i
-                    ## gamma, o ile mają być pod wpływem czynników
-                    ## losowych
+                    ## ... and do the same with parts of delta/gamma
+                    ## random effects' specification if delta/gamma is
+                    ## associated with random effects of the given
+                    ## grouping factor ...
                     for(par in c('delta', 'gamma'))
                         if(!is.null(random[[l]][[par]]) & rmatch(sprintf('//%s', par), part))
                             model[length(model)+1] = gsub('%', l, part)
                 }
+        }else if(rmatch('//link-gamma', part)){
+            ## Replace the gamma link function specification with the
+            ## chosen link function
+            model = c(model,
+                      readLines((f2 = file(paste(path.package('bhsdtr'), sprintf('/stan_templates/link_%s.stan', gamma_link), sep = '')))))
+            close(f2)
         }else{
-            ## To nie jest fragment dotyczący efektów losowych, a więc
-            ## kopiujemy bez zmian
+            ## This line is not about the random effects' specification
             model[length(model)+1] = part
         }
     }
