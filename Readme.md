@@ -17,14 +17,14 @@ is based on a small number of tests with real datasets.
 
 Note also that adding the *init_r = l* where l < 2 argument to the
 *stan* function call limits the range of initial values to (-l, l)
-instead of the default range (-2, 2). This really helps with all the
+instead of the default range (-2, 2). This helps with all the
 link functions, because a value close to 2 (or -2) is often well
 outside the range of reasonable values for some of the gamma/delta
 parameters.
 
 Anyway, the unconstrained gamma vector can be mapped to the ordered
 criteria vector in many useful ways. Note that the main criterion (the
-K/2 threshold) considered in isolation is an uncostrained
+K/2 threshold) considered in isolation is an unconstrained
 parameter. The rest of the criteria can be represented as
 log-distances between criteria or as log-ratios of distances between
 criteria. For example, the K/2+1 criterion can be represented as
@@ -108,7 +108,7 @@ fixing all the ratios at log(1) = 0 we get, as a special case, the
 parsimonious SDT model as described in this great
 [paper](https://link.springer.com/article/10.3758/s13428-019-01231-3)
 by Selker, van den Bergh, Criss, and Wagenmakers. The &gamma; vector
-can also be constrained in other ways, in particular the constraints
+can also be constrained in other ways, in particular, the constraints
 can be soft (i.e., priors with small SDs) which means that a continuum
 of more and more simplified models can be obtained. Moreover, the
 effects of *numerical* predictors (e.g., presentation time, stimulus
@@ -131,31 +131,31 @@ from posterior distributions. Our method can accommodate binary
 responses as well as additional ratings and an arbitrary number of
 nested or crossed random grouping factors. SDT parameters can be
 regressed on additional predictors within the same model via
-intermediate unconstrained parameters, and the model can be extended
+intermediate unconstrained parameters and the model can be extended
 by using automatically generated human-readable Stan code as a
 template.
 
 ## Background
 
-The equal-variance SDT with one criterion is almost (d' is not constrained to be non-negative) quivalent to probit
+The equal-variance SDT with one criterion is almost (d' is not constrained to be non-negative) equivalent to probit
 regression (see [this
 paper](http://www.columbia.edu/~ld208/psymeth98.pdf) by DeCarlo) which
 means that any software capable of fitting hierarchical generalized
 linear models can be used to fit the hierarchical version of
 equal-variance SDT *with one criterion and possibly negative d'*. However, the single-criterion
-SDT model is untestable, because the data and the model have the same
+SDT model is untestable because the data and the model have the same
 dimensionality. The main reason for using SDT is to deconfound
 sensitivity and bias. This can only be achieved if an SDT model is
 approximately true, but there is no way to test it in the
 single-criterion case. An SDT model becomes testable (e.g., by
 comparing the theoretical and the observed ROC curves) when it is
 generalized - by introducing additional criteria - to the version that
-accomodates ratings (e.g., "I am almost certain that this item is
+accommodates ratings (e.g., "I am almost certain that this item is
 new").
 
 SDT is a *non-linear* model. An immediate consequence of non-linearity
 is that inference based on data aggregated over "random" grouping
-factors (such as subjects or items) is invalid, because the resulting
+factors (such as subjects or items) is invalid because the resulting
 estimates are biased (see [this
 paper](http://rouder.psyc.missouri.edu/sites/default/files/morey-jmp-zROC-2008_0.pdf)
 by Morey, Pratte, and Rouder for a demonstration, or see our
@@ -174,9 +174,9 @@ parameter is non-negative by definition and ignoring this assumption
 may lead to problems if a bayesian SDT model is used. Without some
 modifications (which can be done in the brms package) hierarchical
 ordinal regression models do not restrict the d' to be non-negative,
-becaues in such models d' is just the unconstrained linear regression
+because in such models d' is just the unconstrained linear regression
 slope that represents the effect of the stimulus class ("noise" or
-"signal"). Moreover, in typical situations it does not make much sense
+"signal"). Moreover, in typical situations, it does not make much sense
 to assume that the d' random effects normally distributed. Finally, in
 the cumulative model the parameters that correspond to the criteria in
 an SDT model cannot be affected differently by the same grouping
@@ -301,6 +301,28 @@ delta_fixed regression coefficients form a two-row matrix: the first
 row represents the fixed effects for the d' parameter and the
 second row represents the fixed effects for the meta-d' parameter.
 
+Here is how you can obtain the avarege d' values per condition:
+
+```
+samples = as.data.frame(fit)
+apply(exp(samples[, grep('delta_fixed', names(samples))]), 2, mean)
+```
+
+Note that exponentiation is done first and averaging second. Because
+it is a non-linear transormation doing it in the other order would not
+give the correct result. The average criteria for both conditions can
+be obtained by calling:
+
+```
+## First condition
+apply(gamma_to_crit(samples, gamma_link = 'log_distance', 1), 2, mean)
+## Second condition
+apply(gamma_to_crit(samples, gamma_link = 'log_distance', 2), 2, mean)
+```
+
+Note that we have to specify the correct gamma link function, since
+now there are three such functions to choose from.
+
 The model fit can be assessed using the plot_sdt_fit function, which
 produces ROC curve plots ...
 
@@ -331,9 +353,9 @@ exists even if we consider only one kind of responses (e.g.,
 "signal"); A participant may respond "high confidence" not because the
 internal evidence is high, but because, for some reason, the labels
 are used differently. It is just as unrealistic to assume that the
-rating scale is invariant accros participants, items, or conditions as
+rating scale is invariant across participants, items, or conditions as
 it is to assume that the SDT decision criterion is constant. It leads
-to exactly the same kind of problem when interpreting the results -
+to the same kind of problem when interpreting the results -
 observed differences may indicate that what is supposed to be captured
 by the ratings is different, or that the way the ratings are used is
 different.
@@ -349,7 +371,7 @@ values of X, e.g., higher confidence ratings correspond to higher
 value (more "signal-like") of internal evidence in an SDT model, or
 higher values in a questionnaire item correspond to higher values of
 the property X measured by the questionnaire. When order invariance
-does not hold, it indicates that the proces of generating the
+does not hold, it indicates that the process of generating the
 responses changed in a *qualitative* way, e.g., the responses in a
 binary classification task were reversed because task instructions
 were misunderstood, or some of the possible responses in a
@@ -406,5 +428,5 @@ many such models possible. Because ordinal models are non-linear,
 supplementing them with a hierarchical linear regression structure may
 solve the problem of interval and point estimate bias introduced by
 aggregating the data or by otherwise ignoring hierarchical data
-structure. The bayesian hierarchical SDT model as implemented in the
+structure. The Bayesian hierarchical SDT model as implemented in the
 bhsdtr package is only one such example.
