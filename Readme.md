@@ -377,33 +377,34 @@ theory, but it often seems to be ignored in other contexts.
 Let's use the term *Flexible Order-Preserving link function* (FOP) to
 denote an isomorphic function that maps the space of ordered real
 vectors (i.e., *v<sub>j</sub> > v<sub>i</sub>* if *j > i*) to the
-space of unresctricted real vectors *&gamma;* in such a way that
-1. the order is preserved in a sense that *v<sub>i</sub>* is mapped to
-*&gamma;<sub>i</sub>* and 2. *individual* thresholds/criteria are
-"free", i.e., each element of *&gamma;* is unbounded and can be
-related in an arbitrary way to nominal (participants, items,
-conditions) or to numerical predictors.
+space of unresctricted real vectors *&gamma;* in such a way that:
 
-*Any model which represents an ordinal variable in terms of ordered
-thresholds can be supplemented with a hierarchical linear regression
-structure using a FOP link function.*
+1. the order is preserved in a sense that *v<sub>i</sub>* is mapped to
+*&gamma;<sub>i</sub>*
+
+2. *individual* thresholds/criteria are "free", i.e., each element of
+*&gamma;* is unbounded and can be related in an arbitrary way to
+nominal (e.g., participants, items, conditions) or to numerical
+predictors.
+
+*By using a FOP link function any model which represents an ordinal
+variable in terms of ordered thresholds can be supplemented with a
+hierarchical linear regression structure in a way that accounts for
+the effects in latent values as well as for the effects in thresholds*
 
 A model that (unrealistically) assumes that the pattern of thresholds'
 placement is constant cannot account for the possibility of scale
 bias; If all the thresholds are shifted by the same amount in one
-direction the effects are the same as if the thresholds stayed the
-same but the latent value chenged. When the thresholds can be related
-in a different way to various predictors deconfounding of latent
-values from scale bias becomes possible. Once we assume something
-about the distribution of latent values it may be possible to estimate
-*non-uniform* changes in the thresholds, but only if the model can
-account for such effects. FOP link functions make many such models
-possible. In particular, FOP link functions make it possible to
-supplement ordinal models with a hierarchical linear regression
-structure in a way that accounts for the effects in latent values as
-well as for the effects in the thresholds. Because ordinal models are
-non-linear, supplementing them with a hierarchical linear regression
-structure may solve the problem of interval and point estimate bias
-introduced by aggregating the data or by otherwise ignoring
-hierarchical data structure. The bayesian hierarchical SDT model as
-implemented in the bhsdtr package is only one example.
+direction the observed effects are the same as if the thresholds
+stayed the same but the latent value chenged. When the thresholds can
+be related in a different way to various predictors deconfounding of
+latent values from scale bias becomes possible. Once we assume
+something about the distribution of latent values it may be possible
+to estimate *non-uniform* changes in the thresholds, but only if the
+model can account for such effects. FOP link functions make many such
+models possible. Because ordinal models are non-linear, supplementing
+them with a hierarchical linear regression structure may solve the
+problem of interval and point estimate bias introduced by aggregating
+the data or by otherwise ignoring hierarchical data structure. The
+bayesian hierarchical SDT model as implemented in the bhsdtr package
+is only one such example.
