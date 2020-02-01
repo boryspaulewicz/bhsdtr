@@ -4,19 +4,19 @@
 \alias{gamma_to_crit}
 \title{Transforms gamma posterior samples to midpoint centered criteria.}
 \usage{
-gamma_to_crit(samples, gamma_link = "softmax", beta_index = 1, s = 2)
+gamma_to_crit(samples, beta_index = 1, gamma_link = "softmax", s = 2)
 }
 \arguments{
 \item{samples}{a data frame of posterior samples from stanfit object (e.g.,
 samples = as.data.frame(stanfit)).}
 
-\item{gamma_link}{is either 'softmax' (described in the paper), 'log_distance' or 'log_ratio'
-(See the Readme file in the github repository)}
-
 \item{beta_index}{a fixed effect index (a scalar) = an index of a
 \code{gamma_fixed} matrix column. See also 'Details' for which columns of
 the \code{gamma_fixed} matrix can and which cannot be converted to criteria
 using this function.}
+
+\item{gamma_link}{is either 'softmax' (described in the paper), 'log_distance' or 'log_ratio'
+(See the Readme file in the github repository)}
 
 \item{s}{a criteria scaling factor (a scalar). Warning: must be equal to the
 value used when fitting the model.}

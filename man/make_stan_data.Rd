@@ -28,7 +28,7 @@ a non-hierarchical SDT model. See also 'Details'.}
 distribution's standard deviation, applies only to the softmax
 gamma link function. The default is 2. See also 'Details'.}
 
-\item{gamma_link}{is either 'softmax' (described in the paper),
+\item{gamma_link}{either 'softmax' (described in the paper),
 'log_distance' or 'log_ratio' (See the Readme file in the
 github repository)}
 
@@ -70,55 +70,75 @@ length as the number of delta fixed effects or of length 1, in which case the
 same value will be used for every delta fixed effect. The default value is
 \code{.5 * (acc_to_delta(.99) - acc_to_delta(.51))}}
 
-\item{gamma_mu}{is na optional vector specifying means of independent normal
-priors on gamma fixed effects. This must be of the same length as the number
-of gamma fixed effects or of length 1, in which case the same value will be
-used for every gamma fixed effect. Note that when there is more than one
-criterion the number of gamma fixed effects is equal to the number I of
-columns of gamma fixed effects model matrix times the number of criteria C.
-Internally, \code{gamma_mu} is stored as a CxI matrix (in column major
-order): element C*j+i of the \code{gamma_mu} vector (where 0 < j and 0 < i <
-C) represents fixed effect corresponding to the i-th column of the gamma
-fixed effects model matrix and the j-th criterion. The default value is 0.}
+\item{gamma_mu}{is na optional vector specifying means of
+independent normal priors on gamma fixed effects. The default value
+is 0. This must be of the same length as the number of gamma fixed
+effects or of length 1, in which case the same value will be used
+for every gamma fixed effect. Note that when there is more than one
+criterion the number of gamma fixed effects is equal to the number
+I of columns of gamma fixed effects model matrix times the number
+of criteria K-1.  Internally, the \code{gamma_mu} vector is stored
+as a K-1xI matrix in column major order: element (K-1)*j+i of the
+\code{gamma_mu} vector (where 0 < j and 0 < i < K-1) represents
+fixed effect corresponding to the i-th column of the gamma fixed
+effects model matrix and the j-th criterion. In other words, the
+indices for the fixed effects change faster than the indices for
+the criteria.}
 
-\item{gamma_sd}{is na optional vector specifying standard deviations of
-independent normal priors on gamma fixed effects. This must be of the same
-length as the number of gamma fixed effects or of length 1, in which case the
-same value will be used for every gamma fixed effect. See \code{gamma_mu}
-above for details on how the elements of the \code{gamma_sd} vector
-correspond to elements of the gamma fixed effects parameter matrix. The
-default value is log(100) which means that a priori areas under the
-gamma-to-criterion mapping distribution curve delineated by the criteria are
-expected to vary by a factor of 100 or less but varying by a factor of
-\code{exp(2*log(100)) = 10000} is highly unlikely.}
+\item{gamma_sd}{is na optional vector specifying standard
+deviations of independent normal priors on gamma fixed
+effects. This must be of the same length as the number of gamma
+fixed effects or of length 1, in which case the same value will be
+used for every gamma fixed effect. See \code{gamma_mu} above for
+details on how the elements of the \code{gamma_sd} vector
+correspond to elements of the gamma fixed effects parameter
+matrix. The default value depends on the chosen gamma link
+function. For the 'softmax' function it is log(100), which means
+that a priori areas under the gamma-to-criterion mapping
+distribution curve delineated by the criteria are expected to vary
+by a factor of 100 or less but varying by a factor of
+\code{exp(2*log(100)) = 10000} is highly unlikely. For the
+'log_distance' and the 'log_ratio' gamma link functions the default
+value is 2.}
 
 }
 
-\code{random} is on optional list of lists of model formulae and prior
-parameter values, if non-default priors on random effects are required. Each
-list specifies delta and gamma random effects of one grouping factor:
+\code{random} is on optional list of lists of model formulae and
+optional prior parameter values, if non-default priors on random
+effects are required. Each list specifies delta and gamma random
+effects of one grouping factor. Note that the same grouping factor
+(e.g., subject id) can be reused in different random effects
+specification lists to force the corresponding random effects to be
+uncorrelated, which will lower the number of free parameters but
+may result in interval estimate bias if the correlations exist and
+are non- negligible:
 
 \describe{
 
-\item{group}{is a model formula specifying the random grouping factor, e.g.,
-\code{group = ~ subject}}
+\item{group}{is a model formula specifying the random grouping
+factor, e.g., \code{group = ~ subject} indicates that the random
+effects specified in this list are associated with the subject
+grouping factor.}
 
-\item{delta}{is a model formula that defines the delta random effects model
-matrix. This must define a submodel of the delta fixed effects model, e.g.,
-if delta depends on condition and condition is a within-subject variable then
-\code{delta = ~ condition} is a valid delta random effects specification.}
+\item{delta}{is a model formula that defines the delta random
+effects model matrix. This must define a submodel of the delta
+fixed effects model, e.g., if delta depends on f1 but not on f2 in
+the model and f1 is a within-subject variable then \code{delta = ~
+f1} or \code{delta = ~ -1 + f1} is a valid delta random effects
+specification but e.g., \code{delta = ~ f2} is not.}
 
-\item{gamma}{is a model formula that defines the gamma random effects model
-matrix. This must define a submodel of the gamma fixed effects model, e.g.,
-if gamma depends on condition and condition is a within-subject variable then
-\code{gamma = ~ condition} is a valid gamma random effects specification.}
+\item{gamma}{is a model formula that defines the gamma random
+effects model matrix. This must define a submodel of the gamma
+fixed effects model (see \code{delta} above for some examples.)}
 
-\item{delta_nu}{is an optional vector of lkj prior parameters for delta
-random effects. This must be of the same length as the number of delta random
-effects or of length 1, in which case the same value will be used for every
-delta random effect. The default is 1 which corresponds to uniform prior on
-random effects correlation matrices. The greater the value of this parameter
-the more emphasis is put on zer off-diagonal correlations.}
+\item{delta_nu}{is an optional vector of lkj prior parameters for
+delta random effects. This must be of the same length as the number
+of delta random effects or of length 1, in which case the same
+value will be used for every delta random effect. The default is 1
+which corresponds to uniform prior on random effects' correlation
+matrices. The greater the value of this parameter the more emphasis
+is put on zer off-diagonal correlations, which represents the a
+priori assumption that the correlations are low or near zero.}
 
 \item{delta_sd_scale}{is an optional vector of half-Cauchy prior parameters
 for delta random effects. This must be of the same length as the number of
@@ -126,14 +146,15 @@ delta random effects or of length 1, in which case the same value will be
 used for every delta random effect. The default value is \code{.5 *
 (acc_to_delta(.99) - acc_to_delta(.51))}}
 
-\item{gamma_nu}{is an optional vector of lkj prior parameters for gamma
-random effects. This must be of the same length as the number of gamma random
-effects or of length 1, in which case the same value will be used for every
-gamma random effect. The default is 1 which corresponds to uniform prior on
-random effects correlation matrices. The greater the value of this parameter
-the more emphasis is put on zer off-diagonal correlations. See
-\code{gamma_mu} above for details on how the elements of the \code{gamma}
-vector correspond to elements of the gamma parameter matrix.}
+\item{gamma_nu}{is an optional vector of lkj prior parameters for
+gamma random effects. This must be of the same length as the number
+of gamma random effects or of length 1, in which case the same
+value will be used for every gamma random effect. The default is 1
+which corresponds to uniform prior on random effects' correlation
+matrices. The greater the value of this parameter the more emphasis
+is put on zer off-diagonal correlations. See \code{gamma_mu} above
+for details on how the elements of the \code{gamma} vector
+correspond to the elements of the gamma parameter matrix.}
 
 \item{gamma_sd_scale}{is an optional vector of half-Cauchy prior parameters
 for gamma random effects. This must be of the same length as the number of
