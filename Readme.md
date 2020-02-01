@@ -365,7 +365,7 @@ values captured by these responses is constant between participants,
 conditions or items, since the thresholds that correspond to such
 responses are parts of a psychological mechanism which is certain to
 be more or less unique to each participant and cannot be assumed to be
-stable across changing conditions.
+invariant across changing conditions.
 
 Whenever ordinal variables are used, there is a possibility of
 confounding "response bias", which in this case corresponds to the way
