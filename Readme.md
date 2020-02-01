@@ -319,8 +319,7 @@ plot_sdt_fit(fit, adata, c('order', 'duration'), type = 'response')
 
 ![Combined response distributions](inst/preprint/response_fit.png)
 
-# The importance of Flexible Order-Preserving link functions for
-  ordinal models
+# The importance of Flexible Order-Preserving link functions in ordinal models
 
 Response labels such as "noise" and "signal" can be viewed as values
 of a nominal scale variable, however, from the point of view of Signal
