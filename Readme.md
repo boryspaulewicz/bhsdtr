@@ -1,3 +1,95 @@
+The following section is in my view more interesting than the bhsdtr package or the preprint, which is why it is at the top of the readme file. The readers who just want to get to know the bhsdtr package are advised to scroll down to the bhsdtr section.
+
+# The importance of Flexible Order-Preserving link functions in ordinal models
+
+Response labels such as "noise" and "signal" can be viewed as values
+of a nominal scale variable, however, from the point of view of Signal
+Detection Theory such variables are in fact *ordinal*. That's because
+in an SDT model the response "signal" corresponds to *higher* values
+of internal evidence. Moreover, once the ratings (an ordinal variable)
+are introduced the problem of confounding sensitivity and bias still
+exists even if we consider only one kind of responses (e.g.,
+"signal"); A participant may respond "high confidence" not because the
+internal evidence is high, but because, for some reason, the labels
+are used differently. It is just as unrealistic to assume that the
+rating scale is invariant across participants, items, or conditions as
+it is to assume that the SDT decision criterion is constant. It leads
+to the same kind of problem when interpreting the results -
+observed differences may indicate that what is supposed to be captured
+by the ratings is different, or that the way the ratings are used is
+different.
+
+Consider a typical ordinal-scale variable in psychology, such as PAS
+ratings, confidence ratings, or a Likert-scale item in a
+questionnaire. It is natural to assume two things about such
+variables:
+
+1. *Order invariance*, i.e., whatever latent value X this outcome is
+supposed to represent, higher observed values correspond to higher
+values of X, e.g., higher confidence ratings correspond to higher
+value (more "signal-like") of internal evidence in an SDT model, or
+higher values in a questionnaire item correspond to higher values of
+the property X measured by the questionnaire. When order invariance
+does not hold, it indicates that the process of generating the
+responses changed in a *qualitative* way, e.g., the responses in a
+binary classification task were reversed because task instructions
+were misunderstood, or some of the possible responses in a
+Likert-scale item were interpreted in a way that was not intended by
+the authors of the questionnaire.
+
+2. *Scale instability*, i.e., the thresholds that correspond to the
+discrete outcome values or labels may differ between participants,
+items, or conditions, or may covary with numerical predictors. In
+fact, it would be more than just surprising if evidence was found that
+the mapping between the values of ordinal responses and the latent
+values captured by these responses is constant between participants,
+conditions or items, since the thresholds that correspond to such
+responses are parts of a psychological mechanism which is certain to
+be more or less unique to each participant and cannot be assumed to be
+invariant across changing conditions.
+
+Whenever ordinal variables are used, there is a possibility of
+confounding "response bias", which in this case corresponds to the way
+the response categories are used to label e.g., some internal
+experience, and the internal experience itself. This problem is seen
+as important in the context of binary classification tasks and SDT
+theory, but it often seems to be ignored in other contexts.
+
+Let's use the term *Flexible Order-Preserving link function* (FOP, 
+see the news section for more details) to denote an isomorphic function
+that maps the space of ordered real vectors (i.e., *v<sub>j</sub> > v<sub>i</sub>* if *j > i*)
+to the space of unresctricted real vectors *&gamma;* in such a way that:
+
+1. the order is preserved in a sense that *v<sub>i</sub>* is mapped to
+*&gamma;<sub>i</sub>*
+
+2. *individual* thresholds/criteria become "free", i.e., each element
+of *&gamma;* is unbounded and can be related in an arbitrary way to
+nominal (e.g., participants, items, conditions) or to numerical
+predictors.
+
+*By using a FOP link function any model which represents an ordinal
+variable in terms of ordered thresholds can be supplemented with a
+hierarchical linear regression structure in a way that accounts for
+the effects in latent values as well as for the effects in thresholds*
+
+A model that (unrealistically) assumes that the pattern of thresholds'
+placement is constant cannot account for the possibility of
+response/scale bias; If all the thresholds are shifted by the same
+amount in one direction the observed effects are the same as if the
+thresholds stayed the same but the latent value changed. When the
+thresholds can be related in a different way to various predictors
+deconfounding of latent values from scale bias becomes possible. Once
+we assume something about the distribution of latent values it may be
+possible to estimate *non-uniform* changes in the thresholds, but only
+if the model can account for such effects. FOP link functions make
+many such models possible. Because ordinal models are non-linear,
+supplementing them with a hierarchical linear regression structure may
+solve the problem of interval and point estimate bias introduced by
+aggregating the data or by otherwise ignoring hierarchical data
+structure. The Bayesian hierarchical SDT model as implemented in the
+bhsdtr package is only one such example.
+
 # NEWS: Two additional link functions for the criteria + a definition of a generalized link function
 
 In the current version of the package there are three link functions
@@ -341,92 +433,3 @@ plot_sdt_fit(fit, adata, c('order', 'duration'), type = 'response')
 
 ![Combined response distributions](inst/preprint/response_fit.png)
 
-# The importance of Flexible Order-Preserving link functions in ordinal models
-
-Response labels such as "noise" and "signal" can be viewed as values
-of a nominal scale variable, however, from the point of view of Signal
-Detection Theory such variables are in fact *ordinal*. That's because
-in an SDT model the response "signal" corresponds to *higher* values
-of internal evidence. Moreover, once the ratings (an ordinal variable)
-are introduced the problem of confounding sensitivity and bias still
-exists even if we consider only one kind of responses (e.g.,
-"signal"); A participant may respond "high confidence" not because the
-internal evidence is high, but because, for some reason, the labels
-are used differently. It is just as unrealistic to assume that the
-rating scale is invariant across participants, items, or conditions as
-it is to assume that the SDT decision criterion is constant. It leads
-to the same kind of problem when interpreting the results -
-observed differences may indicate that what is supposed to be captured
-by the ratings is different, or that the way the ratings are used is
-different.
-
-Consider a typical ordinal-scale variable in psychology, such as PAS
-ratings, confidence ratings, or a Likert-scale item in a
-questionnaire. It is natural to assume two things about such
-variables:
-
-1. *Order invariance*, i.e., whatever latent value X this outcome is
-supposed to represent, higher observed values correspond to higher
-values of X, e.g., higher confidence ratings correspond to higher
-value (more "signal-like") of internal evidence in an SDT model, or
-higher values in a questionnaire item correspond to higher values of
-the property X measured by the questionnaire. When order invariance
-does not hold, it indicates that the process of generating the
-responses changed in a *qualitative* way, e.g., the responses in a
-binary classification task were reversed because task instructions
-were misunderstood, or some of the possible responses in a
-Likert-scale item were interpreted in a way that was not intended by
-the authors of the questionnaire.
-
-2. *Scale instability*, i.e., the thresholds that correspond to the
-discrete outcome values or labels may differ between participants,
-items, or conditions, or may covary with numerical predictors. In
-fact, it would be more than just surprising if evidence was found that
-the mapping between the values of ordinal responses and the latent
-values captured by these responses is constant between participants,
-conditions or items, since the thresholds that correspond to such
-responses are parts of a psychological mechanism which is certain to
-be more or less unique to each participant and cannot be assumed to be
-invariant across changing conditions.
-
-Whenever ordinal variables are used, there is a possibility of
-confounding "response bias", which in this case corresponds to the way
-the response categories are used to label e.g., some internal
-experience, and the internal experience itself. This problem is seen
-as important in the context of binary classification tasks and SDT
-theory, but it often seems to be ignored in other contexts.
-
-Let's use the term *Flexible Order-Preserving link function* (FOP) to
-denote an isomorphic function that maps the space of ordered real
-vectors (i.e., *v<sub>j</sub> > v<sub>i</sub>* if *j > i*) to the
-space of unresctricted real vectors *&gamma;* in such a way that:
-
-1. the order is preserved in a sense that *v<sub>i</sub>* is mapped to
-*&gamma;<sub>i</sub>*
-
-2. *individual* thresholds/criteria become "free", i.e., each element
-of *&gamma;* is unbounded and can be related in an arbitrary way to
-nominal (e.g., participants, items, conditions) or to numerical
-predictors.
-
-*By using a FOP link function any model which represents an ordinal
-variable in terms of ordered thresholds can be supplemented with a
-hierarchical linear regression structure in a way that accounts for
-the effects in latent values as well as for the effects in thresholds*
-
-A model that (unrealistically) assumes that the pattern of thresholds'
-placement is constant cannot account for the possibility of
-response/scale bias; If all the thresholds are shifted by the same
-amount in one direction the observed effects are the same as if the
-thresholds stayed the same but the latent value changed. When the
-thresholds can be related in a different way to various predictors
-deconfounding of latent values from scale bias becomes possible. Once
-we assume something about the distribution of latent values it may be
-possible to estimate *non-uniform* changes in the thresholds, but only
-if the model can account for such effects. FOP link functions make
-many such models possible. Because ordinal models are non-linear,
-supplementing them with a hierarchical linear regression structure may
-solve the problem of interval and point estimate bias introduced by
-aggregating the data or by otherwise ignoring hierarchical data
-structure. The Bayesian hierarchical SDT model as implemented in the
-bhsdtr package is only one such example.
