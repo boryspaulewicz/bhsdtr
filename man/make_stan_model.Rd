@@ -4,17 +4,17 @@
 \alias{make_stan_model}
 \title{Creates the SDT stan model code.}
 \usage{
-make_stan_model(random = NULL, gamma_link = "softmax", metad = FALSE)
+make_stan_model(random = NULL, gamma_link = "softmax", model = "sdt")
 }
 \arguments{
 \item{random}{an optional list specifying random effects
 structure. See \code{\link{make_stan_data}} for details.}
 
-\item{gamma_link}{is either 'softmax' (described in the paper), 'log_distance' or 'log_ratio'
-(See the Readme file in the github repository)}
+\item{gamma_link}{can be either 'softmax' (described in the paper),
+'log_distance', or 'log_ratio' (See the Readme file in the
+github repository)}
 
-\item{metad}{if TRUE meta-d' model code (only with the softmax gamma link function) is created,
-default is FALSE.}
+\item{model}{can be either 'sdt' (the default), 'uvsdt', or 'metad'}
 }
 \value{
 a string containing the full model definition in the stan

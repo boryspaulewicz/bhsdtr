@@ -1,4 +1,37 @@
-The following section is in my view more interesting than the bhsdtr package or the preprint, which is why it is at the top of the readme file. The readers who just want to get to know the bhsdtr package are advised to scroll down to the bhsdtr section.
+
+# Some NEWS (and a WARNING)
+
+The bhsdtr package now handles hierarchical or non-hierarchical Equal
+Variance Normal SDT models, Unequal Variance Normal SDT models, and
+meta-d' models with one (not meta-d') or more criteria.
+
+Each of the three available FOP link functions ('softmax',
+'log_distance', and 'log_ratio' - see below for more details) can be
+used with every model.
+
+# WARNING
+
+The current active branch is now called v2. The interface is slightly
+changed in this branch, i.e.,
+
+- make_stan_data and make_stan_model accept the model parameter with
+possible values 'sdt' (the default), 'uvsdt', and 'metad'
+
+- make_stan_data, make_stan_model, and gamma_to_crit functions accept
+  the gamma_link parameter with possible values 'softmax' (the
+  default), 'log_distance', and 'log_ratio'
+
+- if uvsdt model is used, the (possibly hierarchical) regression
+  structure for the theta parameter (= log(sd_2 / sd_1), where sd_1 =
+  standard deviation of the first / noise evidence distribution = 1)
+  can be specified in the same way as for the delta and gamma
+  parameters
+
+- to make the code cleaner and easier to maintain the delta, gamma,
+  and theta (uvsdt model: sd_ratio = exp(theta)) parameters are now
+  represented as matrices, even when they are one-dimensional, so, for
+  example, when there is only one dprime / delta parameter its name is
+  'delta_fixed[1,1]'.
 
 # The importance of Flexible Order-Preserving link functions in ordinal models
 
@@ -14,9 +47,9 @@ internal evidence is high, but because, for some reason, the labels
 are used differently. It is just as unrealistic to assume that the
 rating scale is invariant across participants, items, or conditions as
 it is to assume that the SDT decision criterion is constant. It leads
-to the same kind of problem when interpreting the results -
-observed differences may indicate that what is supposed to be captured
-by the ratings is different, or that the way the ratings are used is
+to the same kind of problem when interpreting the results - observed
+differences may indicate that what is supposed to be captured by the
+ratings is different, or that the way the ratings are used is
 different.
 
 Consider a typical ordinal-scale variable in psychology, such as PAS
@@ -37,8 +70,8 @@ were misunderstood, or some of the possible responses in a
 Likert-scale item were interpreted in a way that was not intended by
 the authors of the questionnaire.
 
-2. *Scale instability*, i.e., the thresholds that correspond to the
-discrete outcome values or labels may differ between participants,
+2. *Lack of scale invariance*, i.e., the thresholds that correspond to
+the discrete outcome values or labels may differ between participants,
 items, or conditions, or may covary with numerical predictors. In
 fact, it would be more than just surprising if evidence was found that
 the mapping between the values of ordinal responses and the latent
@@ -48,17 +81,21 @@ responses are parts of a psychological mechanism which is certain to
 be more or less unique to each participant and cannot be assumed to be
 invariant across changing conditions.
 
-Whenever ordinal variables are used, there is a possibility of
+Whenever typical ordinal variables are used, there is a possibility of
 confounding "response bias", which in this case corresponds to the way
 the response categories are used to label e.g., some internal
 experience, and the internal experience itself. This problem is seen
 as important in the context of binary classification tasks and SDT
-theory, but it often seems to be ignored in other contexts.
+theory, but it often seems to be ignored in other contexts. For
+example, in the context of IRT modelling this is known as the 'item
+parameter invariance' problem and it does not seem to be studied very
+frequently.
 
-Let's use the term *Flexible Order-Preserving link function* (FOP, 
-see the news section for more details) to denote an isomorphic function
-that maps the space of ordered real vectors (i.e., *v<sub>j</sub> > v<sub>i</sub>* if *j > i*)
-to the space of unresctricted real vectors *&gamma;* in such a way that:
+Let's use the term *Flexible Order-Preserving link function* (FOP, see
+the news section for more details) to denote an isomorphic function
+that maps the space of ordered real vectors (i.e., *v<sub>j</sub> >
+v<sub>i</sub>* if *j > i*) to the space of unresctricted real vectors
+*&gamma;* in such a way that:
 
 1. the order is preserved in a sense that *v<sub>i</sub>* is mapped to
 *&gamma;<sub>i</sub>*

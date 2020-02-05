@@ -29,6 +29,66 @@ options(mc.cores = parallel::detectCores())
 data(gabor)
 
 ######################################################################
+## Simulating individual data for sdt models
+
+sim_sdt = function(n = 1, dprim = 1.5, criteria = c(-2.1, -1.4, -.7, 0, .7, 1.4, 2.1), model = 'sdt', sd_ratio = 1){
+    which_bin = function(x, thr)min(which(x <= c(-Inf, thr, Inf)) - 1)
+    d = data.frame(stim = rep(1:2, each = n), e = rnorm(n * 2), r = NA)
+    for(i in 1:nrow(d))
+        d$r[i] = which_bin(d$e[i] + .5 * dprim * c(-1, 1)[d$stim[i]], criteria)
+    attr(d, 'dprim') = dprim
+    attr(d, 'criteria') = criteria
+    attr(d, 'sd_ratio') = sd_ratio
+    d
+}
+
+######################################################################
+## Quick test of all the possible types of non-hierarchical models
+## fitted to simulated data
+
+d = sim_sdt(n = 10000)
+table(d[, c('stim', 'r')])
+adata = aggregate_responses(d, 'stim', 'r')
+
+res = expand.grid(par = c('dprim', paste('c', 1:length(attr(d, 'criteria')), sep = '')),
+                  model = c('sdt', 'uvsdt', 'metad'),
+                  link = c('softmax', 'log_distance', 'log_ratio'), true = NA, est = NA)
+
+for(link in levels(res$link)){
+    for(model in levels(res$model)){
+        print(sprintf('Fitting model %s with link %s', model, link))
+        fixed = list(delta = ~ 1, gamma = ~ 1)
+        if(model == 'uvsdt')fixed$theta = ~ 1
+        fit = stan(model_code = make_stan_model(gamma_link = link, model = model),
+                   data = make_stan_data(adata, fixed, gamma_link = link, model = model),
+                   pars = c('delta_fixed', 'gamma_fixed',
+                            ## we need counts_new for plotting
+                            'counts_new'),
+                   init_r = .5,
+                   iter = 4000,
+                   chains = 4)
+        s = as.data.frame(fit)
+        res[(res$link == link) & (res$model == model), 'est'] =
+            c(mean(exp(s[, grep('delta_fixed\\[1', names(s))])), apply(gamma_to_crit(s, gamma_link = link), 2, mean))
+        res[(res$link == link) & (res$model == model), 'true'] = c(dprim = attr(d, 'dprim'), attr(d, 'criteria'))
+        rm(s)
+        rm(fit)
+        gc()
+    }
+}
+
+round(cor(res$est, res$true, use = 'pairwise.complete.obs'), 2)
+## 1
+
+## Comparing point estimates to known true values
+res$par_type = c('criteria', 'dprim')[(as.character(res$par) == 'dprim') + 1]
+ggplot(res, aes(est, true, group = par_type, color = par_type)) +
+    geom_abline(slope = 1, intercept = 0) +
+    geom_point(size = 5) +
+    facet_grid(model ~ link)
+## All is good
+
+######################################################################
 ## Fitting the model to real study data
 
 ## We will be using the gabor dataset provided with the package

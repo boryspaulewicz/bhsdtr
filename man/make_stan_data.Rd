@@ -10,7 +10,7 @@ make_stan_data(
   random = list(),
   criteria_scale = 2,
   gamma_link = "softmax",
-  metad = FALSE
+  model = "sdt"
 )
 }
 \arguments{
@@ -32,8 +32,7 @@ gamma link function. The default is 2. See also 'Details'.}
 'log_distance' or 'log_ratio' (See the Readme file in the
 github repository)}
 
-\item{metad}{when TRUE additional data required by the meta-d'
-model are created, the default if FALSE.}
+\item{model}{can be either 'sdt' (the default), 'uvsdt', or 'metad'}
 }
 \value{
 a list with response and stimulus data, model matrices,
