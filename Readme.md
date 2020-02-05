@@ -1,4 +1,4 @@
-# THIS BRANCH IS NO LONGER MAINTAINED - SWITCH to v2 (see the Branch button above and on the left of this window) to see what's new
+# THIS BRANCH IS NO LONGER MAINTAINED - SWITCH to v2 (see the Branch button just above this frame) to see what's new
 
 The following section is in my view more interesting than the bhsdtr package or the preprint, which is why it is at the top of the readme file. The readers who just want to get to know the bhsdtr package are advised to scroll down to the bhsdtr section.
 
