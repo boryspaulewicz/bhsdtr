@@ -1,3 +1,5 @@
+# THIS BRANCH IS NO LONGER MAINTAINED - SWITCH to v2 to see what's new
+
 The following section is in my view more interesting than the bhsdtr package or the preprint, which is why it is at the top of the readme file. The readers who just want to get to know the bhsdtr package are advised to scroll down to the bhsdtr section.
 
 # The importance of Flexible Order-Preserving link functions in ordinal models
