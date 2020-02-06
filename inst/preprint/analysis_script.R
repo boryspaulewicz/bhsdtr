@@ -1,7 +1,15 @@
 ## -*- coding: utf-8 -*-
 
-## TODO Include the analysis for the nested model (comparing the true
-## hierarchical and non-hierarchical estimates)
+######################################################################
+## WARNING The interface has changed since the Behavior Research
+## Methods paper was accepted for publication. In the current version
+## of the package every parameter (delta, gamma, theta - in uv sdt
+## models) is represented by a matrix even when it is unidimensional
+## in a given model. So, for example, in an SDT model delta fixed
+## effects are represented by parameters delta_fixed[1,1], ...,
+## delta_fixed[1,n], where n is the number of delta fixed effects
+## (i.e., the number of columns in the fixed effects model matrix for
+## delta).
 
 ######################################################################
 ## IMPORTANT GLOBAL VARIABLES
@@ -50,6 +58,7 @@ d = sim_sdt(n = 10000)
 table(d[, c('stim', 'r')])
 adata = aggregate_responses(d, 'stim', 'r')
 
+## We will try evey kind of model with every link function
 res = expand.grid(par = c('dprim', paste('c', 1:length(attr(d, 'criteria')), sep = '')),
                   model = c('sdt', 'uvsdt', 'metad'),
                   link = c('softmax', 'log_distance', 'log_ratio'), true = NA, est = NA)
@@ -77,10 +86,12 @@ for(link in levels(res$link)){
     }
 }
 
+## What is the correlation between the estimates and the true values
+## of the parameters?
 round(cor(res$est, res$true, use = 'pairwise.complete.obs'), 2)
 ## 1
 
-## Comparing point estimates to known true values
+## A plot comparing point estimates to known true values
 res$par_type = c('criteria', 'dprim')[(as.character(res$par) == 'dprim') + 1]
 ggplot(res, aes(est, true, group = par_type, color = par_type)) +
     geom_abline(slope = 1, intercept = 0) +
@@ -89,7 +100,7 @@ ggplot(res, aes(est, true, group = par_type, color = par_type)) +
 ## All is good
 
 ######################################################################
-## Fitting the model to real study data
+## Fitting the model described in the BRM paper to real study data
 
 ## We will be using the gabor dataset provided with the package
 data(gabor)
@@ -98,8 +109,9 @@ data(gabor)
 ## Combined response has to be calculated for this dataset
 gabor$r = combined_response(gabor$stim, gabor$rating, gabor$acc)
 
-## Aggregation without information loss
-adata = aggregate_responses(gabor, 'stim', 'r', c('duration', 'id', 'order'))
+## Aggregation without information loss - we keep keep the variability
+## due to the participants and all the experimental conditions.
+adata = aggregate_responses(gabor, 'stim', 'r', c('duration', 'order', 'id'))
 
 ## Model specification
 fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
@@ -119,34 +131,20 @@ if(fresh_start){
                         'delta_sd_1', 'gamma_sd_1',
                         'delta_random_1', 'gamma_random_1',
                         'Corr_delta_1', 'Corr_gamma_1',
-                        ## we need counts_new for plotting
+                        ## we need counts_new if we want to use the
+                        ## plot_sdt_fit function
                         'counts_new'),
+               ## iter = .5 helps a lot with rejected initial samples,
+               ## the default range of initial samples in stan is (-2,
+               ## 2), which is too wide for the parameters in our
+               ## models.
+               iter = .5,
                iter = 8000,
                chains = 4)
     save(fit, file = paste(temp_path, 'fit', sep = '/'))
 }else{
     load(paste(temp_path, 'fit', sep = '/'))
 }
-
-## if(fresh_start){
-##     fixed = list(delta = ~ -1 + duration:order, gamma = ~ -1 + order)
-##     random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
-##     model = make_stan_model(random)
-##     sdata = make_stan_data(adata, fixed, random)
-##     fit_nested = stan(model_code = model,
-##                       data = sdata,
-##                       pars = c('delta_fixed', 'gamma_fixed',
-##                                'delta_sd_1', 'gamma_sd_1',
-##                                'delta_random_1', 'gamma_random_1',
-##                                'Corr_delta_1', 'Corr_gamma_1',
-##                                ## we need counts_new for plotting
-##                                'counts_new'),
-##                       iter = 8000,
-##                       chains = 4)
-##     save(fit_nested, file = paste(temp_path, 'fit_nested', sep = '/'))
-## }else{
-##     load(paste(temp_path, 'fit_nested', sep = '/'))
-## }
 
 ## Model fit summary does not indicate any convergence issues
 print(fit, probs = c(.025, .957),
@@ -170,12 +168,13 @@ ggsave(p1, file = 'roc_fit.png')
 ggsave(p2, file = 'response_fit.pdf')
 ggsave(p2, file = 'response_fit.png')
 
-## The criteria are placed fairly symmetrically
+## According to the fitted model, the criteria are placed fairly
+## symmetrically
 crit = gamma_to_crit(as.data.frame(fit))
 round(apply(crit, 2, mean), 2)
 
 ######################################################################
-## Fitting the single criterion hierarchical SDT model
+## Fitting the single criterion hierarchical SDT model (just for fun)
 
 fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
 random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
@@ -204,7 +203,7 @@ print(fit.s, probs = c(.025, .957),
 ## All is fine
 
 ## It does not make sense to use plot_sdt_fit here, because the
-## single-criterion SDT model is untestable
+## single-criterion SDT model is untestable (i.e., it is saturated)
 
 ## Compare delta estimates
 smr1 = as.data.frame(summary(fit)$summary[,c(1, 2, 3, 4, 8, 9, 10)])
@@ -227,25 +226,29 @@ c1 = gamma_to_crit(as.data.frame(fit))
 c2 = gamma_to_crit(as.data.frame(fit.s))
 round(rbind(quantile(c1[,4], c(.025, .5, .957)),
             quantile(c2, c(.025, .5, .957))), 2)
-## Similar but not exactly the same
+## Fairly similar
 ##
 ##       2.5%  50% 95.7%
 ## [1,] -0.05 0.11  0.25
 ## [2,] -0.13 0.06  0.21
 
+## I am not sure why this is here...
 smr2$n_eff = as.integer(round(smr2$n_eff))
 smr2 = smr2[-grep('random', rownames(smr2)),]
 smr2 = smr2[-grep('counts_new', rownames(smr2)),]
 print(xtable(round(smr2[-nrow(smr2),], 2)), file = 'fit_table_single_c.tex')
 
 ######################################################################
-## Fitting the model to simulated data to test if the model recovers
-## known realistic parameter values
+## Fitting the model to data simulated from itself to test if the
+## model recovers known realistic parameter values
 
 data = aggregate_responses(gabor, 'stim', 'r', c('duration', 'id', 'order'))
 fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
 random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 
+## This function takes a fitted hierarchical model and uses the point
+## estimates to simulate new responses. The sample size is the same as
+## in the aggregated data object.
 simulate_from_fit = function(fit, adata, fixed, random){
     ## Realistic known parameter values
     s = apply(as.data.frame(fit), 2, mean)
@@ -296,15 +299,6 @@ if(fresh_start){
     load(paste(temp_path, 'data_sim', sep = '/'))
 }
 
-## if(fresh_start){
-##     fixed = list(delta = ~ -1 + duration:order, gamma = ~ -1 + order)
-##     random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
-##     adata_sim_nested = simulate_from_fit(fit_nested, adata, fixed, random)
-##     save(adata_sim, file = paste(temp_path, 'adata_sim_nested', sep = '/'))
-## }else{
-##     load(paste(temp_path, 'adata_sim_nested', sep = '/'))
-## }
-
 if(fresh_start){
     fit.sim = stan(model_code = make_stan_model(random),
                    pars = c('delta_fixed', 'gamma_fixed',
@@ -320,21 +314,6 @@ if(fresh_start){
     load(paste(temp_path, 'fit.sim', sep = '/'))
 }
 
-## if(fresh_start){
-##     fit.sim_nested = stan(model_code = make_stan_model(random),
-##                           pars = c('delta_fixed', 'gamma_fixed',
-##                                    'delta_sd_1', 'gamma_sd_1',
-##                                    'delta_random_1', 'gamma_random_1',
-##                                    'counts_new'),
-##                           data = make_stan_data(adata_sim_nested, list(delta = ~ -1 + duration:order, gamma = ~ -1 + order),
-##                                                 list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))),
-##                           chains = 4,
-##                           iter = 8000)
-##     save(fit.sim_nested, file = paste(temp_path, 'fit.sim', sep = '/'))
-## }else{
-##     load(paste(temp_path, 'fit.sim_nested', sep = '/'))
-## }
-
 print(fit.sim, probs = c(.025, .957),
       pars = c('delta_fixed', 'gamma_fixed', 'delta_sd_1', 'gamma_sd_1'))
 ## All is fine
@@ -345,7 +324,8 @@ ggsave('roc_sim_fit.pdf', p1)
 ggsave('response_sim_fit.pdf', p2)
 
 ######################################################################
-## Comparing true values with the estimates based on the true model
+## Comparing true values with the point estimates based on the true
+## model
 
 s2 = as.data.frame(fit.sim)
 s = apply(as.data.frame(fit), 2, mean)
@@ -367,8 +347,10 @@ res = as.data.frame(cbind(t(apply(s2[,grep('delta_fixed', names(s2))], 2, functi
 names(res) = c('lo', 'fit', 'hi', 'true')
 res$in_ci = (res$true >= res$lo) & (res$true <= res$hi)
 res
+## The proportion of true delta_fixed values which are within the 95%
+## credible intervals
 mean(res$in_ci)
-## 1 (all the true values are within the 95% credible intervals)
+## 1
 
 res = as.data.frame(cbind(t(apply(s2[,grep('gamma_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])),
                           as.vector(t(gamma_fixed))))
@@ -401,9 +383,9 @@ c(sum(!res$in_ci), nrow(res))
 ## 5 / 329 = 0.01
 
 ######################################################################
-## Fitting the simplified model to simulated data aggregated over
-## participants. This is how SDT models with additional criteria are
-## often (mis)used.
+## Fitting the simplified, non-hierarchical (i.e., false in this case)
+## model to simulated data aggregated over participants (i.e., too
+## much aggregation). This is how SDT models are often (mis)used.
 
 load(paste(temp_path, 'data_sim', sep = '/'))
 df = adata_sim$data
@@ -423,49 +405,20 @@ if(fresh_start){
     load(paste(temp_path, 'fit_aggr', sep = '/'))
 }
 
-## if(fresh_start){
-##     fit.aggr_nested = stan(model_code = make_stan_model(),
-##                     pars = c('delta_fixed', 'gamma_fixed', 'counts_new'),
-##                     data = make_stan_data(data_sim_2, list(delta = ~ -1 + duration:order, gamma = ~ -1 + order)),
-##                     chains = 4,
-##                     iter = 8000)
-##     save(fit.aggr_nested, file = paste(temp_path, 'fit_aggr_nested', sep = '/'))
-## }else{
-##     load(paste(temp_path, 'fit_aggr_nested', sep = '/'))
-## }
-
 ## Excellent sampling
 print(fit.aggr, pars = c('delta_fixed', 'gamma_fixed'),
       probs = c(.025, .975))
 
-## The simplified model seems to fit the data very well, but...
+## Based on the ROC curve plots the false simplified model seems to
+## fit the data very
 (p1 = plot_sdt_fit(fit.aggr, data_sim_2, c('order', 'duration')))
 ggsave('roc_sim_aggr_fit.pdf', p1)
 (p2 = plot_sdt_fit(fit.aggr, data_sim_2, c('order', 'duration'), type = 'response'))
 ggsave('response_sim_aggr_fit.pdf', p2)
 
 ######################################################################
-## A model with fixed participant effects
-
-sdata.fixed = make_stan_data(adata_sim, fixed = list(delta = ~ -1 + as.factor(id):duration:order,
-                                                    gamma = ~ -1 + as.factor(id) + order))
-if(fresh_start){
-    fit.fixed = stan(model_code = make_stan_model(),
-                     data = sdata.fixed,
-                     pars = c('delta_fixed', 'gamma_fixed'),
-                     iter = 8000,
-                     chains = 4)
-    save(fit.fixed, file = paste(temp_path, 'fit.fixed', sep = '/'))
-}else{
-    load(paste(temp_path, 'fit.fixed', sep = '/'))
-}
-
-print(fit.fixed, pars = c('delta_fixed', 'gamma_fixed'),
-      probs = c(.025, .975))
-## All is good
-
-######################################################################
-## Comparison between the models fitted to the simulated data
+## Comparison between the true and the simplified models fitted to the
+## simulated data
 
 ss = list('True hierarchical model' = as.data.frame(fit.sim),
           'Non-hierarchical model' = as.data.frame(fit.aggr))
@@ -486,25 +439,6 @@ round(apply(ss_[[1]][, grep('criteria_fixed', names(ss_[[1]]))], 2, mean), 2)
 round(apply(ss_[[2]][, grep('criteria_fixed', names(ss_[[2]]))], 2, mean), 2)
 ## Ok
 
-## ## This will add the fixed effects averaged over the participants
-## sf = as.data.frame(fit.fixed)
-## ss[['Fixed participants effects model']] = ss[[2]]
-## sdata = make_stan_data(data_sim_2, list(delta = ~ -1 + duration:order, gamma = ~ 1 + order))
-## for(i in 1:sdata$X_delta_ncol){
-##     ss[[3]][,sprintf('delta_fixed[%d]', i)] =
-##         apply(sf[, paste('delta_fixed[',
-##                          grep(colnames(sdata$X_delta)[i], colnames(sdata.fixed$X_delta)),
-##                          ']', sep = '')], 1, mean)
-## }
-## colnames(sdata.fixed$X_gamma)[-grep('order', colnames(sdata.fixed$X_gamma))] = '(Intercept)'
-## for(i in 1:sdata$X_gamma_ncol){
-##     for(k in 1:7)
-##     ss[[3]][,sprintf('gamma_fixed[%d,%d]', k, i)] =
-##         apply(sf[, paste('gamma_fixed[', k, ',',
-##                          grep(colnames(sdata$X_gamma)[i], colnames(sdata.fixed$X_gamma)),
-##                          ']', sep = '')], 1, mean)
-## }
-
 bias_plot = function(true_values, ss){
     df = data.frame(model = rep(names(ss), each = length(grep('fixed', names(ss[[1]])))),
                     par = c(names(ss[[1]])[grep('fixed', names(ss[[1]]))],
@@ -522,9 +456,6 @@ bias_plot = function(true_values, ss){
         df$ci.hi[df$model == m] = apply(ss[[m]][,as.character(df$par[df$model == m])], 2, function(x)quantile(x, .975))
     }
     df$true = true_values[as.character(df$par)]
-##    df$par.type = NA
-##    df$par.type[grep('delta', as.character(df$par))] = 'delta'
-##    df$par.type[grep('gamma', as.character(df$par))] = 'gamma'
     ggplot(df, aes(par, point.est - true)) +
         geom_abline(intercept = 0, slope = 0, lty = 2, alpha = .5) +
         geom_point() +
@@ -540,12 +471,13 @@ s = as.data.frame(fit)
 true_values = apply(s[, grep('fixed', names(s))], 2, mean)
 (p1 = bias_plot(true_values, ss))
 ggsave('true_vs_nonhier.pdf')
-## The estimates based on overly aggregated data are useless
+## The estimates based on overly aggregated data are COMPLETELY
+## USELESS
 
 true_values_ = apply(apply(s[, grep('delta_fixed', names(s))], 2, exp), 2, mean)
 names(true_values_) = gsub('delta', 'dprim', names(true_values_))
-## Translating between the posterior gamma and the criteria for the
-## true model that was used to simulate the data
+## Translating between gamma and criteria for the true model that was
+## used to simulate the data
 s_ = s
 s_[grep('gamma_fixed', names(s_))][,8:14] = s_[grep('gamma_fixed', names(s_))][,1:7] +
     s_[grep('gamma_fixed', names(s_))][,8:14]
@@ -576,20 +508,18 @@ mean(res$in_ci)
 cbind(sum(res$in_ci), nrow(res))
 ## 4 14
 
-##!?
-##
-##res$Condition = rep(1:(ncol(model.matrix(fixed$gamma, data_sim_2$data))), each = ncol(data_sim_2$counts_1) - 1)
-
 ## Let's compare the posterior SDs
 aggr.posterior.sd = apply(as.data.frame(fit.aggr), 2, sd)
 true.posterior.sd = apply(as.data.frame(fit.sim), 2, sd)
 sd.ratios = true.posterior.sd[grep('fixed', names(true.posterior.sd))] /
   aggr.posterior.sd[grep('fixed', names(aggr.posterior.sd))]
 mean(sd.ratios)
-## 3.122806
+## 3.122806 is the ratio of the correct posterior SD to posterior SD
+## based on the simplified model
 
 ######################################################################
-## Approximate normality of random effects distributions
+## Demonstration of approximately normal distribution of delta and
+## gamma random effects
 
 (p = ggplot(data.frame(delta = as.vector(t(delta_random)), i = c('32 ms', '64 ms')), aes(sample = delta)) +
      stat_qq() +
@@ -598,26 +528,6 @@ mean(sd.ratios)
      xlab('Theoretical normal quantile') + theme_minimalist())
 ggsave('delta_qq_plot.pdf', p)
 ## this is perfectly acceptable
-
-shapiro.test(delta_random[,1])
-## W = 0.9884, p-value = 0.918
-shapiro.test(delta_random[,2])
-## W = 0.96955, p-value = 0.2512
-gamma_normality = data.frame(k = 1:7, statistic = NA, p.value = NA)
-for(i in 1:ncol(gamma_random_mat)){
-  res = shapiro.test(gamma_random_mat[,i])
-  gamma_normality$statistic[i] = res$statistic
-  gamma_normality$p.value[i] = res$p.value
-}
-round(gamma_normality, 3)
-##   k statistic p.value
-## 1 1     0.975   0.411
-## 2 2     0.992   0.984
-## 3 3     0.958   0.091
-## 4 4     0.979   0.562
-## 5 5     0.978   0.519
-## 6 6     0.945   0.028
-## 7 7     0.985   0.784
 
 gamma_rnd = gamma_random_mat[,1]
 for(i in 2:ncol(gamma_random_mat))
@@ -629,179 +539,3 @@ k = rep(1:ncol(gamma_random_mat), each = nrow(gamma_random_mat))
      theme_minimalist())
 ggsave('gamma_qq_plot.pdf', p)
 ## this is also perfectly acceptable
-
-######################################################################
-## Fitting the meta-d' model to simulated data
-
-simulate_metad_data = function(span = 2, d1 = 2, d2 = 1, nof_crit = 10 + 1, bias = 0, crit_scale = 1){
-    ## outermost criteria spread = d' + 2 * span
-    if((nof_crit / 2) == floor(nof_crit / 2)){
-        print("nof_crit must be ann odd number, increasing by 1")
-        nof_crit = nof_crit + 1
-    }
-    nof_r = nof_crit + 1
-    ## the main criterion
-    k = floor(nof_crit / 2) + 1
-    crit = (seq(-d1/2 - span, d1/2 + span, length.out = nof_crit) * crit_scale) + bias
-    crit_ex = c(-Inf, crit, Inf)
-    d = expand.grid(r = 1:(nof_crit + 1), s = c(-0.5, .5))
-    ## p1 contains combined response probabilities for the metad' = d'
-    ## case, p2 contains combined response probabilities for the metad' !=
-    ## d' case.
-    d$p1 = d$p2 = NA
-    for(i in 1:nrow(d)){
-        d$p1[i] = pnorm(crit_ex[d$r[i]+1] - d$s[i] * d1) - pnorm(crit_ex[d$r[i]] - d$s[i] * d1)
-        if(d$r[i] <= nof_r / 2){
-            d$p2[i] = (pnorm(crit_ex[d$r[i]+1] - d$s[i] * d2) - pnorm(crit_ex[d$r[i]] - d$s[i] * d2)) /
-                pnorm(crit[k] - d$s[i] * d2) * pnorm(crit[k] - d$s[i] * d1)
-        }else{
-            d$p2[i] = (pnorm(crit_ex[d$r[i]+1] - d$s[i] * d2) - pnorm(crit_ex[d$r[i]] - d$s[i] * d2)) /
-                pnorm(-(crit[k] - d$s[i] * d2)) * pnorm(-(crit[k] - d$s[i] * d1))
-        }
-    }
-    d$stim = as.factor(as.numeric(as.factor(d$s)))
-    d
-}
-
-d = simulate_metad_data(nof_crit = 100)
-## save(d, file = '~/temp/d')
-## load('~/temp/d')
-
-## Let's see how the combined response distributions differ
-ggplot(d[d$r > 1 & d$r < max(d$r),], aes(r, p1, group = stim, color = stim)) + geom_line() +
-    xlab("Combined response distributions for the meta-d' = d' case") + ylab('Combined response probability')
-ggplot(d[d$r > 1 & d$r < max(d$r),], aes(r, p2, group = stim, color = stim)) + geom_line() +
-    xlab("Combined response distributions for the meta-d' != d' case") + ylab('Combined response probability')
-## It looks weird, but this is exactly what the meta-d' predicts in this case
-
-## Let's simulate some data
-d = simulate_metad_data()
-N = 1000
-ds = expand.grid(stim = 1:2, i = 1:(N/2))
-ds$r = NA
-for(i in 1:N)
-    ds$r[i] = rMultinom(t(d$p2[d$stim == ds$stim[i]]), 1)
-## save(ds, file = '~/temp/ds')
-## load('~/temp/ds')
-ds$dec = as.numeric(ds$r > 6) + 1
-ds$rating = ds$r
-ds$rating[ds$r > 6] = ds$rating[ds$r > 6] - 6
-ds$rating[ds$r <= 6] = 7 - ds$rating[ds$r <= 6]
-
-adata = aggregate_responses(ds, 'stim', 'r')
-fixed = list(delta = ~ 1, gamma = ~ 1)
-
-if(fresh_start){
-    fit.metad = stan(model_code = make_stan_model(metad = TRUE),
-                     data = make_stan_data(adata, fixed, metad = TRUE),
-                     pars = c('delta_fixed', 'gamma_fixed',
-                              ## we need counts_new for plotting
-                              'counts_new'),
-                     iter = 4000,
-                     chains = 3)
-    print(fit.metad, probs = c(.025, .957), pars = c('delta_fixed', 'gamma_fixed'))
-    save(fit.metad, file = paste(temp_path, 'fit.metad', sep = '/'))
-}else{
-    load(paste(temp_path, 'fit.metad', sep = '/'))
-}
-
-if(fresh_start){
-    fit.sdt = stan(model_code = make_stan_model(),
-                   data = make_stan_data(adata, fixed),
-                   pars = c('delta_fixed', 'gamma_fixed',
-                            ## we need counts_new for plotting
-                            'counts_new'),
-                   iter = 4000,
-                   chains = 3)
-    print(fit.sdt, probs = c(.025, .957), pars = c('delta_fixed', 'gamma_fixed'))
-    save(fit.sdt, file = paste(temp_path, 'fit.sdt', sep = '/'))
-}else{
-    load(paste(temp_path, 'fit.sdt', sep = '/'))
-}
-
-## Let's see how it performs
-s = as.data.frame(fit.metad)
-round(apply(exp(s[,1:2]), 2, mean), 2)
-## The dprim and meta-d' parameters are correctly recovered
-round(HPDinterval(as.mcmc(exp(s[,1]) - exp(s[,2]))), 2)
-res = as.data.frame(cbind(round(apply(gamma_to_crit(s), 2, mean), 1), crit))
-names(res) = c('estimated', 'true')
-ggplot(res, aes(true, estimated)) + geom_point() + geom_abline(intercept = 0, slope = 1) +
-    xlab('True criteria') + ylab('Estimated criteria')
-## The criteria are correctly recovered
-
-dm = as.matrix(read.csv('maniscalco.csv'))[,-3]
-res = rbind(dm[c(1:2,4:8,3,9:13)],
-            c(apply(s[,1:2], 2, function(x)mean(exp(x))),
-              apply(gamma_to_crit(s), 2, mean)))
-colnames(res) = c('dprim', 'meta-dprim', paste('c', 1:11, sep = ''))
-round(res[,1:2], 2)
-round(res[,3:13], 2)
-crit_t = as.data.frame(t(res[,3:13]))
-names(crit_t) = c('Maniscalco', 'bhsdtr')
-ggplot(crit_t, aes(bhsdtr, Maniscalco)) + geom_point() + geom_line() + labs(title = 'Criteria estimates')
-ggsave('criteria_maniscalco_vs_moi.pdf')
-
-plot_sdt_fit(fit.metad, adata)
-ggsave('metad_roc_fit.pdf')
-## Fits nicely
-plot_sdt_fit(fit.sdt, adata)
-ggsave('metad_roc_sdt_fit.pdf')
-## Also seems to fit nicely
-plot_sdt_fit(fit.metad, adata, type = F)
-ggsave('metad_resp_fit.pdf')
-plot_sdt_fit(fit.sdt, adata, type = F)
-ggsave('metad_resp_sdt_fit.pdf')
-## The lack of fit is very apparent here
-
-######################################################################
-## Here we demonstrate the consequences of using Fleming's criteria
-## parametrization (HMeta-d')
-
-gabor$r = combined_response(gabor$stim, gabor$rating, gabor$acc)
-adata = aggregate_responses(gabor[gabor$duration == '64' & gabor$order == 'DR',], 'stim', 'r', c('id', 'order'))
-fixed = list(delta = ~ 1, gamma = ~ 1)
-random = list(list(group = ~ id, delta = ~ 1, gamma = ~ 1))
-model = make_stan_model(random)
-sdata = make_stan_data(adata, fixed, random)
-
-if(fresh_start){
-    fit.2 = stan(model_code = model,
-                 data = sdata,
-                 pars = c('delta_fixed', 'gamma_fixed',
-                          'delta_sd_1', 'gamma_sd_1',
-                          'delta_random_1', 'gamma_random_1',
-                          'Corr_delta_1', 'Corr_gamma_1',
-                          'counts_new'),
-                 iter = 8000,
-                 chains = 4)
-    fit.2
-    save(fit.2, file = paste(temp_path, 'fit.2', sep = '/'))
-}else{
-    load(paste(temp_path, 'fit.2', sep = '/'))
-}
-
-fname = paste(temp_path, 'adata_sim', sep = '/')
-if(fresh_start){
-    adata_sim = simulate_from_fit(fit.2, adata, fixed, random)
-    save(adata_sim, file = fname)
-}else{
-    load(fname)
-}
-
-## We will fit two versions of the model to the same dataset. The
-## models differ in the way the criteria are parametrized. We will
-## make it as easy as possible for the incorrect model to fit the data
-## by using strongly informative priors (based on the true model
-## parameters) for the criteria.
-sdata_c = sdata
-
-##! WARNING You have to download the functions from the HMeta-d'
-##! github repository yourself.
-source('Function_metad_group.R')
-nR_S1 = as.data.frame(t(adata_sim$counts[adata_sim$stimulus == 1,]))
-nR_S2 = as.data.frame(t(adata_sim$counts[adata_sim$stimulus == 2,]))
-fit.hm1 = metad_group(list(nR_S1), list(nR_S2))
-eff = effectiveSize(fit.hm1)
-smr = summary(fit.hm1)$statistics
-round(smr[-grep('raw', rownames(smr)),], 2)
