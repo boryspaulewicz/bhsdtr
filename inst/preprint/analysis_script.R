@@ -125,20 +125,19 @@ sdata = make_stan_data(adata, fixed, random)
 
 ## Main model fit
 if(fresh_start){
-    fit = stan(model_code = model,
-               data = sdata,
+    fit = stan(model_code = model, data = sdata,
                pars = c('delta_fixed', 'gamma_fixed',
                         'delta_sd_1', 'gamma_sd_1',
                         'delta_random_1', 'gamma_random_1',
                         'Corr_delta_1', 'Corr_gamma_1',
                         ## we need counts_new if we want to use the
                         ## plot_sdt_fit function
-                        'counts_new'),
-               ## iter = .5 helps a lot with rejected initial samples,
+                        'counts_new'), 
+               ## init_r = .5 helps a lot with rejected initial samples,
                ## the default range of initial samples in stan is (-2,
                ## 2), which is too wide for the parameters in our
                ## models.
-               iter = .5,
+               init_r = .5,
                iter = 8000,
                chains = 4)
     save(fit, file = paste(temp_path, 'fit', sep = '/'))
@@ -189,6 +188,7 @@ if(fresh_start){
                           'delta_random_1', 'gamma_random_1',
                           'Corr_delta_1', 'Corr_gamma_1',
                           'counts_new'),
+                 init_r = .5,
                  iter = 8000,
                  chains = 4)
     save(fit.s, file = paste(temp_path, 'fit.s', sep = '/'))
@@ -307,6 +307,7 @@ if(fresh_start){
                             'counts_new'),
                    data = make_stan_data(adata_sim, list(delta = ~ -1 + duration:order, gamma = ~ order),
                                          list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))),
+                   init_r = .5,
                    chains = 4,
                    iter = 8000)
     save(fit.sim, file = paste(temp_path, 'fit.sim', sep = '/'))
@@ -398,6 +399,7 @@ if(fresh_start){
     fit.aggr = stan(model_code = make_stan_model(),
                     pars = c('delta_fixed', 'gamma_fixed', 'counts_new'),
                     data = make_stan_data(data_sim_2, list(delta = ~ -1 + duration:order, gamma = ~ order)),
+                    init_r = .5,
                     chains = 4,
                     iter = 8000)
     save(fit.aggr, file = paste(temp_path, 'fit_aggr', sep = '/'))
