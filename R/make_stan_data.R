@@ -241,8 +241,8 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
     data
 }
 
-## fix_stan_dim = function(x)if(length(x) == 1){ array(x, dim = 1) }else{ x }
-fix_stan_dim = function(x)if(length(x) == 1){ matrix(x) }else{ x }
+fix_stan_dim = function(x)if(length(x) == 1){ array(x, dim = 1) }else{ x }
+fix_stan_dim_m = function(x)if(length(x) == 1){ matrix(x) }else{ x }
 
 remove.zero.cols = function(m)as.matrix(m[,apply(m, 2, function(x)!all(x == 0))])
 
@@ -265,5 +265,5 @@ parse_prior = function(value = NULL, default, dims, name){
         stop(sprintf("Prior specification %s must contain 1 or %d elements", name, dims))
     }
   }
-  fix_stan_dim(value)
+  fix_stan_dim_m(value)
 }
