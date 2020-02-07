@@ -32,6 +32,11 @@ parameters {
   matrix[PAR_size, X_PAR_ncol] PAR_fixed;
   cholesky_factor_corr[PAR_size * Z_PAR_ncol_%] L_corr_PAR_%; //PAR
   vector<lower=0>[PAR_size * Z_PAR_ncol_%] PAR_sd_%; //PAR
+  // Random effects vectors are converted to PAR_size x Z_PAR_ncol
+  // matrix in column major order, so for example
+  // gamma_1,...,gamma_K-1 for the first column (effect) of the
+  // Z_gamma matrix, then gamma_1,...,gamma_K-1 for the second column
+  // (effect), etc.
   vector[PAR_size * Z_PAR_ncol_%] PAR_z_%[group_%_size]; //PAR
 }
 

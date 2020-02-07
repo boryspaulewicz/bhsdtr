@@ -19,7 +19,7 @@
 fresh_start = FALSE
 ## Where do you want to store all the (large) stanfit objects? (I use
 ## Linux so '~/path' makes sense to me)
-temp_path = '~/temp'
+temp_path = '~/windows/temp'
 
 ## WARNING we are not setting the random seed here because 1) R and
 ## Stan have separate seeds and 2) the user of this script may use a
