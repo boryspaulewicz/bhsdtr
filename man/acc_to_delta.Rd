@@ -2,7 +2,8 @@
 % Please edit documentation in R/acc_to_delta.R
 \name{acc_to_delta}
 \alias{acc_to_delta}
-\title{Calculates delta = log(d') given accuracy assuming no bias and p(stim = 1) = 0.5.}
+\title{Calculates delta = log(d') given accuracy or accuracy given delta
+assuming no bias and p(stim = 1) = 0.5.}
 \usage{
 acc_to_delta(acc = 0.75, delta = NULL)
 }
@@ -10,11 +11,13 @@ acc_to_delta(acc = 0.75, delta = NULL)
 \item{acc}{a vector of average accuracy scores. All the values must
 be greater than 0 and lower than 1.}
 
-\item{delta}{default is NULL, if provided the delta values will be converted to (unbiased) acc}
+\item{delta}{default is NULL, if provided the delta values will be
+converted to accuracy of an unbiased observer}
 }
 \value{
 delta = log(d') or expected accuracy
 }
 \description{
-Calculates delta = log(d') given accuracy assuming no bias and p(stim = 1) = 0.5.
+Calculates delta = log(d') given accuracy or accuracy given delta
+assuming no bias and p(stim = 1) = 0.5.
 }
