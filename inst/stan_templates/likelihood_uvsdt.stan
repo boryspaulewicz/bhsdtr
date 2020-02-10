@@ -1,15 +1,14 @@
 // UVSDT likelihood
-sd_ratio = exp(theta[1]); //link-theta
 shift = -0.5 * (stim_sign[n] * dprim[1]);
 if(stim_sign[n] > 0){
-  multinomial_p[n, 1] = Phi((criteria[1] + shift) / sd_ratio);
-  for(k in 2:gamma_size)
-    multinomial_p[n, k] = Phi((criteria[k] + shift) / sd_ratio) - Phi((criteria[k - 1] + shift) / sd_ratio);
-  multinomial_p[n, K] = Phi(-(criteria[gamma_size] + shift) / sd_ratio);
+  sd_ratio = exp(theta[1]); //link-theta
  }else{
-  multinomial_p[n, 1] = Phi(criteria[1] + shift);
-  for(k in 2:(gamma_size))
-    multinomial_p[n, k] = Phi(criteria[k] + shift) - Phi(criteria[k - 1] + shift);
-  multinomial_p[n, K] = Phi(-(criteria[gamma_size] + shift));
+  sd_ratio = 1;
  }
+for(k in 1:(K - 1))
+  multinomial_cum[k + 1] = Phi((criteria[k] + shift) / sd_ratio);
+multinomial_cum[1] = 0;
+multinomial_cum[K + 1] = 1;
+for(k in 1:K)
+  multinomial_p[n, k] = multinomial_cum[k + 1] - multinomial_cum[k];
 // UVSDT likelihood end

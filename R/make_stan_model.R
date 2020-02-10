@@ -23,8 +23,7 @@
 #' cat(model)
 #' @export
 make_stan_model = function(random = NULL, gamma_link = 'softmax', model = 'sdt'){
-    if(!(gamma_link %in% c('softmax', 'log_ratio', 'log_distance')))
-        stop("The gamma_link function must be one of the following: 'softmax', 'log_ratio', 'log_distance'")
+    check_link(gamma_link)
     if(!(model %in% c('sdt', 'uvsdt', 'metad')))
         stop("model must be either 'sdt', 'uvsdt', or 'metad'")
     par_types = c('delta', 'gamma')

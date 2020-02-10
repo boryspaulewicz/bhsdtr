@@ -153,8 +153,7 @@
 #' @export
 make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gamma_link = 'softmax', model = 'sdt'){
     sf = sprintf
-    if(!(gamma_link %in% c('softmax', 'log_ratio', 'log_distance')))
-        stop("The link function must be one of the following: 'softmax', 'log_ratio', 'log_distance'")
+    check_link(gamma_link)
     if(!(model %in% c('sdt', 'uvsdt', 'metad')))
         stop("model must be either 'sdt', 'uvsdt', or 'metad'")
     default_prior = list(mu = list(delta = acc_to_delta(.75), theta = 0, gamma = 0),
@@ -166,7 +165,13 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
         default_prior$scale$gamma = default_prior$sd$gamma = log(100)
     }
     K = ncol(adata$counts)
-    data = list(K = K,
+    data = list(fixed = fixed,
+                random = random,
+                gamma_link = gamma_link,
+                model = model,
+                criteria_scale = criteria_scale,
+                PRINT = 0,
+                K = K,
                 Kb2 = K / 2,
                 theta_size = 1,
                 delta_size = c('sdt' = 1, 'uvsdt' = 1, 'metad' = 2)[model],
@@ -175,6 +180,8 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
                 ## stim_sign = -1, 1
                 stim_sign = 2 * as.numeric(as.factor(as.character(adata$stimulus))) - 3,
                 counts = adata$counts)
+    if(link == 'parsimonious')
+        data$gamma_size = 2
     par_types = c('delta', 'gamma')
     if(model == 'uvsdt')par_types = c(par_types, 'theta')
     for(par_type in par_types){
@@ -217,13 +224,13 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
                     ## just the name of the variable
                     v = sf('%s_nu', par_type)
                     data[[sf('lkj_%s_nu_%d', par_type, l)]] = if(is.null(random[[l]][[v]])){ 1 }else{ random[[l]][[v]][1] }
-                    v = sf('%s_scale', par_type)
+                    v = sf('%s_sd_scale', par_type)
                     ## total prior size
                     s = data[[sf('%s_size', par_type)]] * ncol(mm)
                     if(is.null(random[[l]][[v]])){
                         res = rep(default_prior$scale[[par_type]], s)
                     }else{
-                        if(length(random[[l]][[v]]) != 1){
+                        if(length(random[[l]][[v]]) == 1){
                             res = rep(random[[l]][[v]][1], s)
                         }else{
                             if(length(random[[l]][[v]]) != s)

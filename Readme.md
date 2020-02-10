@@ -1,5 +1,21 @@
 
-# Some NEWS (and a WARNING)
+# NEWS 2020 02 10
+
+The bhsdtr package now handles hierarchical or non-hierarchical
+versions of Selker, van den Bergh, Criss, and Wagenmakers's
+parsimonious SDT model (see this
+[paper](https://link.springer.com/article/10.3758/s13428-019-01231-3)).
+It can be fitted by choosing the 'parsimonious' link function, which
+will result in the gamma parameter being two-dimensional; the first
+element is just the unconstrained criterion, the second element is log
+of distance between adjacent criteria. Because the model is defined by
+the link function, it is also possible to fit Unequal Variance
+parsimonious SDT models, or meta-d' parsimonious SDT models. Remember
+that appropriate link function has to be specified when converting
+between the gamma and the criteria parameters using the gamma_to_crit
+function.
+
+# Major NEWS (and a WARNING)
 
 The bhsdtr package now handles hierarchical or non-hierarchical Equal
 Variance Normal SDT models, Unequal Variance Normal SDT models, and

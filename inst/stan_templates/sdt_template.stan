@@ -1,10 +1,11 @@
 // -*- coding: utf-8 -*-
 
-// Every kind parameter is represented by a vector, and so the effects
-// are represented by a matrix, which may have more than one row (if
-// the vector of parameters has length > 1).
+// Every kind of parameter is represented using the type vector, and
+// so the effects are represented by a matrix, which may have more
+// than one row (if the vector of parameters has length > 1).
 
 data {
+  int<lower=0,upper=1> PRINT;
   int<lower=1> N;
   int<lower=2> K;
   // Kb2 = K/2 is here to avoid the (irrelevant) warning about integer
@@ -51,9 +52,20 @@ transformed parameters {
   // used only in the metad model
   vector[2] normalization;
   real shift;
+  vector[K + 1] multinomial_cum;
   vector[K] multinomial_p[N];
   Corr_PAR_% = L_corr_PAR_% * L_corr_PAR_%'; //PAR
   for(g in 1:group_%_size)PAR_random_%[g] = to_matrix(diag_pre_multiply(PAR_sd_%, L_corr_PAR_%) * PAR_z_%[g], PAR_size, Z_PAR_ncol_%); //PAR
+  if(PRINT == 1){
+    print("PRIORS: ");
+    print("PAR_fixed_mu "); for(i in 1:PAR_size)print(PAR_fixed_mu[i,]);
+    print("PAR_fixed_sd"); for(i in 1:PAR_size)print(PAR_fixed_sd[i,]);
+    print("PAR_sd_scale_% = ", PAR_sd_scale_%); //PAR
+    print("INITIAL VALUES: ");
+    print("PAR_fixed"); for(i in 1:PAR_size)print(PAR_fixed[i,]);
+    for(g in 1:group_%_size)print("PAR_z_%[", g, "] = ", PAR_z_%[g]); //PAR
+    print("PAR_sd_% = ", PAR_sd_%); //PAR
+  }
   for(n in 1:N){
     PAR = PAR_fixed * X_PAR[n]';
     PAR = PAR + PAR_random_%[group_%[n]] * Z_PAR_%[n]';  //PAR
