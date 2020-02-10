@@ -82,9 +82,9 @@ gamma_to_crit = function(samples, beta_index = 1, gamma_link = 'softmax', s = 2,
     if (length(nms) == 0) 
         stop(sprintf("Could not find gamma_fixed[.,%d] samples", 
                      beta_index[1]))
-    if(link == 'parsimonious'){
+    if(link %in% c('parsimonious', 'twoparameter')){
         if(is.null(K))
-            stop("K has to be specified for the parsimonious link function")
+            stop("K has to be specified for the parsimonious or the twoparameter link functions")
     }else{
         K = length(nms) + 1
     }
@@ -117,6 +117,11 @@ gamma_to_crit = function(samples, beta_index = 1, gamma_link = 'softmax', s = 2,
         }
     }
     if(link == 'parsimonious'){
+        unb = unbiased(K)
+        for(k in 1:(K - 1))
+            criteria[, k] = samples[, 1] + exp(samples[, 2]) * unb[k]
+    }
+    if(link == 'twoparameter'){
         criteria[, K / 2] = samples[, 1];
         if(K > 2){
             for(k in 1:(K / 2 - 1)){
@@ -138,7 +143,11 @@ gamma_to_crit = function(samples, beta_index = 1, gamma_link = 'softmax', s = 2,
 }
 
 check_link = function(gamma_link){
-    links = c('softmax', 'log_ratio', 'log_distance', 'parsimonious', 'identity')
+    links = c('softmax', 'log_ratio', 'log_distance', 'parsimonious', 'twoparameter', 'identity')
     if(!(gamma_link %in% links))
         stop(paste("The gamma_link function must be one of the following:", links))
+}
+
+unbiased = function(K){
+    log((1:K / K) / (1 - 1:K / K))[1:(K - 1)]
 }

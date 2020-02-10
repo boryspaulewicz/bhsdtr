@@ -173,6 +173,7 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
                 PRINT = 0,
                 K = K,
                 Kb2 = K / 2,
+                unbiased = unbiased(K),
                 theta_size = 1,
                 delta_size = c('sdt' = 1, 'uvsdt' = 1, 'metad' = 2)[model],
                 gamma_size = K - 1,
@@ -180,7 +181,7 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
                 ## stim_sign = -1, 1
                 stim_sign = 2 * as.numeric(as.factor(as.character(adata$stimulus))) - 3,
                 counts = adata$counts)
-    if(gamma_link == 'parsimonious')
+    if(gamma_link %in% c('parsimonious', 'twoparameter'))
         data$gamma_size = 2
     par_types = c('delta', 'gamma')
     if(model == 'uvsdt')par_types = c(par_types, 'theta')

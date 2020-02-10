@@ -11,6 +11,8 @@ data {
   // Kb2 = K/2 is here to avoid the (irrelevant) warning about integer
   // division
   int<lower=1> Kb2;
+  // for the parsimonious link function
+  vector[K-1] unbiased;
   real criteria_scale;
   vector[N] stim_sign;
   int<lower=0> counts[N, K];
@@ -46,7 +48,7 @@ transformed parameters {
   matrix[PAR_size * Z_PAR_ncol_%, PAR_size * Z_PAR_ncol_%] Corr_PAR_%; //PAR
   vector[PAR_size] PAR;
   vector[delta_size] dprim;
-  vector[gamma_size] criteria;
+  vector[K - 1] criteria;
   // used only in the uvsdt model
   real sd_ratio;
   // used only in the metad model
