@@ -180,7 +180,7 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
                 ## stim_sign = -1, 1
                 stim_sign = 2 * as.numeric(as.factor(as.character(adata$stimulus))) - 3,
                 counts = adata$counts)
-    if(link == 'parsimonious')
+    if(gamma_link == 'parsimonious')
         data$gamma_size = 2
     par_types = c('delta', 'gamma')
     if(model == 'uvsdt')par_types = c(par_types, 'theta')
@@ -194,6 +194,10 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
                                                                    default_prior[[par]][[par_type]],
                                                                    c(data[[sf('%s_size', par_type)]], ncol(data[[sf('X_%s', par_type)]])),
                                                                    sf('%s_%s', par_type, par))
+    }
+    if((gamma_link == 'identity') & (is.null(fixed$gamma_mu))){
+        for(i in 1:(data$X_gamma_ncol))
+            data$gamma_fixed_mu[, i] = seq(-2, 2, length.out = data$gamma_size)
     }
     ## Random effects
     if(length(random) > 0){ 

@@ -129,11 +129,16 @@ gamma_to_crit = function(samples, beta_index = 1, gamma_link = 'softmax', s = 2,
         criteria = t(apply(exp(cbind(samples, 0)), 1,
                            function(x) s * stats::qnorm(cumsum(x/sum(x))[-length(x)])))
     }
+    if(link == 'identity'){
+        warning("You want me to convert between identical gamma and criteria vectors. Are you shure you should be sciencing?")
+        samples
+    }
     colnames(criteria) = gsub("gamma", "criteria", colnames(criteria))
     criteria
 }
 
 check_link = function(gamma_link){
-    if(!(gamma_link %in% c('softmax', 'log_ratio', 'log_distance', 'parsimonious')))
-        stop("The gamma_link function must be one of the following: 'softmax', 'log_ratio', 'log_distance'")
+    links = c('softmax', 'log_ratio', 'log_distance', 'parsimonious', 'identity')
+    if(!(gamma_link %in% links))
+        stop(paste("The gamma_link function must be one of the following:", links))
 }
