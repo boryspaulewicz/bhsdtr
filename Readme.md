@@ -322,17 +322,18 @@ modifications (which can be done in the brms package) hierarchical
 ordinal regression models do not restrict the d' to be non-negative,
 because in such models d' is just the unconstrained linear regression
 slope that represents the effect of the stimulus class ("noise" or
-"signal"). Moreover, in typical situations, it does not make much sense
-to assume that the d' random effects normally distributed. Finally, in
-the cumulative model the parameters that correspond to the criteria in
-an SDT model cannot be affected differently by the same grouping
-factor (i.e., the effects are constant across categories), because the
-criteria in this model are simply additional effects in the linear
-part. This means that the model assumes that the pattern of the
-criteria is the same for every participant (or item,
-etc.). Participants differ in their criteria placement patterns and so
-the data from a typical rating experiment cannot be independent given
-an SDT model with ratings represented as a cumulative model.
+"signal"). Moreover, in typical situations, it does not make much
+sense to assume that the d' random effects are normally
+distributed. Finally, in the cumulative model the parameters that
+correspond to the criteria in an SDT model cannot be affected
+differently by the same grouping factor (i.e., the effects are
+constant across categories), because the criteria in this model are
+simply additional effects in the linear part. This means that the
+model assumes that the pattern of the criteria is the same for every
+participant (or item, etc.). Participants differ in their criteria
+placement patterns and so the data from a typical rating experiment
+cannot be independent given an SDT model with ratings represented as a
+cumulative model.
 
 In the bhsdtr package the generalized SDT model is supplemented with a
 hierarchical linear regression structure (normally distributed
