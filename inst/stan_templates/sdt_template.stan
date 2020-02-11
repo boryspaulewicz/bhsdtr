@@ -21,6 +21,8 @@ data {
   int<lower=1> dprim_size;
   int<lower=1> X_PAR_ncol;
   row_vector[X_PAR_ncol] X_PAR[N];
+  matrix[PAR_size, X_PAR_ncol] PAR_is_fixed;
+  matrix[PAR_size, X_PAR_ncol] PAR_fixed_value;
   int<lower=1> group_%_size; //common
   int<lower=1,upper=group_%_size> group_%[N]; //common
   int<lower=1> Z_PAR_ncol_%; //PAR
@@ -45,6 +47,7 @@ parameters {
 }
 
 transformed parameters {
+  matrix[PAR_size, X_PAR_ncol] PAR_fixed_;
   matrix[PAR_size, Z_PAR_ncol_%] PAR_random_%[group_%_size]; //PAR
   matrix[PAR_size * Z_PAR_ncol_%, PAR_size * Z_PAR_ncol_%] Corr_PAR_%; //PAR
   vector[PAR_size] PAR;
@@ -58,6 +61,8 @@ transformed parameters {
   real sd_ratio;
   // used only in the metad model
   vector[2] normalization;
+  // fixing fixed effects if requested
+  for(i in 1:PAR_size)for(j in 1:X_PAR_ncol)if(PAR_is_fixed[i, j] == 1){ PAR_fixed_[i, j] = PAR_fixed_value[i, j]; }else{ PAR_fixed_[i, j] = PAR_fixed[i, j]; }
   Corr_PAR_% = L_corr_PAR_% * L_corr_PAR_%'; //PAR
   for(g in 1:group_%_size)PAR_random_%[g] = to_matrix(diag_pre_multiply(PAR_sd_%, L_corr_PAR_%) * PAR_z_%[g], PAR_size, Z_PAR_ncol_%); //PAR
   if(PRINT == 1){
@@ -71,7 +76,7 @@ transformed parameters {
     print("PAR_sd_% = ", PAR_sd_%); //PAR
   }
   for(n in 1:N){
-    PAR = PAR_fixed * X_PAR[n]';
+    PAR = PAR_fixed_ * X_PAR[n]';
     PAR = PAR + PAR_random_%[group_%[n]] * Z_PAR_%[n]';  //PAR
 
     //link-gamma

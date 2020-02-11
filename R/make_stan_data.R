@@ -208,6 +208,21 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
                                                                    default_prior[[par]][[par_type]],
                                                                    c(data[[sf('%s_size', par_type)]], ncol(data[[sf('X_%s', par_type)]])),
                                                                    sf('%s_%s', par_type, par))
+        data[[sf('%s_is_fixed', par_type)]] = matrix(0, nrow = data[[sf('%s_size', par_type)]], ncol = ncol(data[[sf('X_%s', par_type)]]))
+        data[[sf('%s_fixed_value', par_type)]] = matrix(0, nrow = data[[sf('%s_size', par_type)]], ncol = ncol(data[[sf('X_%s', par_type)]]))
+        ## In ordinal models the effect associated with the intercept is fixed at 0 for identifiability
+        if((model %in% c('ordinal', 'uvordinal')) & par_type == 'eta'){
+            ## the effect for the intercept is 0
+            intercept = FALSE
+            for(i in 1:ncol(data$X_eta))
+                if(all(data$X_eta[,i] == rep(1, nrow(data$X_eta)))){
+                    data$eta_is_fixed[,i] = 1
+                    data$eta_fixed_value[,i] = 0
+                    intercept = TRUE
+                }
+            if((!intercept) & all((data$X_eta %*% rep(1, ncol(data$X_eta))) != 0))
+                stop("Separate intercepts and slopes parametrization of eta fixed effects not allowed in ordinal models")
+        }
     }
     if((gamma_link == 'identity') & (is.null(fixed$gamma_mu))){
         for(i in 1:(data$X_gamma_ncol))
@@ -217,7 +232,7 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
     if(length(random) > 0){ 
         ## converting the formulae (e.g., ~ id) to numeric indices (1, 2, 3, ..., max(id))        
         for(l in 1:length(random)){
-            ## Just the group indicator, make sure it is a column vector
+            ##! this is not pretty ! Just the group indicator, make sure it is a column vector
             group.mm = stats::model.matrix(random[[l]]$group, adata$data)
             if(ncol(group.mm) == 2){
                 ## Probably a numeric variable
@@ -225,7 +240,7 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
             }else{
                 ## Probably a factor
                 group.mm = remove.zero.cols(group.mm)
-                random[[l]]$group = (group.mm %*% 1:(ncol(group.mm)))[,1]
+                random[[l]]$group = (group.mm %*% 0:(ncol(group.mm) - 1))[,1] + 1
             }
         }
     }
@@ -269,6 +284,7 @@ fix_stan_dim = function(x)if(length(x) == 1){ array(x, dim = 1) }else{ x }
 fix_stan_dim_m = function(x)if(length(x) == 1){ matrix(x) }else{ x }
 
 remove.zero.cols = function(m)as.matrix(m[,apply(m, 2, function(x)!all(x == 0))])
+remove.one.cols = function(m)as.matrix(m[,apply(m, 2, function(x)!all(x == 1))])
 
 parse_prior = function(value = NULL, default, dims, name){
   if(is.null(value)){

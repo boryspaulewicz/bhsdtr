@@ -394,6 +394,9 @@ df$stimulus = adata_sim$stimulus
 df$i = 1:nrow(df)
 df = ddply(df, c('order', 'duration', 'stimulus'), function(x)apply(adata_sim$counts[x$i,], 2, sum))
 data_sim_2 = list(data = df[,c('order', 'duration')], stimulus = df$stimulus, counts = df[, paste(1:8)])
+rbind(data_sim_2$counts[data_sim_2$data$order == 'DECISION-RATING' & data_sim_2$data$duration == '32 ms' & data_sim_2$stimulus == 1,],
+      apply(adata_sim$counts[adata_sim$data$order == 'DECISION-RATING' & adata_sim$data$duration == '32 ms' & adata_sim$stimulus == 1,], 2, sum))
+## Ok
 
 if(fresh_start){
     fit.aggr = stan(model_code = make_stan_model(),
