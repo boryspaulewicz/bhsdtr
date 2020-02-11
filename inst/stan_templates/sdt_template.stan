@@ -18,6 +18,7 @@ data {
   int<lower=0> counts[N, K];
   // this will be replaced with delta_size, gamma_size and possibly theta_size
   int<lower=1> PAR_size;
+  int<lower=1> dprim_size;
   int<lower=1> X_PAR_ncol;
   row_vector[X_PAR_ncol] X_PAR[N];
   int<lower=1> group_%_size; //common
@@ -47,15 +48,16 @@ transformed parameters {
   matrix[PAR_size, Z_PAR_ncol_%] PAR_random_%[group_%_size]; //PAR
   matrix[PAR_size * Z_PAR_ncol_%, PAR_size * Z_PAR_ncol_%] Corr_PAR_%; //PAR
   vector[PAR_size] PAR;
-  vector[delta_size] dprim;
   vector[K - 1] criteria;
+  vector[K + 1] multinomial_cum;
+  vector[K] multinomial_p[N];
+  // used only in the sdt model family
+  vector[dprim_size] dprim;
+  real shift;
   // used only in the uvsdt model
   real sd_ratio;
   // used only in the metad model
   vector[2] normalization;
-  real shift;
-  vector[K + 1] multinomial_cum;
-  vector[K] multinomial_p[N];
   Corr_PAR_% = L_corr_PAR_% * L_corr_PAR_%'; //PAR
   for(g in 1:group_%_size)PAR_random_%[g] = to_matrix(diag_pre_multiply(PAR_sd_%, L_corr_PAR_%) * PAR_z_%[g], PAR_size, Z_PAR_ncol_%); //PAR
   if(PRINT == 1){
@@ -71,8 +73,9 @@ transformed parameters {
   for(n in 1:N){
     PAR = PAR_fixed * X_PAR[n]';
     PAR = PAR + PAR_random_%[group_%[n]] * Z_PAR_%[n]';  //PAR
-    dprim = exp(delta); //link-delta
-    criteria = criteria_scale * inv_Phi(head(cumulative_sum(softmax(append_row(gamma, 0))), gamma_size)); //link-gamma
+
+    //link-gamma
+
     //likelihood
   }
 }

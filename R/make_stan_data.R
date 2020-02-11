@@ -154,37 +154,50 @@
 make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gamma_link = 'softmax', model = 'sdt'){
     sf = sprintf
     check_link(gamma_link)
-    if(!(model %in% c('sdt', 'uvsdt', 'metad')))
-        stop("model must be either 'sdt', 'uvsdt', or 'metad'")
-    default_prior = list(mu = list(delta = acc_to_delta(.75), theta = 0, gamma = 0),
-                         sd = list(delta = .5 * (acc_to_delta(.99) - acc_to_delta(.51)), theta = log(2)),
-                         scale = list(delta = .5 * (acc_to_delta(.99) - acc_to_delta(.51)), theta = log(2)))
+    check_model(model)
+    default_prior = list(mu = list(delta = acc_to_delta(.75), theta = 0, gamma = 0, eta = 0),
+                         sd = list(delta = .5 * (acc_to_delta(.99) - acc_to_delta(.51)), theta = log(2), eta = 5),
+                         scale = list(delta = .5 * (acc_to_delta(.99) - acc_to_delta(.51)), theta = log(2), eta = 5))
     if(gamma_link != 'softmax'){
         default_prior$scale$gamma = default_prior$sd$gamma = 2
     }else{
         default_prior$scale$gamma = default_prior$sd$gamma = log(100)
     }
     K = ncol(adata$counts)
-    data = list(fixed = fixed,
+    data = list(PRINT = 0,
+                N = nrow(adata$counts),
+                K = K,
+                Kb2 = K / 2,
+                fixed = fixed,
                 random = random,
                 gamma_link = gamma_link,
                 model = model,
                 criteria_scale = criteria_scale,
-                PRINT = 0,
-                K = K,
-                Kb2 = K / 2,
                 unbiased = unbiased(K),
+                eta_size = 1,
+                dprim_size = 1,
+                delta_size = 1,
                 theta_size = 1,
-                delta_size = c('sdt' = 1, 'uvsdt' = 1, 'metad' = 2)[model],
                 gamma_size = K - 1,
                 criteria_scale = criteria_scale,
-                ## stim_sign = -1, 1
-                stim_sign = 2 * as.numeric(as.factor(as.character(adata$stimulus))) - 3,
                 counts = adata$counts)
+    if(model %in% c('sdt', 'uvsdt', 'metad')){
+        data$delta_size = data$dprim_size = c('sdt' = 1, 'uvsdt' = 1, 'metad' = 2)[model]
+        ## in SDT models stim_sign = -1, 1
+        data$stim_sign = 2 * as.numeric(as.factor(as.character(adata$stimulus))) - 3
+    }else{
+        data$stim_sign = rep(0, nrow(adata$counts))
+    }
     if(gamma_link %in% c('parsimonious', 'twoparameter'))
         data$gamma_size = 2
-    par_types = c('delta', 'gamma')
-    if(model == 'uvsdt')par_types = c(par_types, 'theta')
+    par_types = c('gamma')
+    if(model %in% c('ordinal', 'uvordinal')){
+        par_types = c('eta', par_types)
+    }else{
+        par_types = c('delta', par_types)
+    }
+    if(model %in% c('uvsdt', 'uvordinal'))
+        par_types = c(par_types, 'theta')
     for(par_type in par_types){
         ## Adding fixed effects model matrices and their ncols, e.g., X_delta, X_delta_ncol
         data[[sf('X_%s', par_type)]] = remove.zero.cols(stats::model.matrix(fixed[[par_type]], adata$data))
@@ -249,7 +262,6 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
             }
         }
     }
-    data$N = nrow(data$X_delta)
     data
 }
 

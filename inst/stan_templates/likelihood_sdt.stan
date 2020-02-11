@@ -1,4 +1,5 @@
 // SDT likelihood
+dprim = exp(delta); //link-delta
 shift = -0.5 * (stim_sign[n] * dprim[1]);
 for(k in 1:(K - 1))
   multinomial_cum[k + 1] = Phi(criteria[k] + shift);

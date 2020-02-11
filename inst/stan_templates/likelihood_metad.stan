@@ -1,4 +1,5 @@
 // meta-d' likelihood
+dprim = exp(delta); //link-delta
 shift = 0.5 * stim_sign[n]; // when stim == 1 shift == -0.5
 normalization[1] = Phi(criteria[Kb2] - shift * dprim[1]) / Phi(criteria[Kb2] - shift * dprim[2]);
 normalization[2] = Phi(-(criteria[Kb2] - shift * dprim[1])) / Phi(-(criteria[Kb2] - shift * dprim[2]));

@@ -32,15 +32,23 @@
 #' ## for the 1 (2) stimulus class
 #' aggregate_responses(gabor, 'stim', 'resp')
 #' @export
-aggregate_responses = function(data, stimulus, response, variables = NULL){
-  ## stimulus classes encoded as 1 or 2
-    data[[stimulus[1]]] = as.numeric(as.factor(as.character(data[[stimulus[1]]])))
-    K = max(data[[response[1]]], na.rm = T)
-    res = plyr::ddply(data, unique(c(variables, stimulus[1])),
-                      function(df)table(c(df[[response[1]]], 1:K)) - 1)
+aggregate_responses = function(data, stimulus = NULL, response, variables = NULL, K = NULL){
+    if(length(stimulus) > 1)
+        stop('stimulus vector must be of length 1 or NULL')
+    if(length(response) != 1)
+        stop('response vector must be of length 1')
+    ## stimulus classes encoded as 1 or 2
+    if(!is.null(stimulus))
+        data[[stimulus]] = as.numeric(as.factor(as.character(data[[stimulus]])))
+    if(is.null(K))
+        K = max(data[[response]], na.rm = T)
+    res = plyr::ddply(data, unique(c(variables, stimulus)),
+                      function(df)table(c(df[[response]], 1:K)) - 1)
     counts = res[, c((ncol(res)-K+1):ncol(res))]
     ## drop = F is important for the single column data frame case
-    list(data = res[, setdiff(variables, c(stimulus[1], response[1])), drop = F],
-         stimulus = res[[stimulus[1]]],
-         counts = counts)
+    adata = list(data = res[, setdiff(variables, response), drop = F],
+               counts = counts)
+    if(!is.null(stimulus))
+        adata$stimulus = res[[stimulus]]
+    adata
 }

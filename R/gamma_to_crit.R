@@ -148,6 +148,12 @@ check_link = function(gamma_link){
         stop(paste("The gamma_link function must be one of the following:", links))
 }
 
+check_model = function(model){
+    models = c('sdt', 'uvsdt', 'ordinal', 'uvordinal', 'metad')
+    if(!(model %in% models))
+        stop(paste("Model must be one of the following:", models))
+}
+
 unbiased = function(K){
     log((1:K / K) / (1 - 1:K / K))[1:(K - 1)]
 }

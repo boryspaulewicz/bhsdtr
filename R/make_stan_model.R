@@ -24,10 +24,13 @@
 #' @export
 make_stan_model = function(random = NULL, gamma_link = 'softmax', model = 'sdt'){
     check_link(gamma_link)
-    if(!(model %in% c('sdt', 'uvsdt', 'metad')))
-        stop("model must be either 'sdt', 'uvsdt', or 'metad'")
-    par_types = c('delta', 'gamma')
-    if(model == 'uvsdt')par_types = c(par_types, 'theta')
+    check_model(model)
+    if(model %in% c('ordinal', 'uvordinal')){
+        par_types = c('eta', 'gamma')
+    }else{
+        par_types = c('delta', 'gamma')
+    }
+    if(model %in% c('uvsdt', 'uvordinal'))par_types = c(par_types, 'theta')
     f = file(paste(path.package('bhsdtr'), '/stan_templates/sdt_template.stan', sep = ''))
     ## We go line by line
     first_pass = NULL
@@ -48,7 +51,7 @@ make_stan_model = function(random = NULL, gamma_link = 'softmax', model = 'sdt')
     model = ''
     for(part in first_pass){
         ## If this is part of the random effects' specification ...
-        if(rmatch('//(common|delta|theta|gamma)', part)){
+        if(rmatch(sprintf('//(%s)', paste(c('common', par_types), collapse = '|')), part)){
             ## ... and there are some random effects in the model ...
             if(length(random) > 0)
                 for(l in 1:length(random)){
@@ -59,7 +62,7 @@ make_stan_model = function(random = NULL, gamma_link = 'softmax', model = 'sdt')
                     ## random effects' specification if delta/gamma is
                     ## associated with random effects of the given
                     ## grouping factor ...
-                    for(par in c('delta', 'theta', 'gamma'))
+                    for(par in par_types)
                         if(!is.null(random[[l]][[par]]) & rmatch(sprintf('//%s', par), part))
                             model[length(model)+1] = gsub('%', l, part)
                 }

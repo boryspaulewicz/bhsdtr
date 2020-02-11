@@ -1,4 +1,5 @@
 // UVSDT likelihood
+dprim = exp(delta); //link-delta
 shift = -0.5 * (stim_sign[n] * dprim[1]);
 if(stim_sign[n] > 0){
   sd_ratio = exp(theta[1]); //link-theta
