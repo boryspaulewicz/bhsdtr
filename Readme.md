@@ -9,12 +9,12 @@ parsimonious SDT model (see this
 It can be fitted by choosing the 'parsimonious' link function, which
 will result in the gamma parameter being two-dimensional; the first
 element is just the unconstrained criterion, the second element is log
-of distance between adjacent criteria. Because the model is defined by
-the link function, it is also possible to fit Unequal Variance
-parsimonious SDT models, or meta-d' parsimonious SDT models. Remember
-that appropriate link function has to be specified when converting
-between the gamma and the criteria parameters using the gamma_to_crit
-function.
+of spread between the "unbiased" criteria. Because this model is
+defined by the link function, it is also possible to fit Unequal
+Variance parsimonious SDT models, or meta-d' parsimonious SDT
+models. Remember that appropriate link function has to be specified
+when converting between the gamma and the criteria parameters using
+the gamma_to_crit function.
 
 # Major NEWS (and a WARNING)
 
