@@ -138,7 +138,8 @@
 #' @param gamma_link either 'softmax' (described in the paper),
 #'     'log_distance' or 'log_ratio' (See the Readme file in the
 #'     github repository)
-#' @param model can be either 'sdt' (the default), 'uvsdt', or 'metad'
+#' @param model can be either 'sdt' (the default), 'uvsdt', 'metad', 'ordinal',
+#' or 'uvordinal'
 #' @return a list with response and stimulus data, model matrices,
 #'     prior parameter values, and other data required by the stan
 #'     model generated using \code{make_stan_model}.
@@ -153,8 +154,13 @@
 #' @export
 make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gamma_link = 'softmax', model = 'sdt'){
     sf = sprintf
+    check_fixed(fixed)
+    check_random(random)
+    check_adata(adata)
     check_link(gamma_link)
     check_model(model)
+    if((model %in% c('ordinal', 'uvordinal')) & !(gamma_link %in% c('log_distance', 'twoparameter', 'parsimonious')))
+        stop('This link function is not implemented for ordinal models')
     default_prior = list(mu = list(delta = acc_to_delta(.75), theta = 0, gamma = 0, eta = 0),
                          sd = list(delta = .5 * (acc_to_delta(.99) - acc_to_delta(.51)), theta = log(2), eta = 5),
                          scale = list(delta = .5 * (acc_to_delta(.99) - acc_to_delta(.51)), theta = log(2), eta = 5))
@@ -167,7 +173,7 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
     data = list(PRINT = 0,
                 N = nrow(adata$counts),
                 K = K,
-                Kb2 = K / 2,
+                Kb2 = round(K / 2),
                 fixed = fixed,
                 random = random,
                 gamma_link = gamma_link,
@@ -212,16 +218,10 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
         data[[sf('%s_fixed_value', par_type)]] = matrix(0, nrow = data[[sf('%s_size', par_type)]], ncol = ncol(data[[sf('X_%s', par_type)]]))
         ## In ordinal models the effect associated with the intercept is fixed at 0 for identifiability
         if((model %in% c('ordinal', 'uvordinal')) & par_type == 'eta'){
-            ## the effect for the intercept is 0
-            intercept = FALSE
-            for(i in 1:ncol(data$X_eta))
-                if(all(data$X_eta[,i] == rep(1, nrow(data$X_eta)))){
-                    data$eta_is_fixed[,i] = 1
-                    data$eta_fixed_value[,i] = 0
-                    intercept = TRUE
-                }
-            if((!intercept) & all((data$X_eta %*% rep(1, ncol(data$X_eta))) != 0))
-                stop("Separate intercepts and slopes parametrization of eta fixed effects not allowed in ordinal models")
+            ## We are fixing one element of the fixed effects vector for identifiability
+            warning('The first element of the eta fixed effects vector is fixed at 0 for identifiability')
+            data$eta_is_fixed[,1] = 1
+            data$eta_fixed_value[,1] = 0
         }
     }
     if((gamma_link == 'identity') & (is.null(fixed$gamma_mu))){
@@ -236,6 +236,8 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
             group.mm = stats::model.matrix(random[[l]]$group, adata$data)
             if(ncol(group.mm) == 2){
                 ## Probably a numeric variable
+                ## warning(sprintf('Grouping variable %s appears to be numeric, group indices in the model may be different than in the data',
+                ##                 as.character(random[[l]]$group)))
                 random[[l]]$group = as.numeric(as.factor(as.character(group.mm[,2])))
             }else{
                 ## Probably a factor
@@ -278,6 +280,38 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
         }
     }
     data
+}
+
+is.formula = function(x)class(x) == 'formula'
+
+check_fixed = function(fixed){
+    for(par in c('eta', 'delta', 'gamma', 'theta'))
+        if(!is.null(fixed[[par]]))
+           if(!is.formula(fixed[[par]]))
+               stop(sprintf('fixed$%s must be of type formula', par))
+}
+
+check_random = function(random){
+    if(length(random) > 0){
+        not_ll = "random must be a list of lists, e.g., list(list(group = ~ id, delta = ~ 1))"
+        if(!is.list(random))
+            stop(ll)
+        for(i in 1:length(random)){
+            if(!is.list(random[[i]]))
+                stop(ll)
+            if(is.null(random[[i]]$group))
+                stop("Each list in the random list must contain a 'group' element")
+            for(par in c('group', 'eta', 'delta', 'gamma', 'theta'))
+                if(!is.null(random[[i]][[par]]))
+                    if(!is.formula(random[[i]][[par]]))
+                        stop(sprintf('random[[%d]]$%s is not of type formula', i, par))
+        }
+    }
+}
+
+check_adata = function(adata){
+    if(!all(c('data', 'counts') %in% names(adata)))
+        stop('something is wrong with the aggregated data object')
 }
 
 fix_stan_dim = function(x)if(length(x) == 1){ array(x, dim = 1) }else{ x }

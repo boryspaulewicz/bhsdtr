@@ -8,12 +8,12 @@
 #'     converted to accuracy of an unbiased observer
 #' @return delta = log(d') or expected accuracy
 #' @export
-acc_to_delta = function(acc = .75, delta = NULL){
+acc_to_delta = function(acc = .75, delta = NULL, crit = 0){
     if(any((acc <= 0) || (acc >= 1)))
         stop('Some accuracy scores were to extreme')
     if(is.null(delta)){
         log(2 * stats::qnorm(acc))
     }else{
-        pnorm(exp(delta) / 2)
+        (pnorm(exp(delta) / 2 - crit) + pnorm(exp(delta) / 2 + crit)) / 2
     }
 }

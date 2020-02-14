@@ -4,7 +4,13 @@
 \alias{aggregate_responses}
 \title{Creates the aggregated data object needed by other functions.}
 \usage{
-aggregate_responses(data, stimulus, response, variables = NULL)
+aggregate_responses(
+  data,
+  stimulus = NULL,
+  response,
+  variables = NULL,
+  K = NULL
+)
 }
 \arguments{
 \item{data}{a data frame containing stimulus and response variables. If SDT

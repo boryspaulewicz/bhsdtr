@@ -257,14 +257,14 @@ simulate_from_fit = function(fit, adata, fixed, random){
     for(r in 1:nrow(gamma_fixed))
         gamma_fixed[r,] = s[paste('gamma_fixed[', 1:(sdata$K - 1), ',', r, ']', sep = '')]
     gamma_random = list()
-    for(r in 1:sdata$G_1)
+    for(r in 1:sdata$group_1_size)
         gamma_random[[r]] = matrix(s[paste('gamma_random_1[', r, ',', 1:(sdata$K - 1), ',1]', sep = '')],
                                    nrow = sdata$K - 1, ncol = sdata$Z_gamma_ncol)
     delta_fixed = s[grep('delta_fixed', names(s))]
-    delta_random = matrix(nrow = sdata$G_1, ncol = sdata$Z_delta_ncol_1)
+    delta_random = matrix(nrow = sdata$group_1_size, ncol = sdata$Z_delta_ncol_1)
     for(r in 1:nrow(delta_random))
         for(i in 1:ncol(delta_random))
-            delta_random[r, i] = s[sprintf('delta_random_1[%d,%d]', r, i)]
+            delta_random[r, i] = s[sprintf('delta_random_1[%d,%d,1]', r, i)]
     multinomial_p = matrix(ncol = sdata$K, nrow = sdata$N)
     thr = gamma = matrix(ncol = sdata$K - 1, nrow = sdata$N)
     dprim = rep(NA, sdata$N)

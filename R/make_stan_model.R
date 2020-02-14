@@ -14,7 +14,8 @@
 #' @param gamma_link can be either 'softmax' (described in the paper),
 #'     'log_distance', or 'log_ratio' (See the Readme file in the
 #'     github repository)
-#' @param model can be either 'sdt' (the default), 'uvsdt', or 'metad'
+#' @param model can be either 'sdt' (the default), 'uvsdt', 'metad',
+#'     'ordinal', or 'uvordinal'
 #' @return a string containing the full model definition in the stan
 #'     modelling language.
 #' @examples
