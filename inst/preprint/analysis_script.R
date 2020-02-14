@@ -4,12 +4,12 @@
 ## WARNING The interface has changed since the Behavior Research
 ## Methods paper was accepted for publication. In the current version
 ## of the package every parameter (delta, gamma, theta - in uv sdt
-## models) is represented by a matrix even when it is unidimensional
-## in a given model. So, for example, in an SDT model delta fixed
-## effects are represented by parameters delta_fixed[1,1], ...,
-## delta_fixed[1,n], where n is the number of delta fixed effects
-## (i.e., the number of columns in the fixed effects model matrix for
-## delta).
+## models, eta in ordinal models, delta_sd_scale_1, etc.) is
+## represented by a matrix even when it is unidimensional in a given
+## model. So, for example, in an SDT model delta fixed effects are
+## represented by parameters delta_fixed[1,1], ..., delta_fixed[1,n],
+## where n is the number of delta fixed effects (i.e., the number of
+## columns in the fixed effects model matrix for delta).
 
 ######################################################################
 ## IMPORTANT GLOBAL VARIABLES
@@ -108,18 +108,15 @@ data(gabor)
 
 ## Combined response has to be calculated for this dataset
 gabor$r = combined_response(gabor$stim, gabor$rating, gabor$acc)
-
 ## Aggregation without information loss - we keep keep the variability
 ## due to the participants and all the experimental conditions.
 adata = aggregate_responses(gabor, 'stim', 'r', c('duration', 'order', 'id'))
-
 ## Model specification
 fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
 random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 model = make_stan_model(random)
 ## The model code is human-readable
 cat(model)
-
 ## Required Stan data structure
 sdata = make_stan_data(adata, fixed, random)
 
@@ -133,10 +130,10 @@ if(fresh_start){
                         ## we need counts_new if we want to use the
                         ## plot_sdt_fit function
                         'counts_new'), 
-               ## init_r = .5 helps a lot with rejected initial samples,
-               ## the default range of initial samples in stan is (-2,
-               ## 2), which is too wide for the parameters in our
-               ## models.
+               ## init_r = .5 helps a lot with rejected initial
+               ## samples, the default range of initial values in stan
+               ## is (-2, 2), which is just too wide for the
+               ## parameters in our models.
                init_r = .5,
                iter = 8000,
                chains = 4)
@@ -150,6 +147,34 @@ print(fit, probs = c(.025, .957),
       pars = c('delta_fixed', 'gamma_fixed',
                'delta_sd_1', 'gamma_sd_1',
                'Corr_delta_1', 'Corr_gamma_1'))
+##                    mean se_mean   sd  2.5% 95.7% n_eff Rhat
+## delta_fixed[1,1]  -0.11    0.00 0.15 -0.42  0.14  4776 1.00
+## delta_fixed[1,2]   1.12    0.00 0.09  0.94  1.26  4654 1.00
+## delta_fixed[1,3]  -0.39    0.00 0.20 -0.78 -0.06  5941 1.00
+## delta_fixed[1,4]   1.28    0.00 0.11  1.07  1.47  5967 1.00
+## gamma_fixed[1,1]  -0.14    0.00 0.06 -0.27 -0.04  3590 1.00
+## gamma_fixed[1,2]  -0.22    0.00 0.11 -0.43 -0.04  8695 1.00
+## gamma_fixed[2,1]  -0.70    0.00 0.18 -1.05 -0.40  4161 1.00
+## gamma_fixed[2,2]   0.49    0.00 0.29 -0.09  0.99  4002 1.00
+## gamma_fixed[3,1]  -0.54    0.00 0.22 -0.96 -0.16  3537 1.00
+## gamma_fixed[3,2]   0.84    0.01 0.36  0.13  1.45  3130 1.00
+## gamma_fixed[4,1]   0.28    0.00 0.24 -0.19  0.70  3434 1.00
+## gamma_fixed[4,2]   0.42    0.01 0.40 -0.37  1.10  3091 1.00
+## gamma_fixed[5,1]  -0.21    0.00 0.30 -0.78  0.30  3599 1.00
+## gamma_fixed[5,2]   0.83    0.01 0.48 -0.11  1.65  3432 1.00
+## gamma_fixed[6,1]  -0.78    0.00 0.24 -1.24 -0.36  3756 1.00
+## gamma_fixed[6,2]   0.80    0.01 0.39  0.05  1.47  3379 1.00
+## gamma_fixed[7,1]  -0.32    0.00 0.17 -0.64 -0.04  4034 1.00
+## gamma_fixed[7,2]   0.43    0.00 0.28 -0.12  0.91  3585 1.00
+## delta_sd_1[1,1]    0.66    0.00 0.11  0.48  0.87  5937 1.00
+## delta_sd_1[1,2]    0.44    0.00 0.06  0.34  0.54  5408 1.00
+## gamma_sd_1[1,1]    0.16    0.00 0.07  0.02  0.30  2874 1.00
+## gamma_sd_1[2,1]    0.82    0.00 0.11  0.63  1.03  5994 1.00
+## gamma_sd_1[3,1]    1.08    0.00 0.12  0.86  1.30  4923 1.00
+## gamma_sd_1[4,1]    1.28    0.00 0.14  1.03  1.53  4531 1.00
+## gamma_sd_1[5,1]    1.55    0.00 0.17  1.25  1.86  4851 1.00
+## gamma_sd_1[6,1]    1.19    0.00 0.13  0.95  1.43  5021 1.00
+## gamma_sd_1[7,1]    0.78    0.00 0.10  0.60  0.97  4822 1.00
 
 ## Model fit summary table for the paper
 library(xtable)
@@ -171,6 +196,10 @@ ggsave(p2, file = 'response_fit.png')
 ## symmetrically
 crit = gamma_to_crit(as.data.frame(fit))
 round(apply(crit, 2, mean), 2)
+## criteria_fixed[1,1] criteria_fixed[2,1] criteria_fixed[3,1] criteria_fixed[4,1] 
+##               -2.18               -1.56               -0.99                0.11 
+## criteria_fixed[5,1] criteria_fixed[6,1] criteria_fixed[7,1] 
+##                0.78                1.20                2.00 
 
 ######################################################################
 ## Fitting the single criterion hierarchical SDT model (just for fun)
@@ -178,10 +207,10 @@ round(apply(crit, 2, mean), 2)
 fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
 random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 ## this time we ignore the ratings
-gabor$r = combined_response(gabor$stim, accuracy = gabor$acc)
+gabor$r2 = combined_response(gabor$stim, accuracy = gabor$acc)
 if(fresh_start){
     fit.s = stan(model_code = make_stan_model(random),
-                 data = make_stan_data(aggregate_responses(gabor, 'stim', 'r', c('duration', 'order', 'id')),
+                 data = make_stan_data(aggregate_responses(gabor, 'stim', 'r2', c('duration', 'order', 'id')),
                                        fixed, random),
                  pars = c('delta_fixed', 'gamma_fixed',
                           'delta_sd_1', 'gamma_sd_1',
@@ -232,19 +261,9 @@ round(rbind(quantile(c1[,4], c(.025, .5, .957)),
 ## [1,] -0.05 0.11  0.25
 ## [2,] -0.13 0.06  0.21
 
-## I am not sure why this is here...
-smr2$n_eff = as.integer(round(smr2$n_eff))
-smr2 = smr2[-grep('random', rownames(smr2)),]
-smr2 = smr2[-grep('counts_new', rownames(smr2)),]
-print(xtable(round(smr2[-nrow(smr2),], 2)), file = 'fit_table_single_c.tex')
-
 ######################################################################
 ## Fitting the model to data simulated from itself to test if the
 ## model recovers known realistic parameter values
-
-data = aggregate_responses(gabor, 'stim', 'r', c('duration', 'id', 'order'))
-fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
-random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
 
 ## This function takes a fitted hierarchical model and uses the point
 ## estimates to simulate new responses. The sample size is the same as
@@ -264,7 +283,7 @@ simulate_from_fit = function(fit, adata, fixed, random){
     delta_random = matrix(nrow = sdata$group_1_size, ncol = sdata$Z_delta_ncol_1)
     for(r in 1:nrow(delta_random))
         for(i in 1:ncol(delta_random))
-            delta_random[r, i] = s[sprintf('delta_random_1[%d,%d,1]', r, i)]
+            delta_random[r, i] = s[sprintf('delta_random_1[%d,1,%d]', r, i)]
     multinomial_p = matrix(ncol = sdata$K, nrow = sdata$N)
     thr = gamma = matrix(ncol = sdata$K - 1, nrow = sdata$N)
     dprim = rep(NA, sdata$N)
@@ -272,15 +291,17 @@ simulate_from_fit = function(fit, adata, fixed, random){
         dprim[n] = exp(sdata$X_delta[n,] %*% delta_fixed + sdata$Z_delta_1[n,] %*% delta_random[sdata$group_1[n],])
         gamma[n,] = t(gamma_fixed) %*% sdata$X_gamma[n,] + gamma_random[[sdata$group_1[n]]] %*% sdata$Z_gamma_1[n,]
     }
+    criteria = gamma_to_crit(gamma, NULL)
     criteria = t(apply(gamma, 1, function(x){
         exp_x_0 = exp(c(x, 0))
         sdata$criteria_scale * qnorm(cumsum(exp_x_0 / sum(exp_x_0))[-sdata$K])
     }))
     distr_shift = -sdata$stim_sign * dprim / 2
     multinomial_p[, 1] = pnorm(criteria[, 1] + distr_shift)
-    for(k in 2:(sdata$K - 1)){
-        multinomial_p[, k] = pnorm(criteria[, k] + distr_shift) - pnorm(criteria[, k - 1] + distr_shift)
-    }
+    if(sdata$K > 2)
+        for(k in 2:(sdata$K - 1)){
+            multinomial_p[, k] = pnorm(criteria[, k] + distr_shift) - pnorm(criteria[, k - 1] + distr_shift)
+        }
     multinomial_p[, sdata$K] = pnorm(-(criteria[, sdata$K - 1] + distr_shift))
     data_sim = adata
     ## Now we can simulate
@@ -292,6 +313,10 @@ simulate_from_fit = function(fit, adata, fixed, random){
     data_sim
 }
 
+adata = aggregate_responses(gabor, 'stim', 'r', c('duration', 'order', 'id'))
+fixed = list(delta = ~ -1 + duration:order, gamma = ~ order)
+random = list(list(group = ~ id, delta = ~ -1 + duration, gamma = ~ 1))
+load(paste(temp_path, 'fit', sep = '/'))
 if(fresh_start){
     adata_sim = simulate_from_fit(fit, adata, fixed, random)
     save(adata_sim, file = paste(temp_path, 'data_sim', sep = '/'))
@@ -319,6 +344,9 @@ print(fit.sim, probs = c(.025, .957),
       pars = c('delta_fixed', 'gamma_fixed', 'delta_sd_1', 'gamma_sd_1'))
 ## All is fine
 
+cor(apply(as.data.frame(fit)[,1:20], 2, mean), apply(as.data.frame(fit.sim)[,1:20], 2, mean))
+## .99
+
 (p1 = plot_sdt_fit(fit.sim, adata_sim, c('duration', 'order')))
 ggsave('roc_sim_fit.pdf', p1)
 (p2 = plot_sdt_fit(fit.sim, adata_sim, c('duration', 'order'), type = 'response'))
@@ -335,14 +363,14 @@ gamma_fixed = matrix(nrow = ncol(sdata$X_gamma), ncol = sdata$K - 1)
 for(r in 1:nrow(gamma_fixed))
     gamma_fixed[r,] = s[paste('gamma_fixed[', 1:(sdata$K - 1), ',', r, ']', sep = '')]
 gamma_random = list()
-for(r in 1:sdata$G_1)
+for(r in 1:sdata$group_1_size)
     gamma_random[[r]] = matrix(s[paste('gamma_random_1[', r, ',', 1:(sdata$K - 1), ',1]', sep = '')],
                                nrow = sdata$K - 1, ncol = sdata$Z_gamma_ncol)
 delta_fixed = s[grep('delta_fixed', names(s))]
-delta_random = matrix(nrow = sdata$G_1, ncol = sdata$Z_delta_ncol_1)
+delta_random = matrix(nrow = sdata$group_1_size, ncol = sdata$Z_delta_ncol_1)
 for(r in 1:nrow(delta_random))
     for(i in 1:ncol(delta_random))
-        delta_random[r, i] = s[sprintf('delta_random_1[%d,%d]', r, i)]
+        delta_random[r, i] = s[sprintf('delta_random_1[%d,1,%d]', r, i)]
 
 res = as.data.frame(cbind(t(apply(s2[,grep('delta_fixed', names(s2))], 2, function(x)c(quantile(x, c(.025, .975)), mean(x))[c(1,3,2)])), delta_fixed))
 names(res) = c('lo', 'fit', 'hi', 'true')
@@ -367,7 +395,7 @@ names(res) = c('lo', 'fit', 'hi', 'true')
 res$in_ci = (res$true >= res$lo) & (res$true <= res$hi)
 res
 mean(res$in_ci)
-## .98
+## 1
 
 gamma_random_mat = matrix(ncol = length(gamma_random[[1]]), nrow = length(gamma_random))
 for(r in 1:nrow(gamma_random_mat))
@@ -379,9 +407,9 @@ names(res) = c('lo', 'fit', 'hi', 'true')
 res$in_ci = (res$true >= res$lo) & (res$true <= res$hi)
 res
 mean(res$in_ci)
-## 0.98
+## 0.99
 c(sum(!res$in_ci), nrow(res))
-## 5 / 329 = 0.01
+## 2 / 329
 
 ######################################################################
 ## Fitting the simplified, non-hierarchical (i.e., false in this case)
@@ -509,9 +537,9 @@ names(res) = c('lo', 'fit', 'hi', 'true')
 res$in_ci = (res$true >= res$lo) & (res$true <= res$hi)
 res
 mean(res$in_ci)
-## .28
+## .21
 cbind(sum(res$in_ci), nrow(res))
-## 4 14
+## 3 14
 
 ## Let's compare the posterior SDs
 aggr.posterior.sd = apply(as.data.frame(fit.aggr), 2, sd)
@@ -519,7 +547,7 @@ true.posterior.sd = apply(as.data.frame(fit.sim), 2, sd)
 sd.ratios = true.posterior.sd[grep('fixed', names(true.posterior.sd))] /
   aggr.posterior.sd[grep('fixed', names(aggr.posterior.sd))]
 mean(sd.ratios)
-## 3.122806 is the ratio of the correct posterior SD to posterior SD
+## 3.1 - 3.2 is the ratio of the correct posterior SD to posterior SD
 ## based on the simplified model
 
 ######################################################################

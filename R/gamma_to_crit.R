@@ -88,7 +88,8 @@ gamma_to_crit = function(samples, beta_index = 1, gamma_link = 'softmax', s = 2,
     }else{
         K = length(nms) + 1
     }
-    samples = samples[, nms]
+    ## as.matrix because if samples is a vector nrow is NULL
+    samples = as.matrix(samples[, nms])
     criteria = matrix(nrow = nrow(samples), ncol = K - 1)
     if(link == 'log_ratio'){
         criteria[, K / 2] = samples[, K / 2];

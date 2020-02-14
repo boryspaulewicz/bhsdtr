@@ -179,7 +179,7 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
                 gamma_link = gamma_link,
                 model = model,
                 criteria_scale = criteria_scale,
-                unbiased = unbiased(K),
+                unbiased = fix_stan_dim(unbiased(K)),
                 eta_size = 1,
                 dprim_size = 1,
                 delta_size = 1,
@@ -212,6 +212,7 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
         for(par in c('mu', 'sd'))
             data[[sf('%s_fixed_%s', par_type, par)]] = parse_prior(fixed[[sf('%s_%s', par_type, par)]],
                                                                    default_prior[[par]][[par_type]],
+                                                                   ## matrix dimensions
                                                                    c(data[[sf('%s_size', par_type)]], ncol(data[[sf('X_%s', par_type)]])),
                                                                    sf('%s_%s', par_type, par))
         data[[sf('%s_is_fixed', par_type)]] = matrix(0, nrow = data[[sf('%s_size', par_type)]], ncol = ncol(data[[sf('X_%s', par_type)]]))
@@ -256,25 +257,31 @@ make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gam
                     mm = remove.zero.cols(stats::model.matrix(random[[l]][[par_type]], adata$data))
                     data[[sf('Z_%s_ncol_%d', par_type, l)]] = ncol(mm)
                     data[[sf('Z_%s_%d', par_type, l)]] = mm
-                    ## just the name of the variable
+                    ## just the name of the variable in the random effects specification list
+                    v = sf('%s_sd_scale', par_type)
+                    data[[sf('%s_sd_scale_%d', par_type, l)]] = parse_prior(random[[l]][[v]],
+                                                                            default_prior$scale[[par_type]],
+                                                                            ## matrix dimensions
+                                                                            c(data[[sf('%s_size', par_type)]], data[[sf('Z_%s_ncol_%d', par_type, l)]]),
+                                                                            sf('%s_sd_scale', par_type))
                     v = sf('%s_nu', par_type)
                     data[[sf('lkj_%s_nu_%d', par_type, l)]] = if(is.null(random[[l]][[v]])){ 1 }else{ random[[l]][[v]][1] }
-                    v = sf('%s_sd_scale', par_type)
-                    ## total prior size
-                    s = data[[sf('%s_size', par_type)]] * ncol(mm)
-                    if(is.null(random[[l]][[v]])){
-                        res = rep(default_prior$scale[[par_type]], s)
-                    }else{
-                        if(length(random[[l]][[v]]) == 1){
-                            res = rep(random[[l]][[v]][1], s)
-                        }else{
-                            if(length(random[[l]][[v]]) != s)
-                                stop(sf("Vector of prior parameters for %s, grouping factor %d, is not of length 1 or %d",
-                                        par_type, l, s))
-                            res = random[[l]][[v]]
-                        }
-                    }
-                    data[[sf('%s_sd_scale_%d', par_type, l)]] = fix_stan_dim(res)
+                    ##     v = sf('%s_sd_scale', par_type)
+                    ##     ## total prior size
+                    ##     s = data[[sf('%s_size', par_type)]] * ncol(mm)
+                    ##     if(is.null(random[[l]][[v]])){
+                    ##         res = rep(default_prior$scale[[par_type]], s)
+                    ##     }else{
+                    ##         if(length(random[[l]][[v]]) == 1){
+                    ##             res = rep(random[[l]][[v]][1], s)
+                    ##         }else{
+                    ##             if(length(random[[l]][[v]]) != s)
+                    ##                 stop(sf("Vector of prior parameters for %s, grouping factor %d, is not of length 1 or %d",
+                    ##                         par_type, l, s))
+                    ##             res = random[[l]][[v]]
+                    ##         }
+                    ##     }
+                    ##     data[[sf('%s_sd_scale_%d', par_type, l)]] = fix_stan_dim(res)
                 }
             }
         }
@@ -321,23 +328,28 @@ remove.zero.cols = function(m)as.matrix(m[,apply(m, 2, function(x)!all(x == 0))]
 remove.one.cols = function(m)as.matrix(m[,apply(m, 2, function(x)!all(x == 1))])
 
 parse_prior = function(value = NULL, default, dims, name){
-  if(is.null(value)){
-    if(length(dims) == 1){
-      value = rep(default, dims)
+    if(is.null(value)){
+        if(length(dims) == 1){
+            value = rep(default, dims)
+        }else{
+            value = matrix(default, nrow = dims[1], ncol = dims[2])
+        }
     }else{
-      value = matrix(default, nrow = dims[1], ncol = dims[2])
+        if(is.matrix(value)){
+            if(!all(c(nrow(value), ncol(value)) == dims))
+                stop(sprintf('Incorrect dimensions of the %s matrix', name))
+        }else{
+            if(length(value) == 1){
+                if(length(dims) == 1){
+                    value = rep(value, dims)
+                }else{
+                    value = matrix(value, nrow = dims[1], ncol = dims[2])
+                }
+            }else{
+                if(length(value) != prod(dims))
+                    stop(sprintf("Prior specification %s must contain 1 or %d elements", name, dims))
+            }
+        }
     }
-  }else{
-    if(length(value) == 1){
-      if(length(dims) == 1){
-        value = rep(value, dims)
-      }else{
-        value = matrix(value, nrow = dims[1], ncol = dims[2])
-      }
-    }else{
-      if(length(value) != prod(dims))
-        stop(sprintf("Prior specification %s must contain 1 or %d elements", name, dims))
-    }
-  }
-  fix_stan_dim_m(value)
+    fix_stan_dim_m(value)
 }

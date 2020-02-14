@@ -31,24 +31,21 @@ data {
   matrix[PAR_size, X_PAR_ncol] PAR_fixed_mu;
   row_vector<lower=0>[X_PAR_ncol] PAR_fixed_sd[PAR_size];
   real<lower=1> lkj_PAR_nu_%; //PAR
-  vector<lower=0>[PAR_size * Z_PAR_ncol_%] PAR_sd_scale_%; //PAR
+  row_vector<lower=0>[Z_PAR_ncol_%] PAR_sd_scale_%[PAR_size]; //PAR
 }
 
 parameters {
   matrix[PAR_size, X_PAR_ncol] PAR_fixed;
   cholesky_factor_corr[PAR_size * Z_PAR_ncol_%] L_corr_PAR_%; //PAR
-  vector<lower=0>[PAR_size * Z_PAR_ncol_%] PAR_sd_%; //PAR
-  // Random effects vectors are converted to PAR_size x Z_PAR_ncol
-  // matrix in column major order, so for example
-  // gamma_1,...,gamma_K-1 for the first column (effect) of the
-  // Z_gamma matrix, then gamma_1,...,gamma_K-1 for the second column
-  // (effect), etc.
+  row_vector<lower=0>[Z_PAR_ncol_%] PAR_sd_%[PAR_size]; //PAR
   vector[PAR_size * Z_PAR_ncol_%] PAR_z_%[group_%_size]; //PAR
 }
 
 transformed parameters {
   matrix[PAR_size, X_PAR_ncol] PAR_fixed_;
   matrix[PAR_size, Z_PAR_ncol_%] PAR_random_%[group_%_size]; //PAR
+  // vectorized matrix of random effects' standard deviations
+  vector<lower=0>[PAR_size * Z_PAR_ncol_%] PAR_sd_%_; //PAR
   matrix[PAR_size * Z_PAR_ncol_%, PAR_size * Z_PAR_ncol_%] Corr_PAR_%; //PAR
   vector[PAR_size] PAR;
   vector[K - 1] criteria;
@@ -64,12 +61,14 @@ transformed parameters {
   // fixing fixed effects if requested
   for(i in 1:PAR_size)for(j in 1:X_PAR_ncol)if(PAR_is_fixed[i, j] == 1){ PAR_fixed_[i, j] = PAR_fixed_value[i, j]; }else{ PAR_fixed_[i, j] = PAR_fixed[i, j]; }
   Corr_PAR_% = L_corr_PAR_% * L_corr_PAR_%'; //PAR
-  for(g in 1:group_%_size)PAR_random_%[g] = to_matrix(diag_pre_multiply(PAR_sd_%, L_corr_PAR_%) * PAR_z_%[g], PAR_size, Z_PAR_ncol_%); //PAR
+  // vectorization of random effects' sd matrices
+  for(i in 1:PAR_size)for(j in 1:Z_PAR_ncol_%)PAR_sd_%_[i + (j - 1) * PAR_size] = PAR_sd_%[i, j]; //PAR
+  for(g in 1:group_%_size)PAR_random_%[g] = to_matrix(diag_pre_multiply(PAR_sd_%_, L_corr_PAR_%) * PAR_z_%[g], PAR_size, Z_PAR_ncol_%); //PAR
   if(PRINT == 1){
     print("PRIORS: ");
     print("PAR_fixed_mu "); for(i in 1:PAR_size)print(PAR_fixed_mu[i,]);
     print("PAR_fixed_sd"); for(i in 1:PAR_size)print(PAR_fixed_sd[i,]);
-    print("PAR_sd_scale_% = ", PAR_sd_scale_%); //PAR
+    print("PAR_sd_scale_%"); for(i in 1:PAR_size)print(PAR_sd_scale_%[i,]); //PAR
     print("INITIAL VALUES: ");
     print("PAR_fixed"); for(i in 1:PAR_size)print(PAR_fixed[i,]);
     for(g in 1:group_%_size)print("PAR_z_%[", g, "] = ", PAR_z_%[g]); //PAR
@@ -87,8 +86,8 @@ transformed parameters {
 
 model {
   for(i in 1:PAR_size)for(j in 1:X_PAR_ncol)PAR_fixed[i, j] ~ normal(PAR_fixed_mu[i, j], PAR_fixed_sd[i, j]);
+  for(i in 1:PAR_size)for(j in 1:Z_PAR_ncol_%){ PAR_sd_%[i, j] ~ cauchy(0, PAR_sd_scale_%[i, j]); } //PAR
   L_corr_PAR_% ~ lkj_corr_cholesky(lkj_PAR_nu_%); //PAR
-  for(i in 1:(PAR_size * Z_PAR_ncol_%)){ PAR_sd_%[i] ~ cauchy(0, PAR_sd_scale_%[i]); } //PAR
   for(g in 1:group_%_size){ PAR_z_%[g] ~ normal(0, 1); } //PAR
   for(n in 1:N)
     counts[n] ~ multinomial(multinomial_p[n]);
