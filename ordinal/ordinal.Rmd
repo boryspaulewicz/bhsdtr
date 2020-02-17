@@ -46,8 +46,7 @@ there is more; It also contains some explanations, illustrated with
 annotated code, of several issues related to ordinal models in
 general, and Signal Detection Theory and Item Response Theory in
 particular. If you are interested in SDT, IRT, or ordinal models in
-general, perhaps you will find something useful, new, or even mildly
-provocative here.
+general, perhaps you will find something useful here.
           
 Anyway, it is now possible to fit hierarchical (more than two possible
 values) ordinal regression models in bhsdtr by using order-preserving
@@ -173,16 +172,17 @@ we need to.
 link = 'log_distance'
 ```        
 
-To fit a model we have to aggregate the data (this makes the process
+To fit a model we have to aggregate the data as much as possible
+without distorting the hierarchical structure (this makes the process
 of sampling much faster), create the fixed- and random-effects lists,
 and create the data structures and the model code required by
-stan. Note that here we introduce a new parameter - eta - which
-represents the average internal value. If we are going to model all
-the thresholds (gamma parameter vector) then this parameter is
-redundant, because a constant shift in the thresholds is equivalent to
-the opposite effect in eta. The bhsdtr package will automatically fix
-the first element (here the only element) of the eta fixed effects
-vector at 0.
+stan. Note that we introduce a new parameter - eta - which represents
+the average internal value. If we are going to model all the
+thresholds (gamma parameter vector) then this parameter is redundant,
+because a constant shift in the thresholds is equivalent to the
+opposite effect in eta. The bhsdtr package will automatically fix the
+first element (here the only element) of the eta fixed effects vector
+at 0, which will make this model identifiable.
 
 First, we will fit a model which assumes that the pattern of the
 thresholds is the same for all the participants, but the mean of the
@@ -193,12 +193,10 @@ distribution has a different mean for different participants.
 
 Note that the two assumptions, i.e., that the thresholds are constant
 across participants and latent means or samples are participant-, not
-item-specific seem to be accepted in the great majority of
-applications of Item Response Theory. This is reflected in the IRT
-terminology: thresholds are often called "item-parameters" and latent
-means or samples are often called "person-parameters". Some even say
-that IRT can provide separate estimates of the true item- and
-person-parameters.
+item-specific seem to be often accepted in applications of Item
+Response Theory. This is also reflected in the IRT terminology:
+thresholds are often called "item-parameters" and latent means or
+samples are often called "person-parameters".
 
 ```{r echo=T,results="show"}
 fixed = list(eta = ~ 1, gamma = ~ 1)
@@ -219,8 +217,7 @@ if(fresh_start){
 print(fit, probs = c(.025, .975), pars = c('eta_fixed', 'gamma_fixed'))
 ```           
 
-The neff and Rhat columns look good. Here is how the model fits (this
-is a maximum likelihood fit):
+Here is how the model fits (this is a maximum likelihood fit):
     
 
 ```{r echo=T,results="show"}
@@ -243,10 +240,7 @@ cases, these thresholds-as-"item-parameters" are probably meaningless.
                         
 Now we will introduce the model which accounts for the
 inter-individual differences in the pattern of the thresholds by
-modelling the gamma random effects. We cannot simultaneously model the
-eta random effects in this model, since all the information that can
-be captured by the eta parameter (i.e., the constant shift in the
-thresholds) is already captured by the fixed and the random gamma effects.
+modelling the gamma random effects.
                                         
 ```{r echo=T,results="show"}                
 adata0 = aggregate_responses(d1, response = 'r', variables = c('id'))
@@ -270,20 +264,19 @@ if(fresh_start){
 
 ```{r echo=T,results="show"}              
 print(fit0, probs = c(.025, .975), pars = c('gamma_fixed', 'gamma_sd_1'))
-## neff and Rhat look good
 ```
         
-The neff and Rhat columns look good. Below we translate between the
-gamma and the criteria vectors (fixed effects = sample average):
+Below we translate between the gamma and the criteria vectors (fixed
+effects):
 
 ```{r echo=T,results="show"}                
 s0 = as.data.frame(fit0)
 crit0 = gamma_to_crit(s0, gamma_link = link)
 ```
 
-Are the sample average thesholds different in the two models? Off
-course they are, since the models are non-linear and averaging over
-anything that affects any parameter of such models is a bad idea:
+Are the average thesholds different in the two models? Off course they
+are, since the models are non-linear and averaging over anything that
+affects any parameter of such models is a bad idea:
 
 ```{r echo=T,results="show"}                
 crit_sm = as.data.frame(t(apply(crit, 2, sumfun)))
@@ -306,7 +299,7 @@ with no threshold random effects is such a bad idea?
 Now we will fit a model which is similar to an SDT model, but there
 will be two important differences. We will not assume that the answer
 "signal" cannot be less likely for the stimulus "signal" than for the
-stimulus "noise", i.e., we will not assume that d' must be
+stimulus "noise", i.e., we will not assume that *d'* must be
 non-negative, and we will *not* assume that the pattern of the
 thresholds is the same for "noise" and "signal" stimuli. If you know
 your Signal Detection Theory well, this may seem to you like a
@@ -315,9 +308,10 @@ perverse idea. If that is the case, please bear with me.
 In this model each participant may have two different sets of
 thresholds, one for "noise" and one for "signal" stimuli. Since the
 thresholds are represented as random effects, we will account for the
-fact that "random" thresholds may be correlated, and they are - if
-some threshold is higher (lower) than the sample average, then the
-threshold above (below) it may also be higher (lower).
+fact that "random" thresholds may be correlated; They have to be
+correlated, because if some threshold is higher (lower) than the
+sample average, then the threshold above (below) it may also be higher
+(lower).
 
 Here we introduce the effect of the stimulus on the gamma / thresholds
 vector. We use separate intercepts and slopes parametrization (-1 +
@@ -349,7 +343,6 @@ if(fresh_start){
 }
 ## We will not look at the eta parameter since it was fixed at 0
 print(fit1, probs = c(.025, .975), pars = c('gamma_fixed', 'gamma_sd_1'))
-## neff and Rhat look good
 ```
 
 Now we can translate between the gamma and the criteria vectors (fixed
@@ -378,9 +371,10 @@ round(t(crit2_sm), 2)
 ```
 
 Note the difference between the main criterion (row 4). This
-difference approximates d'. Even though, as we will later see, this
-model does not correctly account for the effect of the stimulus, we can
-still recover this effect pretty well, because d' is equivalent to a
+difference approximates *d'*. Even though, as we will later see, this
+model does not correctly account for the effect of the stimulus
+(because it violates the non-negativity assumption), we can still
+recover this effect pretty well, because *d'* is equivalent to a
 constant shift of all the thresholds in one predefined
 direction. Shifting all the criteria to the right is equivalent to
 shifting the underlying distribution of "latent values" (or evidence)
@@ -397,9 +391,9 @@ We will later see that this is our sample average *d'*, but it also
 isn't.
 
 In an SDT model we assume that the stimulus class affects *only* the
-d' parameter, and that both criteria (gamma) and *d'* may differ
-between the participants (or items, etc.). In bhsdtr d' is modelled as
-log(d') = delta, which forces it to be non-negative. This is an
+*d'* parameter, and that both criteria (gamma) and *d'* may differ
+between the participants (or items, etc.). In bhsdtr *d'* is modelled
+as *log(d') = delta*, which forces it to be non-negative. This is an
 important assumption of Signal Detection Theory - if this assumption
 is violated, for example, because of the response reversal in some
 participants or conditions, then an SDT model is not valid and a
@@ -436,12 +430,11 @@ if(fresh_start){
     fit2 = readRDS('~/windows/temp/ordinal_fit_2.rds')
 }
 print(fit2, probs = c(.025, .975), pars = c('delta_fixed', 'gamma_fixed', 'delta_sd_1', 'gamma_sd_1'))
-## neff and Rhat look good
 ```
         
-So how well do the two d' estimates match? We can translate between
-the delta and the d' parameters by using exponentiation. We have to do
-this first, before doing anything else with the posterior samples,
+So how well do the two *d'* estimates match? We can translate between
+the delta and the *d'* parameters by using exponentiation. We have to
+do this first, before doing anything else with the posterior samples,
 because the exponential function is non-linear.
 
 ```{r echo=T,results="show"}
@@ -473,15 +466,15 @@ ggplot(rbind(dprim1i, dprim2i), aes(i, mean, group = model, color = model)) +
                          cor(dprim1i$mean, dprim2i$mean)))
 ```
         
-The point and interval estimates match quite well, with some
-notable exceptions. According to the ordinal model some credible
-intervals around individual d' point estimates include 0 and one point
+The point and interval estimates match quite well, with some notable
+exceptions. According to the ordinal model some credible intervals
+around individual *d'* point estimates include 0 and one point
 estimate is even below 0, which contradicts an important assumption of
 the SDT model. We will address this issue later.
 
-If the participant-specific d' estimates match, the sample average d'
-should also match, right? Maybe the SDT model does not fit the data
-well?
+If the participant-specific *d'* estimates match, the sample average
+*d'* should also match, right? Maybe the SDT model does not fit the
+data well?
 
 ```{r echo=T,results="show"}   
 plot_sdt_fit(fit2, adata2, c('id'), type = 'response', bw = F, verbose = F)
@@ -507,7 +500,9 @@ dataset. First, let's take a look at participant-specific delta
 estimates in the SDT model:
 
 ```{r echo=T,results="show"}
-ggplot(data.frame(delta = log(dprim2i$mean)), aes(sample = delta)) +
+delta2 = as.data.frame(t(apply(exp(s2[['delta_fixed[1,1]']] +
+                                   s2[, grep('delta_random_1', names(s2))]), 2, sumfun)))
+ggplot(data.frame(delta = delta2), aes(sample = delta)) +
     stat_qq() +
     ylab('Sample quantile of log(d\') = delta random effects') +
     xlab('Theoretical normal quantile') +
@@ -515,11 +510,12 @@ ggplot(data.frame(delta = log(dprim2i$mean)), aes(sample = delta)) +
 ```
         
 The individual *delta = log(d')* estimates in the SDT model seem to be
-approximately normally distributed. We cannot plot log(d') estimates
+approximately normally distributed. We cannot plot *log(d')* estimates
 based on the ordinal model, because according to this model one
-participant has a negative *d'* value. However, we can see if the *d'*
-point estimates based on the ordinal model are approximately normally
-distributed:
+participant has a negative *d'* value and even without this
+participant's data there are quite a few negative posterior *d'*
+samples. However, we can see if the *d'* point estimates based on the
+ordinal model are approximately normally distributed:
 
 ```{r echo=T,results="show"}   
 ggplot(data.frame(dprim = dprim1i$mean), aes(sample = dprim)) +
@@ -533,7 +529,7 @@ They seem to be approximately normally distributed as well. The
 average / fixed effect *d'* in each model is estimated as the mean of
 different distributions: in the ordinal model participant-specific
 shifts are assumed to be normally distributed and in the SDT model
-delta = log(d') random effects are assumed to be normally
+*delta = log(d')* random effects are assumed to be normally
 distributed. We can easily account for this by making use of the
 relationship between the parameters of the normal distribution and the
 associated log-normal distribution:
@@ -574,22 +570,22 @@ were generated after the stimulus was presented, and so,
 theoretically, the *pattern* of the thresholds could be affected by
 the stimulus class as well.
 
-The selectivity assumption is central to Signal Detection Theory. If
-you know your Signal Detection Theory well, please take a moment and
-try to recall one instant of this important assumption being
-explicitly addressed in a paper or a book on Signal Detection Theory.
-           
 It does not matter if an SDT model with selectivity assumption fits
 the data well, because if the effect of the stimulus class is not
 selective, the model is simply false. In particular, when the
 selectivity assumption is false, an SDT model cannot deconfound
 sensitivity / *d'* from bias / threshold / criteria effects.
 
+The selectivity assumption is central to Signal Detection Theory. If
+you know your Signal Detection Theory well, please take a moment and
+try to recall one instant of this important assumption being
+explicitly addressed in a paper or a book on Signal Detection Theory.
+
 Before we go any further, just for fun, let's see what happens if we
 introduce yet another assumption of selective influence, one that is
 often accepted in Item Response Theory. We will fit a hierarchical SDT
-model in which we will call the thresholds "item-parameters" and we
-will call *d'* a "person-parameter".
+model in which we will treat the thresholds as "item-parameters" and
+we will treat the *d'* parameter as a "person-parameter".
 
 ```{r echo=T,results="show"}
 fixed3 = list(delta = ~ 1, gamma = ~ 1)
@@ -610,7 +606,6 @@ if(fresh_start){
     fit3 = readRDS('~/windows/temp/ordinal_fit_3.rds')
 }
 print(fit3, probs = c(.025, .975), pars = c('delta_fixed', 'gamma_fixed', 'delta_sd_1'))
-## neff and Rhat look good
 ```
 
 Does the model fit?
@@ -619,15 +614,16 @@ Does the model fit?
 plot_sdt_fit(fit3, adata3, type = 'response', bw = F, verbose = F)
 ```
 
-At the aggregated data level the fit is not perfect, but it is not
-that terrible either. What about the fit at the individual level?
+At the aggregated data level the fit is not perfect, but maybe it is
+not that terrible either. What about the fit at the individual level?
         
 ```{r echo=T,results="show"}
 plot_sdt_fit(fit3, adata3, 'id', type = 'response', bw = F, verbose = F)
 ```
         
 A few points are outside the predictive intervals, but maybe that's
-ok? What if we compared the point and interval estimates of the so-called "person-parameters"?
+ok? What if we compared the point and interval estimates of the
+so-called "person-parameters"?
 
 ```{r echo=T,results="show"}   
 s3 = as.data.frame(fit3)
@@ -650,16 +646,16 @@ round(mean(dprim3i$hi - dprim3i$lo) / mean(dprim2i$hi - dprim2i$lo), 2)
 ```
 
 ... we see that the simplified model not only gives biased
-"person-parameter" estimates but the estimates seem more reliable than
-they truly are (here by about 20%). It does not make sense to
-look at the estimates of the "item-parameters" since we already know
-that they have little in common with the true thresholds.
+"person-parameter" estimates but the estimates seem more reliable
+(here by about 20%). It does not make sense to look at the estimates
+of the "item-parameters" since we already know that they have little
+in common with the true thresholds.
 
 Now back to Signal Detection Theory and the assumption of selective
 influence. We can at least try to test this assumption. We will not
-alter the ordinal model code to account for the non-negativity of d'
-(and the log-normal distribution of random d' effects) just yet. As we
-already know, even without this correction the estimates of
+alter the ordinal model code to account for the non-negativity of *d'*
+(and the log-normal distribution of random *d'* effects) just yet. As
+we already know, even without this correction the estimates of
 participants' shifts are similar to the *d'* estimates.
 
 Note that we do not use the separate intercepts and slopes
@@ -695,11 +691,10 @@ s4 = as.data.frame(fit4)
 round(cbind(sumfun(-s4[['gamma_fixed[4,2]']]), dprim1), 2)
 ```
 
-Ok, we did simplify things significantly, but it still makes sense to
-take a look at the other gamma effects, because these other effects
-correspond to the variability in the *pattern* of the thresholds, and
-the estimates of the thresholds in our ordinal model seem perfectly
-fine.
+Ok, we did simplify things, but it still makes sense to take a look at
+the other gamma effects, because these other effects correspond to the
+variability in the *pattern* of the thresholds, and the estimates of
+the thresholds in our ordinal model seem perfectly fine.
           
         
 ```{r echo=T,results="show"}   
@@ -723,19 +718,17 @@ the *sample-average* pattern of the thresholds seems to be different
 for the two stimulus classes (gamma_fixed[.,2] except for
 gamma_fixed[4,2] ~ d'), this difference in pattern seems to be fairly
 constant across the participants: all the gamma_sd_1[.,2] parameters
-seem to be near-zero (the 95% credible intervals contain zero), except
-for the gamma_sd_1[4,2] parameter, which corresponds to the
-variability in *d'* values. This is *really* weird, since the pattern
-of the thresholds for the "noise" stimuli clearly varies with
-participants - none of the 95% HPD intervals for the gamma_sd_1[.,1]
-parameters include zero: in terms of standard deviations of posterior
-distributions of standard deviations (phew) most are in fact quite far
-from zero.
+seem to be near-zero, except for the gamma_sd_1[4,2] parameter, which
+corresponds to the variability in *d'* values. This is weird, since
+the pattern of the thresholds for the "noise" stimuli clearly varies
+with participants - none of the 95% HPD intervals for the
+gamma_sd_1[.,1] parameters include zero: in terms of standard
+deviations of posterior distributions of standard deviations (phew)
+most are in fact quite far from zero.
 
-If only we could do a better job and use a model which respects the
-non-negativity assumption. Is it really that complicated? Let's index
-the rows of our dataset by *i*. Because of the way the model was
-parametrized...
+Now we will modify the stan model code to account for the
+non-negativity of *d'*. Let's index the rows of our dataset by
+*i*. Because of the way the model was parametrized...
 
 ```{r echo=T,results="show"}   
 head(sdata4$X_gamma)
@@ -761,8 +754,8 @@ However, when stim = "signal" = 1, gamma[4]_i = gamma_fixed[4,1] +
 gamma_random_1[g][4,1] + gamma_fixed[4,2] + gamma_random_1[g][4,2]. We
 want this other part (the last sum which represents the difference in
 gamma[4] between the "noise" and "signal" stimuli) to represent log of
-average distance between the thresholds = shift = *d'*, so we have to
-subtract it from gamma[4]_i, exponentiate this sum, and add it again
+average distance between the thresholds = log(shift) = log(d'), so we
+have to subtract it from gamma[4]_i, exponentiate this sum, and add it
 to gamma[4]_i.
 
 ```{r echo=T,results="show"}   
@@ -842,9 +835,8 @@ gamma_sd_1[4,2] = log(d'), may be zero - the effect of the stimulus on
 all the log-distances seems to be more or less the same for each
 participant. What is going on here?
 
-Interaction is tricky, you see. For example, if you have an additive
-effect of two factors on the original scale of the dependent
-variable...
+Interaction is tricky. For example, if you have an additive effect of
+two factors on the original scale of the dependent variable...
 
 ```{r echo=T,results="show",fig.asp=.6}   
 df = expand.grid(f1 = 1:2, f2 = 1:2)
@@ -862,19 +854,20 @@ ggplot(df, aes(f1, exp(y), group = f2, color = f2)) + geom_line()
 ```
 
 This means that whenever you see an interactive effect it may be an
-artefact of the scale of the dependent variable! Every time I say it
-it makes me feel uneasy. So, instead of examining the effects in the
-gamma parameters. let's have a look at the average *criteria /
-thresholds*. Notice that we have to add the effect on gamma to gamma
-for stimulus = "noise" to obtain gamma for stimulus = "signal".
+artefact of the scale of the dependent variable. So, instead of
+examining the effects in the gamma parameters. let's have a look at
+the *average criteria / thresholds*. Notice that we have to add the
+effect on gamma to gamma for stimulus = "noise" to obtain gamma for
+stimulus = "signal".
 
 ```{r echo=T,results="show"}   
 crit1 = gamma_to_crit(s5, gamma_link = link)
 crit2 = gamma_to_crit(s5[, grep('gamma_fixed\\[.+,1]', names(s5))] + s5[, grep('gamma_fixed\\[.+,2]', names(s5))], gamma_link = link)
 ```
 
-Now we can directly test if the *pattern* of the criteria may be
+Now we can directly test if the average pattern of the criteria may be
 different by comparing *centered* criteria vectors:
+          
 ```{r echo=T,results="show"}
 round(HPDinterval(as.mcmc((crit2 - apply(crit2, 1, mean)) - (crit1 - apply(crit1, 1, mean)))), 2)
 ```
@@ -882,20 +875,19 @@ round(HPDinterval(as.mcmc((crit2 - apply(crit2, 1, mean)) - (crit1 - apply(crit1
 When we center the criteria for the two classes of stimuli we no
 longer see any evidence of the differences in their relative
 positions. The only thing that seems to differ, and not by much, is
-the main criterion, but this is confounded with *d'* in our model (I
-think). Selectivity seems to hold, kind of.
+the main criterion, but this, I think, is confounded with *d'* in our
+model. Selectivity seems to hold, kind of.
 
-This is how you *begin* to test a hierarchical SDT model. An SDT model
-has other problematic assumptions. One is that the time-accuracy
-tradeoff can be ignored. If participants or conditions differ in the
-response time, then the differences in *d'* may not mean that
-sensitivity is different, because participants may simply take more
-time to respond in certain experimental conditions, which inflates the
-*d'* estimate. You need something like the diffusion model to deal
-with this problem. If you combine the diffusion model with ratings,
-you also need something like a hierarchical diffusion model with
-ratings and an order-preserving link function. Sounds like something
-that could perhaps be implemented in the bhsdtr package in the future.
+This is one way to *begin* to test an SDT model. An SDT model has
+other problematic assumptions. One is that the time-accuracy tradeoff
+can be ignored. If participants or conditions differ in the response
+time, then the differences in *d'* may not mean that sensitivity is
+different, because participants may simply take more time to respond
+in certain experimental conditions, which inflates the *d'*
+estimate. You need something like the diffusion model to deal with
+this problem. If you combine the diffusion model with ratings, you
+also need something like a hierarchical diffusion model with ratings
+and an order-preserving link function.
 
 The other problems that need to be addressed have to do with
 non-linearity and aggregation. If you fit an SDT model, or any other
@@ -905,9 +897,9 @@ well with aggregation, some or all of the point and interval estimates
 will be biased, perhaps severely so, and the inference will be
 invalid. You can see how horribly biased the point *and* interval
 estimates of every SDT parameter may become when you overly aggregate
-your data in the bhsdtr preprint. I am now in the process of examining
-the direction and magnitude of bias in SDT models fitted to
-overly-aggregated data by using the excellent Confidence database
+your data in the bhsdtr preprint. By the way, I am now in the process
+of examining the direction and magnitude of bias in SDT models fitted
+to overly-aggregated data by using the excellent Confidence database
 created by Doby Rahnev.
 
 All this means that every SDT analysis to this day that was done using
@@ -981,7 +973,7 @@ because every shift in the internal value is indistinguishable from a
 uniform effect in the thresholds, i.e., a constant shift of all the
 thresholds. As I hope you already realize, the required additional
 assumptions that make such models identifiable under certain
-conditions are necessarily *causal*.
+conditions are necessarily causal.
 
 In many situations, this is both a statistical and a conceptual
 problem. In particular, when the design is purely observational -
@@ -989,9 +981,9 @@ e.g., questionnaire measurement - without additional causal
 assumptions, the way of describing the process of responding to a
 Likert-type item in terms of internal values and thresholds is simply
 redundant. As far as the design of the study is concerned, all we can
-say about the internal value is that it is relative to the thresholds
-- and the position of each threshold is relative to the positions of
-the remaining thresholds and to the position of the internal
+say about the internal value is that it is relative to the thresholds-
+and the position of each threshold is relative to the positions of the
+remaining thresholds and to the position of the internal
 value. Without the selectivity assumption, to say that John thinks
 that he was not crying at all during the last two weeks and to say
 that *John's* threshold for the response "a few times" is above the
@@ -1004,9 +996,8 @@ perhaps assume that it can *only* produce a uniform effect in the
 thresholds, such as the stimulus class ("noise" or "signal") in a
 binary classification task, which can *perhaps* be assumed to induce a
 change (*d'*) in the internal value only; In such cases the internal
-value parameter may be justified and useful because it does constrain
-the model. We have obtained evidence that this assumption perhaps
-holds for the analyzed dataset.
+value parameter may be justified and useful. We have obtained evidence
+that this assumption perhaps holds for the analyzed dataset.
 
 Notice that an SDT model is just an Item Response Theory model with
 the cumulative distribution and a non-negative effect of the stimulus
@@ -1028,26 +1019,25 @@ causal assumptions it is impossible to distinguish between genuine
 internal value effects and (dis)simulation (i.e., faking), which
 conceptually corresponds to the change in the *participant*-specific,
 not item-specific, decision thresholds, also known as
-"item-parameters". There is nothing in the *design* of the process of
-measurement by a questionnaire that makes it possible to distinguish
-genuine differences in internal values from the differences in the way
-of responding.
+"item-parameters".
 
-Because of random assignment of the stimulus class above chance
-performance in a binary classification task cannot be faked, and so
-the *d'* parameter definitely captures at least part of the effect of
-the stimulus on the internal value. On the other hand, every possible
-pattern of responses to a questionnaire can be faked. The only way to
-distinguish the "item" and "person" effects is to *assume selective
-influence*, i.e., that there is some factor f (such as the stimulus
-class in a binary classification task, or, in case of a depression
-questionnaire, participants trait, or a therapeutic intervention)
-which can *only* affect the internal value, thus producing a
-*constant* shift in the thresholds. The assumption of selective
-influence makes the model with the two kinds of parameters
-identifiable if there are repeated measurements for at least one
-participant and one item or many participants provide single responses
-to all of the items.
+There is nothing in the *design* of the process of measurement by a
+questionnaire that makes it possible to distinguish genuine
+differences in internal values from the differences in the way of
+responding. Because of random assignment of the stimulus class above
+chance performance in a binary classification task cannot be faked,
+and so the *d'* parameter definitely captures at least part of the
+effect of the stimulus on the internal value. On the other hand, every
+possible pattern of responses to a questionnaire can be faked.
+
+The only way to (perhaps incorrectly) separate the "item" and "person"
+effects is to *assume selective influence*, i.e., that there is some
+factor f (such as the stimulus class in a binary classification task,
+or, in case of a depression questionnaire, participants trait, or a
+therapeutic intervention) which can only affect the internal value,
+thus producing a constant shift in the thresholds. The assumption of
+selective influence makes the model with the two kinds of parameters
+identifiable.
 
 In the context of Item Response Theory the issue of measurement
 non-invariance due to the variability in the "item-parameters" is
@@ -1060,34 +1050,35 @@ participants are compared. However, these estimates are obtained by
 *fixing the "item-parameters" within each sample*.
 
 If we campared the estimates of the main decision criterion (i.e.,
-bias) in SDT models fitted to two different large samples of
+bias) in SDT models fitted to two different large *samples* of
 participants the difference would likely be negligible with very
-narrow confidence / credible intervals. By the same token, instability
-of item parameters in IRT models cannot be estimated by assuming
-selective influence and comparing estimates of "item-parameters"
-obtained in two different large samples, because large-sample average
-estimates of item parameters are the best way to *hide or misplace*
-(it becomes part of the variability in the "person-parameters") the
-intra- or inter-individual variability in item parameters; By assuming
-that internal values are participant-specific and item parameters are
-item-specific we force the estimates of item parameters to become
-estimates of average person-specific thresholds. This not only begs
-the question, but also, because the model is non-linear, makes the
-estimates of item-parameters *asymptotically biased*.
-        
-It does not take much thought to see that the assumption of constant
+narrow confidence / credible intervals, even though *individual
+participants* clearly differ in how they use the main decision
+criterion. By the same token, instability of item parameters in IRT
+models cannot be estimated by assuming selective influence and
+comparing estimates of "item-parameters" obtained in two different
+large samples, because sample average estimates of item-parameters
+*hide or misplace* (overdispersion) the intra- or inter-individual
+variability in item parameters.
+
+By assuming that internal values are participant-specific and item
+parameters are item-specific we force the estimates of item parameters
+to become estimates of average person-specific thresholds. This not
+only begs the question, but also, because the model is non-linear,
+makes the estimates of item-parameters *asymptotically biased*. It
+does not take much thought to see that the assumption of constant
 "item-parameters" at the group / sample / population level is utterly
 unrealistic. It follows that the achievement of separating participant
 and item effects in IRT models is often not an achievement at all, it
 is just wishful thinking.
 
-The justification of the selective influence assumption comes from a
-psychological theory of the task, not from the design of the
+The primary justification of the selective influence assumption comes
+from a psychological theory of the task, not from the design of the
 study. All that is guaranteed by randomly assigning the stimulus class
 (i.e., by choosing the stimulus class at random on every trial) is
 that any statistical effect of the stimulus class is an unbiased
 estimate of the total causal effect of the stimulus class. To
-empirically justify the assumption of *selective* influence of the
+*empirically* justify the assumption of *selective* influence of the
 stimulus class on the internal evidence value we have to *test* if the
 stimulus class does not also affect the thresholds.
 
