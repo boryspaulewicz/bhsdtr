@@ -1173,7 +1173,11 @@ Griffiths, etc) seem to be promising starting points, as does the
 Reinforcement Learning framework (Sutton and Barto) in which, to my
 knowledge, the first promising weak (a good thing), formal definition
 of purposeful action (i.e., of behavior) was proposed, inspired by the
-writings of Tolman and Perry.
+writings of Tolman and Perry. There were times when saw that the
+number of free parameters prevents us from answering certain valid and
+important questions. By identifying the limits of optimal purposeful
+action, this kind of analysis may sometimes significantly lower the
+number of free parameters in the models of psychological processes.
 
 It is no accident that the internal values are often called "evidence
 samples" in Signal Detection Theory, or that the main criterion is
