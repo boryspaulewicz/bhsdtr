@@ -1,4 +1,4 @@
-# This package is still in the active development stage
+# This package is in the stage of active development
 
 # NEWS 2020 02 17
 
