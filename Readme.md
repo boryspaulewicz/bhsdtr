@@ -1,10 +1,10 @@
-# !THIS PACKAGE IS STILL IN THE EARLY ACTIVE DEVELOPMENT STAGE!
+# This package is still in the active development stage
 
-# NEWS 2020 02 10
+# NEWS 2020 02 17
 
-[Here](ordinal/) is a tutorial on hierarchical ordinal polytomous
-models in bhsdtr, with an emphasis on SDT models (and a rant about
-Item Response Theory).
+[Here](ordinal/Readme.md) is a tutorial on hierarchical ordinal
+polytomous models in bhsdtr, with an emphasis on SDT models (and a
+rant about Item Response Theory).
 
 # NEWS 2020 02 10
 
@@ -22,7 +22,7 @@ models. Remember that appropriate link function has to be specified
 when converting between the gamma and the criteria parameters using
 the gamma_to_crit function.
 
-# Major NEWS (and a WARNING)
+# NEWS (and a warning)
 
 The bhsdtr package now handles hierarchical or non-hierarchical Equal
 Variance Normal SDT models, Unequal Variance Normal SDT models, and
