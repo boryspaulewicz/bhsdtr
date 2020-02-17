@@ -1,4 +1,4 @@
-This document lacks the necessary references.
+
 
 # Hierarchical ordinal regression models in bhsdtr
 
