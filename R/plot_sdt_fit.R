@@ -21,7 +21,7 @@
 #'     of the response distribution plot will be created.
 #' @return a plot object.
 #' @export
-plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05, bw = TRUE){
+plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05, bw = TRUE, verbose = T){
     s = as.data.frame(fit)
     rm(fit)
     cnt_new = t(s[,grep('counts_new', names(s))])
@@ -50,13 +50,13 @@ plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05,
     }
     dfa = stats::aggregate(df[[cnt]] ~ df[[resp]] + df[[stim]] + f, FUN = sum)
     cnt_new_a = matrix(nrow = ncol(cnt_new), ncol = nrow(dfa))
-    pb = utils::txtProgressBar(min = 1, max = ncol(cnt_new), style = 3)
-    print('Aggregating posterior samples...')
+    if(verbose)pb = utils::txtProgressBar(min = 1, max = ncol(cnt_new), style = 3)
+    if(verbose)print('Aggregating posterior samples...')
     for(r in 1:ncol(cnt_new)){
         cnt_new_a[r,] = stats::aggregate(cnt_new[,r] ~ df[[resp]] + df[[stim]] + f, FUN = sum)[[4]]
-        utils::setTxtProgressBar(pb, r)
+        if(verbose)utils::setTxtProgressBar(pb, r)
     }
-    close(pb)
+    if(verbose)close(pb)
     rm(cnt_new)
     names(dfa) = c('response', 'stimulus', 'f', 'count')
     dfa$stimulus = as.factor(dfa$stimulus)
@@ -98,6 +98,7 @@ plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05,
         dfa[,c('count.lo', 'count.hi', 'count.fit')] = cbind(apply(cnt_new_a, 2, function(x)stats::quantile(x, alpha / 2)),
                                                              apply(cnt_new_a, 2, function(x)stats::quantile(x, 1 - alpha / 2)),
                                                              apply(cnt_new_a, 2, mean))
+        dfa$response = dfa$response + (as.numeric(dfa$stimulus) - 1.5) / 4
         if(bw){
             ggplot(dfa, aes(response, count / n), group = stimulus) +
                 geom_errorbar(aes(ymin = count.lo / n, ymax = count.hi / n, lty = stimulus), width = 0.2) +
@@ -107,10 +108,10 @@ plot_sdt_fit = function(fit, adata, variables = NULL, type = 'roc', alpha = .05,
                 facet_wrap(~f) + theme_minimalist()
         }else{
             ggplot(dfa, aes(response, count / n, color = stimulus), group = stimulus) +
-                geom_errorbar(aes(ymin = count.lo / n, ymax = count.hi / n, lty = stimulus), width = 0.2) +
-                geom_line(aes(y = count.fit / n, lty = stimulus)) +
+                geom_errorbar(aes(ymin = count.lo / n, ymax = count.hi / n), width = 0.2) +
+                geom_line(aes(y = count.fit / n)) +
                 geom_point(aes(pch = stimulus)) +
-                labs(x = 'Response', y = 'Frequency', color = 'Stimulus', pch = 'Stimulus', lty = 'Stimulus') +
+                labs(x = 'Response', y = 'Frequency', color = 'Stimulus', pch = 'Stimulus') +
                 facet_wrap(~f)
         }
     }
