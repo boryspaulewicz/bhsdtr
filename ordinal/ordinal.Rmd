@@ -1,7 +1,13 @@
+---
+title: "Ordinal bhsdtr tutorial"
+output:
+  md_document:
+    variant: markdown_github
+---
 ```{r init, include=F,echo=F}
 knitr::opts_chunk$set(dev = 'svg', comment = NA, fig.path='Figs/',fig.width=8, fig.height=6,
                       echo=TRUE, warning = FALSE, error = FALSE, message = FALSE,
-                      cache.path = '~/windows/temp/ordinal', cache=T)
+                      cache.path = '~/windows/temp/ordinal/', cache=T)
 
 sdt_ml_plot = function(model, adata, sdata){
     sdt = !is.null(adata$stimulus)
@@ -1097,6 +1103,6 @@ be more stable.
 
 The thresholds are determined by the items, by the properties of the
 participants, and by the context in which the measurement takes
-place. The assumption that important latent aspects of the process of
-psychological measurement are constant across participants is so
+place. The assumption that an important latent aspect of the process
+of psychological measurement is constant across participants is so
 ridiculous it should be laughed at on the street.
