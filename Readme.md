@@ -2,6 +2,12 @@
 
 # NEWS 2020 02 10
 
+[Here](ordinal/) is a tutorial on hierarchical ordinal polytomous
+models in bhsdtr, with an emphasis on SDT models (and a rant about
+Item Response Theory).
+
+# NEWS 2020 02 10
+
 The bhsdtr package now handles hierarchical or non-hierarchical
 versions of Selker, van den Bergh, Criss, and Wagenmakers's
 parsimonious SDT model (see this
