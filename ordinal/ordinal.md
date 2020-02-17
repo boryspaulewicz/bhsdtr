@@ -1422,9 +1422,9 @@ e.g., questionnaire measurement - without additional causal
 assumptions, the way of describing the process of responding to a
 Likert-type item in terms of internal values and thresholds is simply
 redundant. As far as the design of the study is concerned, all we can
-say about the internal value is that it is relative to the thresholds
-- and the position of each threshold is relative to the positions of
-the remaining thresholds and to the position of the internal
+say about the internal value is that it is relative to the thresholds-
+and the position of each threshold is relative to the positions of the
+remaining thresholds and to the position of the internal
 value. Without the selectivity assumption, to say that John thinks
 that he was not crying at all during the last two weeks and to say
 that *John's* threshold for the response "a few times" is above the
