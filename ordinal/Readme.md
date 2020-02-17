@@ -272,7 +272,7 @@ print(fit1, probs = c(.025, .975), pars = c('gamma_fixed', 'gamma_sd_1'))
     and Rhat is the potential scale reduction factor on split chains (at 
     convergence, Rhat=1).
 
-Now we can translate between the gamma and the criteria vectors (fixed effects = sample average) for each stimulus:
+Now we can translate between the gamma and the criteria vectors (fixed effects) for each stimulus:
 
 ``` r
 s1 = as.data.frame(fit1)
@@ -323,7 +323,7 @@ round(dprim1, 2)
      2.5%       97.5% 
      0.95  1.31  1.68 
 
-We will later see that this is our sample average *d'*, but it also isn't.
+We will later see that this is our average *d'*, but it also isn't.
 
 In an SDT model we assume that the stimulus class affects *only* the *d'* parameter, and that both criteria (gamma) and *d'* may differ between the participants (or items, etc.). In bhsdtr *d'* is modelled as *log(d') = delta*, which forces it to be non-negative. This is an important assumption of Signal Detection Theory - if this assumption is violated, for example, because of the response reversal in some participants or conditions, then an SDT model is not valid and a non-trivial generalization of SDT should be used instead (see the bhsdtr preprint for a more detailed explanation and some references). Otherwise, this is the same general hierarchical ordinal regression model.
 
@@ -419,7 +419,7 @@ ggplot(rbind(dprim1i, dprim2i), aes(i, mean, group = model, color = model)) +
 
 The point and interval estimates match quite well, with some notable exceptions. According to the ordinal model some credible intervals around individual *d'* point estimates include 0 and one point estimate is even below 0, which contradicts an important assumption of the SDT model. We will address this issue later.
 
-If the participant-specific *d'* estimates match, the sample average *d'* should also match, right? Maybe the SDT model does not fit the data well?
+If the participant-specific *d'* estimates match, the average *d'* should also match, right? Maybe the SDT model does not fit the data well?
 
 ``` r
 plot_sdt_fit(fit2, adata2, c('id'), type = 'response', bw = F, verbose = F)
@@ -429,7 +429,7 @@ plot_sdt_fit(fit2, adata2, c('id'), type = 'response', bw = F, verbose = F)
 
 The SDT model seems to fit very well in a sense that the observed distributions of responses are well within the 95% posterior predictive intervals for each participant. However, this does not mean much; an SDT model with multiple criteria is not saturated, so it does not have to fit the data, but it does not leave too many degrees of freedom in the data, so we can safely assume a priori that it will usually fit the data well, regardless if it is true or not.
 
-The discrepancy between the sample average *d'* estimates from both models is not really a consequence of allowing for negative *d'* values in the ordinal model. This discrepancy is a consequence of the assumed distribution of individual shifts / *d'* values. In the ordinal model we assumed that the shifts (*= d'*) are normally distributed, whereas in the SDT model we assumed that *log(d')* are normally distributed. We can see if the assumption that *log(d')* (or *d'*) are normally distributed is approximately correct in our dataset. First, let's take a look at participant-specific delta estimates in the SDT model:
+The discrepancy between the average *d'* estimates from both models is not really a consequence of allowing for negative *d'* values in the ordinal model. This discrepancy is a consequence of the assumed distribution of individual shifts / *d'* values. In the ordinal model we assumed that the shifts (*= d'*) are normally distributed, whereas in the SDT model we assumed that *log(d')* are normally distributed. We can see if the assumption that *log(d')* (or *d'*) are normally distributed is approximately correct in our dataset. First, let's take a look at participant-specific delta estimates in the SDT model:
 
 ``` r
 delta2 = apply(s2[['delta_fixed[1,1]']] + s2[, grep('delta_random_1', names(s2))], 2, mean)
@@ -466,7 +466,7 @@ round(cbind(sumfun(exp(s2[['delta_sd_1[1,1]']]^2 / 2 + s2[['delta_fixed[1,1]']])
           1.27   1.31
     97.5% 1.89   1.68
 
-Now we see that the two models give very similar point and interval estimates of sample-average *d'*.
+Now we see that the two models give very similar point and interval estimates of average *d'*.
 
 To summarize, the SDT model is much simpler (it has only one set of thresholds for each participant), it fits the data well at the individual level, and it correctly assumes that the individual *d'* / shift values are log-normally distributed. SDT is a clear winner, right? Not yet it isn't.
 
@@ -685,7 +685,7 @@ round(HPDinterval(as.mcmc(s4[, grep('gamma_sd_1', names(s4))])), 2)
     attr(,"Probability")
     [1] 0.95
 
-Note the clear pattern for the gamma\_sd\_1\[.,2\] parameters. Even though the *sample-average* pattern of the thresholds seems to be different for the two stimulus classes (gamma\_fixed\[.,2\] except for gamma\_fixed\[4,2\] ~ d'), this difference in pattern seems to be fairly constant across the participants: all the gamma\_sd\_1\[.,2\] parameters seem to be near-zero, except for the gamma\_sd\_1\[4,2\] parameter, which corresponds to the variability in *d'* values. This is weird, since the pattern of the thresholds for the "noise" stimuli clearly varies with participants - none of the 95% HPD intervals for the gamma\_sd\_1\[.,1\] parameters include zero: in terms of standard deviations of posterior distributions of standard deviations (phew) most are in fact quite far from zero.
+Note the clear pattern for the gamma\_sd\_1\[.,2\] parameters. Even though the *average* pattern of the thresholds seems to be different for the two stimulus classes (gamma\_fixed\[.,2\] except for gamma\_fixed\[4,2\] ~ d'), this difference in pattern seems to be fairly constant across the participants: all the gamma\_sd\_1\[.,2\] parameters seem to be near-zero, except for the gamma\_sd\_1\[4,2\] parameter, which corresponds to the variability in *d'* values. This is weird, since the pattern of the thresholds for the "noise" stimuli clearly varies with participants - none of the 95% HPD intervals for the gamma\_sd\_1\[.,1\] parameters include zero: in terms of standard deviations of posterior distributions of standard deviations (phew) most are in fact quite far from zero.
 
 Now we will modify the stan model code to account for the non-negativity of *d'*. Let's index the rows of our dataset by *i*. Because of the way the model was parametrized...
 
@@ -943,7 +943,7 @@ The only way to (perhaps incorrectly) separate the "item" and "person" effects i
 
 In the context of Item Response Theory the issue of measurement non-invariance due to the variability in the "item-parameters" is often reduced to the problem of Differential Item Functioning (DIF). However, the variability in "item-parameters" that I talk about here has nothing to do with DIF, because DIF is a *population* level effect; An estimate of DIF is obtained when the estimates of "item-parameters" obtained for two different (often large) samples of participants are compared. However, these estimates are obtained by *fixing the "item-parameters" within each sample*.
 
-If we campared the estimates of the main decision criterion (i.e., bias) in SDT models fitted to two different large *samples* of participants the difference would likely be negligible with very narrow confidence / credible intervals, even though *individual participants* clearly differ in how they use the main decision criterion. By the same token, instability of item parameters in IRT models cannot be estimated by assuming selective influence and comparing estimates of "item-parameters" obtained in two different large samples, because sample average estimates of item-parameters *hide or misplace* (overdispersion) the intra- or inter-individual variability in item parameters.
+If we campared the estimates of the main decision criterion (i.e., bias) in SDT models fitted to two different large *samples* of participants the difference would likely be negligible with very narrow confidence / credible intervals, even though *individual participants* clearly differ in how they use the main decision criterion. By the same token, instability of item parameters in IRT models cannot be estimated by assuming selective influence and comparing estimates of "item-parameters" obtained in two different large samples, because estimates of sample average item-parameters *hide or misplace* (overdispersion) the intra- or inter-individual variability in item parameters.
 
 By assuming that internal values are participant-specific and item parameters are item-specific we force the estimates of item parameters to become estimates of average person-specific thresholds. This not only begs the question, but also, because the model is non-linear, makes the estimates of item-parameters *asymptotically biased*. It does not take much thought to see that the assumption of constant "item-parameters" at the group / sample / population level is utterly unrealistic. It follows that the achievement of separating participant and item effects in IRT models is often not an achievement at all, it is just wishful thinking.
 
