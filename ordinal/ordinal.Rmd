@@ -500,8 +500,7 @@ dataset. First, let's take a look at participant-specific delta
 estimates in the SDT model:
 
 ```{r echo=T,results="show"}
-delta2 = as.data.frame(t(apply(exp(s2[['delta_fixed[1,1]']] +
-                                   s2[, grep('delta_random_1', names(s2))]), 2, sumfun)))
+delta2 = apply(s2[['delta_fixed[1,1]']] + s2[, grep('delta_random_1', names(s2))], 2, mean)
 ggplot(data.frame(delta = delta2), aes(sample = delta)) +
     stat_qq() +
     ylab('Sample quantile of log(d\') = delta random effects') +
