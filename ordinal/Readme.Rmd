@@ -928,8 +928,8 @@ with non-linearity and aggregation. If you fit an SDT model, or any
 other non-linear model, to data aggregated over grouping factors, such
 as participants or items, because of non-linearity, which does not
 play well with aggregation, some or all of the point and interval
-estimates may be biased, perhaps severely so, and the inference will
-be invalid. You can see how horribly biased the point *and* interval
+estimates may be biased, perhaps severely so, and the inference may be
+invalid. You can see how horribly biased the point *and* interval
 estimates of every SDT parameter may become when you overly aggregate
 your data in the bhsdtr preprint. By the way, I am now in the process
 of examining the direction and magnitude of bias in SDT models fitted
