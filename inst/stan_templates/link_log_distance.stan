@@ -5,6 +5,4 @@ if(K > 2){
     criteria[Kb2 - k] = criteria[Kb2 - k + 1] - exp(gamma[Kb2 - k]);
   for(k in (Kb2 + 1):(K - 1))
     criteria[k] = criteria[k - 1] + exp(gamma[k]);
- }else{
-  criteria[2] = criteria[1] + exp(gamma[2]);
  }
