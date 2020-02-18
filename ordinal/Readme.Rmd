@@ -1004,14 +1004,15 @@ instability of the decision criteria. This variability is certainly
 there, the question is if it is non-negligible, and if so, what can be
 done about it.
 
-Unfortunately, without additional assumptions, it is impossible to
-model both kinds of variability at the same time even in the
-hypothetical repeated-measurement-with-memory-wipeout-scenario,
-because every shift in the internal value is indistinguishable from a
-uniform effect in the thresholds, i.e., a constant shift of all the
-thresholds. As I hope you already realize, the required additional
-assumptions that make such models identifiable under certain
-conditions are necessarily causal.
+Unfortunately, without additional assumptions (e.g., additivity of
+item and participant effects), it is impossible to model both kinds of
+variability at the same time even in the hypothetical
+repeated-measurement-with-memory-wipeout-scenario, because every shift
+in the internal value is indistinguishable from a uniform effect in
+the thresholds, i.e., a constant shift of all the thresholds. As I
+hope you already realize, the required additional assumptions that
+make such models identifiable under certain conditions are necessarily
+causal.
 
 In many situations, this is both a statistical and a conceptual
 problem. In particular, when the design is purely observational -
