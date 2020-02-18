@@ -1154,7 +1154,7 @@ of the stimulus.
 
 The meaning is different, because an arbitrary device is not yet an
 autonomous purposeful agent. In particular, the sense in which an
-arbitrary device "does" something i different than the sense in which
+arbitrary device "does" something is different than the sense in which
 a participant does something. To be a bit more precise, an arbitrary
 device does not *try* to do something, it just so happens that it was
 designed by an autonomous purposeful agent (one of us) to solve the
@@ -1173,7 +1173,7 @@ Griffiths, etc) seem to be promising starting points, as does the
 Reinforcement Learning framework (Sutton and Barto) in which, to my
 knowledge, the first promising weak (a good thing), formal definition
 of purposeful action (i.e., of behavior) was proposed, inspired by the
-writings of Tolman and Perry. There were times when saw that the
+writings of Tolman and Perry. There were times when we saw that the
 number of free parameters prevents us from answering certain valid and
 important questions. By identifying the limits of optimal purposeful
 action, this kind of analysis may sometimes significantly lower the
