@@ -403,8 +403,9 @@ non-negative. This is an important assumption of Signal Detection
 Theory - if this assumption is violated, for example, because of the
 response reversal in some participants or conditions, then an SDT
 model is not valid and a non-trivial generalization of SDT should be
-used instead (see the bhsdtr preprint for a more detailed explanation
-and some references).
+used instead (see the bhsdtr
+[preprint](http://dx.doi.org/10.23668/psycharchives.2725) for a more
+detailed explanation and some references).
 
 ```{r echo=T,results="show"}   
 ## We want one average d' / delta and one vector of average
@@ -848,9 +849,11 @@ parameters while still respecting the SDT assumptions (thanks to an
 order-preserving gamma link function and the delta log link function
 which respects the non-negativity assumption), and accounts for the
 correlations between the random effects. First such model was
-described in the bhsdtr preprint. This model, however, does not assume
-that the stimulus class affects only the *d'* parameter. We can now
-again see if there is any evidence of non-selectivity:
+described in the bhsdtr
+[preprint](http://dx.doi.org/10.23668/psycharchives.2725). This model,
+however, does not assume that the stimulus class affects only the *d'*
+parameter. We can now again see if there is any evidence of
+non-selectivity:
 
 ```{r echo=T,results="show"}   
 round(HPDinterval(as.mcmc(s5[, grep('gamma_fixed', names(s5))])), 2)
@@ -931,10 +934,11 @@ play well with aggregation, some or all of the point and interval
 estimates may be biased, perhaps severely so, and the inference may be
 invalid. You can see how horribly biased the point *and* interval
 estimates of every SDT parameter may become when you overly aggregate
-your data in the bhsdtr preprint. By the way, I am now in the process
-of examining the direction and magnitude of bias in SDT models fitted
-to overly-aggregated data by using the excellent Confidence database
-created by Doby Rahnev.
+your data in the bhsdtr
+[preprint](http://dx.doi.org/10.23668/psycharchives.2725). By the way,
+I am now in the process of examining the direction and magnitude of
+bias in SDT models fitted to overly-aggregated data by using the
+excellent Confidence database created by Doby Rahnev.
 
 All this means that every SDT analysis to this day that was done using
 data aggregated over participants is invalid. In particular, to my
