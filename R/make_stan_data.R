@@ -152,7 +152,7 @@
 #' sdata = make_stan_data(adata, fixed, random)
 #' sdata
 #' @export
-make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gamma_link = 'softmax', model = 'sdt'){
+make_stan_data = function(adata, fixed, random = list(), criteria_scale = 2, gamma_link = 'softmax', model = 'sdt', delta_link = 'log'){
     sf = sprintf
     check_fixed(fixed)
     check_random(random)

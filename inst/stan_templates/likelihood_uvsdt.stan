@@ -1,5 +1,4 @@
-// UVSDT likelihood
-dprim = exp(delta); //link-delta
+// uvsdt likelihood
 shift = -0.5 * (stim_sign[n] * dprim[1]);
 if(stim_sign[n] > 0){
   sd_ratio = exp(theta[1]); //link-theta
@@ -12,4 +11,4 @@ multinomial_cum[1] = 0;
 multinomial_cum[K + 1] = 1;
 for(k in 1:K)
   multinomial_p[n, k] = multinomial_cum[k + 1] - multinomial_cum[k];
-// UVSDT likelihood end
+// uvsdt likelihood end

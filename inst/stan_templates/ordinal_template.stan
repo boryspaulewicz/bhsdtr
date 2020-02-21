@@ -23,30 +23,31 @@ data {
   row_vector[X_PAR_ncol] X_PAR[N];
   matrix[PAR_size, X_PAR_ncol] PAR_is_fixed;
   matrix[PAR_size, X_PAR_ncol] PAR_fixed_value;
-  int<lower=1> group_%_size; //common
-  int<lower=1,upper=group_%_size> group_%[N]; //common
-  int<lower=1> Z_PAR_ncol_%; //PAR
-  row_vector[Z_PAR_ncol_%] Z_PAR_%[N]; //PAR
+  int<lower=1> group_%_size; //random-common
+  int<lower=1,upper=group_%_size> group_%[N]; //random-common
+  int<lower=1> Z_PAR_ncol_%; //random-PAR
+  row_vector[Z_PAR_ncol_%] Z_PAR_%[N]; //random-PAR
   // Priors
   matrix[PAR_size, X_PAR_ncol] PAR_fixed_mu;
   row_vector<lower=0>[X_PAR_ncol] PAR_fixed_sd[PAR_size];
-  real<lower=1> lkj_PAR_nu_%; //PAR
-  row_vector<lower=0>[Z_PAR_ncol_%] PAR_sd_scale_%[PAR_size]; //PAR
+  real<lower=1> lkj_PAR_nu_%; //random-PAR
+  row_vector<lower=0>[Z_PAR_ncol_%] PAR_sd_scale_%[PAR_size]; //random-PAR
 }
 
 parameters {
   matrix[PAR_size, X_PAR_ncol] PAR_fixed;
-  cholesky_factor_corr[PAR_size * Z_PAR_ncol_%] L_corr_PAR_%; //PAR
-  row_vector<lower=0>[Z_PAR_ncol_%] PAR_sd_%[PAR_size]; //PAR
-  vector[PAR_size * Z_PAR_ncol_%] PAR_z_%[group_%_size]; //PAR
+  cholesky_factor_corr[PAR_size * Z_PAR_ncol_%] L_corr_PAR_%; //random-PAR
+  row_vector<lower=0>[Z_PAR_ncol_%] PAR_sd_%[PAR_size]; //random-PAR
+  vector[PAR_size * Z_PAR_ncol_%] PAR_z_%[group_%_size]; //random-PAR
 }
 
 transformed parameters {
   matrix[PAR_size, X_PAR_ncol] PAR_fixed_;
-  matrix[PAR_size, Z_PAR_ncol_%] PAR_random_%[group_%_size]; //PAR
+  matrix[PAR_size, Z_PAR_ncol_%] PAR_random_%[group_%_size]; //random-PAR
   // vectorized matrix of random effects' standard deviations
-  vector<lower=0>[PAR_size * Z_PAR_ncol_%] PAR_sd_%_; //PAR
-  matrix[PAR_size * Z_PAR_ncol_%, PAR_size * Z_PAR_ncol_%] Corr_PAR_%; //PAR
+  vector<lower=0>[PAR_size * Z_PAR_ncol_%] PAR_sd_%_; //random-PAR
+
+  matrix[PAR_size * Z_PAR_ncol_%, PAR_size * Z_PAR_ncol_%] Corr_PAR_%; //random-PAR
   vector[PAR_size] PAR;
   vector[K - 1] criteria;
   vector[K + 1] multinomial_cum;
@@ -60,35 +61,37 @@ transformed parameters {
   vector[2] normalization;
   // fixing fixed effects if requested
   for(i in 1:PAR_size)for(j in 1:X_PAR_ncol)if(PAR_is_fixed[i, j] == 1){ PAR_fixed_[i, j] = PAR_fixed_value[i, j]; }else{ PAR_fixed_[i, j] = PAR_fixed[i, j]; }
-  Corr_PAR_% = L_corr_PAR_% * L_corr_PAR_%'; //PAR
+  Corr_PAR_% = L_corr_PAR_% * L_corr_PAR_%'; //random-PAR
   // vectorization of random effects' sd matrices
-  for(i in 1:PAR_size)for(j in 1:Z_PAR_ncol_%)PAR_sd_%_[i + (j - 1) * PAR_size] = PAR_sd_%[i, j]; //PAR
-  for(g in 1:group_%_size)PAR_random_%[g] = to_matrix(diag_pre_multiply(PAR_sd_%_, L_corr_PAR_%) * PAR_z_%[g], PAR_size, Z_PAR_ncol_%); //PAR
+  for(i in 1:PAR_size)for(j in 1:Z_PAR_ncol_%)PAR_sd_%_[i + (j - 1) * PAR_size] = PAR_sd_%[i, j]; //random-PAR
+  for(g in 1:group_%_size)PAR_random_%[g] = to_matrix(diag_pre_multiply(PAR_sd_%_, L_corr_PAR_%) * PAR_z_%[g], PAR_size, Z_PAR_ncol_%); //random-PAR
   if(PRINT == 1){
     print("PRIORS: ");
     print("PAR_fixed_mu "); for(i in 1:PAR_size)print(PAR_fixed_mu[i,]);
     print("PAR_fixed_sd"); for(i in 1:PAR_size)print(PAR_fixed_sd[i,]);
-    print("PAR_sd_scale_%"); for(i in 1:PAR_size)print(PAR_sd_scale_%[i,]); //PAR
+    print("PAR_sd_scale_%"); for(i in 1:PAR_size)print(PAR_sd_scale_%[i,]); //random-PAR
     print("INITIAL VALUES: ");
     print("PAR_fixed"); for(i in 1:PAR_size)print(PAR_fixed[i,]);
-    for(g in 1:group_%_size)print("PAR_z_%[", g, "] = ", PAR_z_%[g]); //PAR
-    print("PAR_sd_% = ", PAR_sd_%); //PAR
+    for(g in 1:group_%_size)print("PAR_z_%[", g, "] = ", PAR_z_%[g]); //random-PAR
+    print("PAR_sd_% = ", PAR_sd_%); //random-PAR
   }
   for(n in 1:N){
     PAR = PAR_fixed_ * X_PAR[n]';
-    PAR = PAR + PAR_random_%[group_%[n]] * Z_PAR_%[n]';  //PAR
+    PAR = PAR + PAR_random_%[group_%[n]] * Z_PAR_%[n]';  //random-PAR
 
-    //link-gamma
-
+    //delta-link
+    
+    //gamma-link
+    
     //likelihood
   }
 }
 
 model {
   for(i in 1:PAR_size)for(j in 1:X_PAR_ncol)PAR_fixed[i, j] ~ normal(PAR_fixed_mu[i, j], PAR_fixed_sd[i, j]);
-  for(i in 1:PAR_size)for(j in 1:Z_PAR_ncol_%){ PAR_sd_%[i, j] ~ cauchy(0, PAR_sd_scale_%[i, j]); } //PAR
-  L_corr_PAR_% ~ lkj_corr_cholesky(lkj_PAR_nu_%); //PAR
-  for(g in 1:group_%_size){ PAR_z_%[g] ~ normal(0, 1); } //PAR
+  for(i in 1:PAR_size)for(j in 1:Z_PAR_ncol_%){ PAR_sd_%[i, j] ~ cauchy(0, PAR_sd_scale_%[i, j]); } //random-PAR
+  L_corr_PAR_% ~ lkj_corr_cholesky(lkj_PAR_nu_%); //random-PAR
+  for(g in 1:group_%_size){ PAR_z_%[g] ~ normal(0, 1); } //random-PAR
   for(n in 1:N)
     counts[n] ~ multinomial(multinomial_p[n]);
 }

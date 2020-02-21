@@ -143,10 +143,15 @@ gamma_to_crit = function(samples, beta_index = 1, gamma_link = 'softmax', s = 2,
     criteria
 }
 
-check_link = function(gamma_link){
-    links = c('softmax', 'log_ratio', 'log_distance', 'parsimonious', 'twoparameter', 'identity')
-    if(!(gamma_link %in% links))
-        stop(paste("The gamma_link function must be one of the following:", links))
+check_link = function(gamma_link, delta_link = NULL){
+    gamma_links = c('softmax', 'log_ratio', 'log_distance', 'parsimonious', 'twoparameter', 'identity')
+    if(!(gamma_link %in% gamma_links))
+        stop(paste("gamma_link must be one of the following:", gamma_links))
+    if(!is.null(delta_link)){
+        delta_links = c('log', 'log_ratio', 'identity')
+        if(!(delta_link %in% delta_links))
+            stop(paste("delta_link must be one of the following:", delta_links))
+    }
 }
 
 check_model = function(model){
