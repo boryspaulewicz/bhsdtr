@@ -1,2 +1,2 @@
-// delta link identity
+//delta_link:identity
 dprim = delta;

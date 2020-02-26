@@ -4,7 +4,12 @@
 \alias{make_stan_model}
 \title{Creates the SDT stan model code.}
 \usage{
-make_stan_model(random = NULL, gamma_link = "softmax", model = "sdt")
+make_stan_model(
+  random = NULL,
+  gamma_link = "softmax",
+  model = "sdt",
+  delta_link = "log"
+)
 }
 \arguments{
 \item{random}{an optional list specifying random effects
@@ -14,7 +19,8 @@ structure. See \code{\link{make_stan_data}} for details.}
 'log_distance', or 'log_ratio' (See the Readme file in the
 github repository)}
 
-\item{model}{can be either 'sdt' (the default), 'uvsdt', or 'metad'}
+\item{model}{can be either 'sdt' (the default), 'uvsdt', 'metad',
+'ordinal', or 'uvordinal'}
 }
 \value{
 a string containing the full model definition in the stan

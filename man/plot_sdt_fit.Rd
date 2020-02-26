@@ -11,7 +11,8 @@ plot_sdt_fit(
   variables = NULL,
   type = "roc",
   alpha = 0.05,
-  bw = TRUE
+  bw = TRUE,
+  verbose = T
 )
 }
 \arguments{

@@ -1,4 +1,4 @@
-// gamma link function log_ratio
+//gamma_link:log_ratio
 criteria[Kb2] = gamma[Kb2]; // main criterion, i.e., bias
 if(K > (Kb2 + 1)){
   // spread
@@ -16,4 +16,3 @@ if(K > (Kb2 + 1)){
     }
   }
  }
-// gamma_link end

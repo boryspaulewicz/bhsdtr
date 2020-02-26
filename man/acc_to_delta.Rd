@@ -5,7 +5,7 @@
 \title{Calculates delta = log(d') given accuracy or accuracy given delta
 assuming no bias and p(stim = 1) = 0.5.}
 \usage{
-acc_to_delta(acc = 0.75, delta = NULL)
+acc_to_delta(acc = 0.75, delta = NULL, crit = 0)
 }
 \arguments{
 \item{acc}{a vector of average accuracy scores. All the values must

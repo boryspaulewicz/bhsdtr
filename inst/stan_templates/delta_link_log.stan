@@ -1,2 +1,2 @@
-// delta link log
+//delta_link:log
 dprim = exp(delta);

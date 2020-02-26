@@ -1,4 +1,6 @@
-# This package is in the stage of active development
+# NEWS 2020 02 26
+
+bhsdtr2 is [here](https://github.com/boryspaulewicz/bhsdtr2)
 
 # NEWS 2020 02 17
 
