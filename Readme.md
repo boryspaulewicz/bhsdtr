@@ -1,3 +1,9 @@
+# NEWS 2020 03 05
+
+This package is no longer maintained. It is going to be available here
+so that the link in the bhsdtr paper works. Go see [the new
+version](https://github.com/boryspaulewicz/bhsdtr2).
+
 # NEWS 2020 02 26
 
 bhsdtr2 is [here](https://github.com/boryspaulewicz/bhsdtr2)
